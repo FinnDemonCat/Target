@@ -1,0 +1,17 @@
+name: 'Raylib'
+description: 'Automatically generated Raylib bindings'
+
+llvm-path:
+  - 'libs/libclang.dll'
+
+headers:
+  entry-points:
+    - 'ffigen/raylib.h'
+
+output: 'libs/raylib.dart'
+
+preamble: |
+  // ignore_for_file: camel_case_types, non_constant_identifier_names
+
+# Adicione isso para ver erros de parsing (ajuda a debugar por que sai vazio)
+ignore-source-errors: true
