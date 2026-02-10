@@ -967,24 +967,24 @@ extern "C" {            // Prevents name mangling of functions
 #endif
 
 // Window-related functions
-RLAPI void InitWindow(int width, int height, const char *title);  // Initialize window and OpenGL context
-RLAPI void CloseWindow(void);                                     // Close window and unload OpenGL context
-RLAPI bool WindowShouldClose(void);                               // Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)
-RLAPI bool IsWindowReady(void);                                   // Check if window has been initialized successfully
-RLAPI bool IsWindowFullscreen(void);                              // Check if window is currently fullscreen
-RLAPI bool IsWindowHidden(void);                                  // Check if window is currently hidden
-RLAPI bool IsWindowMinimized(void);                               // Check if window is currently minimized
-RLAPI bool IsWindowMaximized(void);                               // Check if window is currently maximized
-RLAPI bool IsWindowFocused(void);                                 // Check if window is currently focused
-RLAPI bool IsWindowResized(void);                                 // Check if window has been resized last frame
-RLAPI bool IsWindowState(unsigned int flag);                      // Check if one specific window flag is enabled
-RLAPI void SetWindowState(unsigned int flags);                    // Set window configuration state using flags
-RLAPI void ClearWindowState(unsigned int flags);                  // Clear window configuration state flags
-RLAPI void ToggleFullscreen(void);                                // Toggle window state: fullscreen/windowed, resizes monitor to match window resolution
-RLAPI void ToggleBorderlessWindowed(void);                        // Toggle window state: borderless windowed, resizes window to match monitor resolution
-RLAPI void MaximizeWindow(void);                                  // Set window state: maximized, if resizable
-RLAPI void MinimizeWindow(void);                                  // Set window state: minimized, if resizable
-RLAPI void RestoreWindow(void);                                   // Restore window from being minimized/maximized
+// RLAPI void InitWindow(int width, int height, const char *title);  // Initialize window and OpenGL context
+// RLAPI void CloseWindow(void);                                     // Close window and unload OpenGL context
+// RLAPI bool WindowShouldClose(void);                               // Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)
+// RLAPI bool IsWindowReady(void);                                   // Check if window has been initialized successfully
+// RLAPI bool IsWindowFullscreen(void);                              // Check if window is currently fullscreen
+// RLAPI bool IsWindowHidden(void);                                  // Check if window is currently hidden
+// RLAPI bool IsWindowMinimized(void);                               // Check if window is currently minimized
+// RLAPI bool IsWindowMaximized(void);                               // Check if window is currently maximized
+// RLAPI bool IsWindowFocused(void);                                 // Check if window is currently focused
+// RLAPI bool IsWindowResized(void);                                 // Check if window has been resized last frame
+// RLAPI bool IsWindowState(unsigned int flag);                      // Check if one specific window flag is enabled
+// RLAPI void SetWindowState(unsigned int flags);                    // Set window configuration state using flags
+// RLAPI void ClearWindowState(unsigned int flags);                  // Clear window configuration state flags
+// RLAPI void ToggleFullscreen(void);                                // Toggle window state: fullscreen/windowed, resizes monitor to match window resolution
+// RLAPI void ToggleBorderlessWindowed(void);                        // Toggle window state: borderless windowed, resizes window to match monitor resolution
+// RLAPI void MaximizeWindow(void);                                  // Set window state: maximized, if resizable
+// RLAPI void MinimizeWindow(void);                                  // Set window state: minimized, if resizable
+// RLAPI void RestoreWindow(void);                                   // Restore window from being minimized/maximized
 RLAPI void SetWindowIcon(Image image);                            // Set icon for window (single image, RGBA 32bit)
 RLAPI void SetWindowIcons(Image *images, int count);              // Set icon for window (multiple images, RGBA 32bit)
 RLAPI void SetWindowTitle(const char *title);                     // Set title for window
@@ -1333,17 +1333,17 @@ RLAPI Rectangle GetCollisionRec(Rectangle rec1, Rectangle rec2);                
 
 // Image loading functions
 // NOTE: These functions do not require GPU access
-RLAPI Image LoadImage(const char *fileName);                                                             // Load image from file into CPU memory (RAM)
-RLAPI Image LoadImageRaw(const char *fileName, int width, int height, int format, int headerSize);       // Load image from RAW file data
-RLAPI Image LoadImageAnim(const char *fileName, int *frames);                                            // Load image sequence from file (frames appended to image.data)
-RLAPI Image LoadImageAnimFromMemory(const char *fileType, const unsigned char *fileData, int dataSize, int *frames); // Load image sequence from memory buffer
-RLAPI Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, int dataSize);      // Load image from memory buffer, fileType refers to extension: i.e. '.png'
-RLAPI Image LoadImageFromTexture(Texture2D texture);                                                     // Load image from GPU texture data
-RLAPI Image LoadImageFromScreen(void);                                                                   // Load image from screen buffer and (screenshot)
-RLAPI bool IsImageValid(Image image);                                                                    // Check if an image is valid (data and parameters)
-RLAPI void UnloadImage(Image image);                                                                     // Unload image from CPU memory (RAM)
-RLAPI bool ExportImage(Image image, const char *fileName);                                               // Export image data to file, returns true on success
-RLAPI unsigned char *ExportImageToMemory(Image image, const char *fileType, int *fileSize);              // Export image to memory buffer
+// RLAPI Image LoadImage(const char *fileName);                                                             // Load image from file into CPU memory (RAM)
+// RLAPI Image LoadImageRaw(const char *fileName, int width, int height, int format, int headerSize);       // Load image from RAW file data
+// RLAPI Image LoadImageAnim(const char *fileName, int *frames);                                            // Load image sequence from file (frames appended to image.data)
+// RLAPI Image LoadImageAnimFromMemory(const char *fileType, const unsigned char *fileData, int dataSize, int *frames); // Load image sequence from memory buffer
+// RLAPI Image LoadImageFromMemory(const char *fileType, const unsigned char *fileData, int dataSize);      // Load image from memory buffer, fileType refers to extension: i.e. '.png'
+// RLAPI Image LoadImageFromTexture(Texture2D texture);                                                     // Load image from GPU texture data
+// RLAPI Image LoadImageFromScreen(void);                                                                   // Load image from screen buffer and (screenshot)
+// RLAPI bool IsImageValid(Image image);                                                                    // Check if an image is valid (data and parameters)
+// RLAPI void UnloadImage(Image image);                                                                     // Unload image from CPU memory (RAM)
+// RLAPI bool ExportImage(Image image, const char *fileName);                                               // Export image data to file, returns true on success
+// RLAPI unsigned char *ExportImageToMemory(Image image, const char *fileType, int *fileSize);              // Export image to memory buffer
 RLAPI bool ExportImageAsCode(Image image, const char *fileName);                                         // Export image as code file defining an array of bytes, returns true on success
 
 // Image generation functions

@@ -1,24 +1,26 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
+import 'dart:io';
 
 abstract interface class Disposeable
 {
-	void dispose();
+  void dispose();
 }
 
 // C memory resourcers manager class
 class NativeResource<T extends NativeType> implements Disposeable {
-	final Pointer<T> pointer;
-	NativeResource(this.pointer);
+  final Pointer<T> pointer;
+  NativeResource(this.pointer);
 
-	bool get isDisposed { return pointer.address == 0; }
+  bool get isDisposed { return pointer.address == 0; }
 
-	@override
-	void dispose()
-	{
-		if (!isDisposed)
-			calloc.free(this.pointer);
-	}
+  @override
+  void dispose()
+  {
+    if (!isDisposed)
+      malloc.free(this.pointer);
+  }
 }
 
 const int RAYLIB_VERSION_MAJOR = 5;
@@ -37,61 +39,60 @@ const double RAD2DEG = (180.0/PI);
 // Vector2, 2 components
 final class Vector2 extends Struct
 {
-	@Float() external double x;          // Vector x component
-	@Float() external double y;          // Vector y component
+  @Float() external double x;          // Vector x component
+  @Float() external double y;          // Vector y component
 
-	// ignore: unused_element
-	static NativeResource<Vector2> NewVector2(double x, double y)
-	{
-		Pointer<Vector2> placeholder = calloc<Vector2>();
-		placeholder.ref
-		..x = x
-		..y = y;
+  /* static NativeResource<Vector2> NewVector2(double x, double y)
+  {
+    Pointer<Vector2> placeholder = calloc<Vector2>();
+    placeholder.ref
+    ..x = x
+    ..y = y;
 
-		return NativeResource(placeholder);
-	}
+    return NativeResource(placeholder);
+  } */
 }
 
 // Vector3, 3 components
 final class Vector3 extends Struct
 {
-	@Float() external double x;          // Vector x component
-	@Float() external double y;          // Vector y component
-	@Float() external double z;          // Vector z component
+  @Float() external double x;          // Vector x component
+  @Float() external double y;          // Vector y component
+  @Float() external double z;          // Vector z component
 
-	// ignore: unused_element
-	static NativeResource<Vector3> NewVector3(double x, double y, double z)
-	{
-		Pointer<Vector3> placeholder = calloc<Vector3>();
-		placeholder.ref
-		..x = x
-		..y = y
-		..z = z;
+  // ignore: unused_element
+  /* static NativeResource<Vector3> NewVector3(double x, double y, double z)
+  {
+    Pointer<Vector3> placeholder = calloc<Vector3>();
+    placeholder.ref
+    ..x = x
+    ..y = y
+    ..z = z;
 
-		return NativeResource(placeholder);
-	}
+    return NativeResource(placeholder);
+  } */
 }
 
 // Vector4, 4 components
 final class Vector4 extends Struct
 {
-	@Float() external double x;          // Vector x component
-	@Float() external double y;          // Vector y component
-	@Float() external double z;          // Vector z component
-	@Float() external double w;          // Vector w component
+  @Float() external double x;          // Vector x component
+  @Float() external double y;          // Vector y component
+  @Float() external double z;          // Vector z component
+  @Float() external double w;          // Vector w component
 
-	// ignore: unused_element
-	static NativeResource<Vector4> NewVector4(double x, double y, double z, double w)
-	{
-		Pointer<Vector4> placeholder = calloc<Vector4>();
-		placeholder.ref
-		..x = x
-		..y = y
-		..z = z
-		..w = w;
+  // ignore: unused_element
+  /* static NativeResource<Vector4> NewVector4(double x, double y, double z, double w)
+  {
+    Pointer<Vector4> placeholder = calloc<Vector4>();
+    placeholder.ref
+    ..x = x
+    ..y = y
+    ..z = z
+    ..w = w;
 
-		return NativeResource(placeholder);
-	}
+    return NativeResource(placeholder);
+  } */
 }
 
 // Quaternion, 4 components (Vector4 alias)
@@ -101,121 +102,121 @@ typedef Quaternion = Vector4;
 // ToDO: Implement native Raylib Matrix constructors inside struct
 final class Matrix extends Struct
 {
-	@Float() external double m0; @Float() external double m4; @Float() external double m8;  @Float() external double m12;
-	@Float() external double m1; @Float() external double m5; @Float() external double m9;  @Float() external double m13;
-	@Float() external double m2; @Float() external double m6; @Float() external double m10; @Float() external double m14;
-	@Float() external double m3; @Float() external double m7; @Float() external double m11; @Float() external double m15;
+  @Float() external double m0; @Float() external double m4; @Float() external double m8;  @Float() external double m12;
+  @Float() external double m1; @Float() external double m5; @Float() external double m9;  @Float() external double m13;
+  @Float() external double m2; @Float() external double m6; @Float() external double m10; @Float() external double m14;
+  @Float() external double m3; @Float() external double m7; @Float() external double m11; @Float() external double m15;
 }
 
 // Color, 4 components, R8G8B8A8 (32bit)
 // Use Colors.NewColor to instantiate a new Color
 final class Color extends Struct
 {
-	@Uint8() external int r;             // Color red value
-	@Uint8() external int g;             // Color green value
-	@Uint8() external int b;             // Color blue value
-	@Uint8() external int a;             // Color alpha value
+  @Uint8() external int r;             // Color red value
+  @Uint8() external int g;             // Color green value
+  @Uint8() external int b;             // Color blue value
+  @Uint8() external int a;             // Color alpha value
 
-	static NativeResource<Color> _create(int r, int g, int b, int a)
-	{
-		Pointer<Color> placeholder = calloc<Color>();
-		placeholder.ref
-		..r = r
-		..g = g
-		..b = b
-		..a = a;
+  static NativeResource<Color> _create(int r, int g, int b, int a)
+  {
+    Pointer<Color> placeholder = calloc<Color>();
+    placeholder.ref
+    ..r = r
+    ..g = g
+    ..b = b
+    ..a = a;
 
-		return NativeResource<Color>(placeholder);
-	}
+    return NativeResource<Color>(placeholder);
+  }
 }
 
 // Equivalent to typedef definitions of Default Raylib colors
 // Default members's pointers are held on the class. Call dispose() to clean memory
 final class Colors implements Disposeable
 {
-	static final Pointer<Color> LIGHTGRAY  = NewColor(200, 200, 200, 255);
-	static final Pointer<Color> GRAY       = NewColor(130, 130, 130, 255);
-	static final Pointer<Color> DARKGRAY   = NewColor( 80,  80,  80, 255);
-	static final Pointer<Color> YELLOW     = NewColor( 53, 249,   0, 255);
-	static final Pointer<Color> GOLD       = NewColor(255, 203,   0, 255);
-	static final Pointer<Color> ORANGE     = NewColor(255, 161,   0, 255);
-	static final Pointer<Color> PINK       = NewColor(255, 109, 194, 255);
-	static final Pointer<Color> RED        = NewColor(230,  41,  55, 255);
-	static final Pointer<Color> MAROON     = NewColor(190,  33,  55, 255);
-	static final Pointer<Color> GREEN      = NewColor(  0, 228,  48, 255);
-	static final Pointer<Color> LIME       = NewColor(  0, 158,  47, 255);
-	static final Pointer<Color> DARKGREEN  = NewColor(  0, 117,  44, 255);
-	static final Pointer<Color> SKYBLUE    = NewColor(102, 191, 255, 255);
-	static final Pointer<Color> BLUE       = NewColor(  0, 121, 241, 255);
-	static final Pointer<Color> DARKBLUE   = NewColor(  0,  82, 172, 255);
-	static final Pointer<Color> VIOLET     = NewColor(135,  60, 190, 255);
-	static final Pointer<Color> DARKPURPLE = NewColor(112,  31, 126, 255);
-	static final Pointer<Color> BEIGE      = NewColor(211, 176, 131, 255);
-	static final Pointer<Color> BROWN      = NewColor(127, 106,  79, 255);
-	static final Pointer<Color> DARKBROWN  = NewColor( 76,  63,  47, 255);
-	static final Pointer<Color> WHITE      = NewColor(255, 255, 255, 255);
-	static final Pointer<Color> BLACK      = NewColor(  0,   0,   0, 255);
-	static final Pointer<Color> BLANK      = NewColor(  0,   0,   0,   0); // Transparent
-	static final Pointer<Color> RAYWHITE   = NewColor(245, 245, 245, 255);
+  static final Pointer<Color> LIGHTGRAY  = NewColor(200, 200, 200, 255);
+  static final Pointer<Color> GRAY       = NewColor(130, 130, 130, 255);
+  static final Pointer<Color> DARKGRAY   = NewColor( 80,  80,  80, 255);
+  static final Pointer<Color> YELLOW     = NewColor( 53, 249,   0, 255);
+  static final Pointer<Color> GOLD       = NewColor(255, 203,   0, 255);
+  static final Pointer<Color> ORANGE     = NewColor(255, 161,   0, 255);
+  static final Pointer<Color> PINK       = NewColor(255, 109, 194, 255);
+  static final Pointer<Color> RED        = NewColor(230,  41,  55, 255);
+  static final Pointer<Color> MAROON     = NewColor(190,  33,  55, 255);
+  static final Pointer<Color> GREEN      = NewColor(  0, 228,  48, 255);
+  static final Pointer<Color> LIME       = NewColor(  0, 158,  47, 255);
+  static final Pointer<Color> DARKGREEN  = NewColor(  0, 117,  44, 255);
+  static final Pointer<Color> SKYBLUE    = NewColor(102, 191, 255, 255);
+  static final Pointer<Color> BLUE       = NewColor(  0, 121, 241, 255);
+  static final Pointer<Color> DARKBLUE   = NewColor(  0,  82, 172, 255);
+  static final Pointer<Color> VIOLET     = NewColor(135,  60, 190, 255);
+  static final Pointer<Color> DARKPURPLE = NewColor(112,  31, 126, 255);
+  static final Pointer<Color> BEIGE      = NewColor(211, 176, 131, 255);
+  static final Pointer<Color> BROWN      = NewColor(127, 106,  79, 255);
+  static final Pointer<Color> DARKBROWN  = NewColor( 76,  63,  47, 255);
+  static final Pointer<Color> WHITE      = NewColor(255, 255, 255, 255);
+  static final Pointer<Color> BLACK      = NewColor(  0,   0,   0, 255);
+  static final Pointer<Color> BLANK      = NewColor(  0,   0,   0,   0); // Transparent
+  static final Pointer<Color> RAYWHITE   = NewColor(245, 245, 245, 255);
 
-	static List<NativeResource> _allocs = [];
+  static List<NativeResource> _allocs = [];
 
-	static Pointer<Color> NewColor(int r, int g, int b, int a)
-	{
-		NativeResource<Color> placeholder = Color._create(r, g, b, a); 
-		_allocs.add(placeholder);
+  static Pointer<Color> NewColor(int r, int g, int b, int a)
+  {
+    NativeResource<Color> placeholder = Color._create(r, g, b, a); 
+    _allocs.add(placeholder);
 
-		return placeholder.pointer;
-	}
+    return placeholder.pointer;
+  }
 
-	@override
-	void dispose() {
-		for(NativeResource pointer in _allocs)
-		{
-			pointer.dispose();
-		}
-	}
+  @override
+  void dispose() {
+    for(NativeResource pointer in _allocs)
+    {
+      pointer.dispose();
+    }
+  }
 }
 
 // Rectangle, 4 components
 final class Rectangle extends Struct
 {
-	@Float() external double x;          // Rectangle top-left corner position x
-	@Float() external double y;          // Rectangle top-left corner position y
-	@Float() external double width;      // Rectangle width
-	@Float() external double height;     // Rectangle height
+  @Float() external double x;          // Rectangle top-left corner position x
+  @Float() external double y;          // Rectangle top-left corner position y
+  @Float() external double width;      // Rectangle width
+  @Float() external double height;     // Rectangle height
 
-	static NativeResource<Rectangle> NewRectangle(double x, double y, double width, double height)
-	{
-		Pointer<Rectangle> placeholder = calloc<Rectangle>();
-		placeholder.ref
-		..x      = x
-		..y      = y
-		..width  = width
-		..height = height;
+  /* static NativeResource<Rectangle> NewRectangle(double x, double y, double width, double height)
+  {
+    Pointer<Rectangle> placeholder = calloc<Rectangle>();
+    placeholder.ref
+    ..x      = x
+    ..y      = y
+    ..width  = width
+    ..height = height;
 
-		return NativeResource(placeholder);
-	}
+    return NativeResource(placeholder);
+  } */
 }
 
 // Image, pixel data stored in CPU memory (RAM)
-final class Image extends Struct
+final class _Image extends Struct
 {
-	external Pointer<Void> data;         // Image raw data
-	@Int32() external int width;         // Image base width
-	@Int32() external int height;        // Image base height
-	@Int32() external int mipmaps;       // Mipmap levels, 1 by default
-	@Int32() external int format;        // Data format (PixelFormat type)
+  external Pointer<Void> data;         // Image raw data
+  @Int32() external int width;         // Image base width
+  @Int32() external int height;        // Image base height
+  @Int32() external int mipmaps;       // Mipmap levels, 1 by default
+  @Int32() external int format;        // Data format (PixelFormat type)
 }
 
 // Texture, tex data stored in GPU memory (VRAM)
 final class Texture extends Struct
 {
-	@Uint32() external int id;           // OpenGL texture id
-	@Int32()  external int width;        // Texture base width
-	@Int32()  external int heigth;       // Texture base height
-	@Int32()  external int mipmaps;      // Mipmap levels, 1 by default
-	@Int32()  external int format;       // Data format (PixelFormat type)
+  @Uint32() external int id;           // OpenGL texture id
+  @Int32()  external int width;        // Texture base width
+  @Int32()  external int heigth;       // Texture base height
+  @Int32()  external int mipmaps;      // Mipmap levels, 1 by default
+  @Int32()  external int format;       // Data format (PixelFormat type)
 }
 
 // Texture2D, same as Texture
@@ -227,9 +228,9 @@ typedef TextureCubemap = Texture;
 // RenderTexture, fbo for texture rendering
 final class RenderTexture extends Struct
 {
-	@Uint32() external int id;           // OpenGL framebuffer object id
-	external Texture texture;   // Color buffer attachment texture
-	external Texture depth;     // Depth buffer attachment texture
+  @Uint32() external int id;           // OpenGL framebuffer object id
+  external Texture texture;   // Color buffer attachment texture
+  external Texture depth;     // Depth buffer attachment texture
 }
 
 // RenderTexture2D, same as RenderTexture
@@ -239,43 +240,43 @@ typedef RenderTexture2D = RenderTexture;
 // ToDO: Implement constructor functions as native of the class
 final class NPatchInfo extends Struct
 {
-	external Rectangle source;  // Texture source rectangle
-	@Int32() external int left;          // Left border offset
-	@Int32() external int top;           // Top border offset
-	@Int32() external int right;         // Right border offset
-	@Int32() external int bottom;        // Bottom border offset
-	@Int32() external int layout;        // Layout of the n-patch: 3x3, 1x3 or 3x1
+  external Rectangle source;  // Texture source rectangle
+  @Int32() external int left;          // Left border offset
+  @Int32() external int top;           // Top border offset
+  @Int32() external int right;         // Right border offset
+  @Int32() external int bottom;        // Bottom border offset
+  @Int32() external int layout;        // Layout of the n-patch: 3x3, 1x3 or 3x1
 }
 
 // GlyphInfo, font characters glyphs info
 final class GlyphInfo extends Struct
 {
-	@Int32() external int value;         // Character value (Unicode)
-	@Int32() external int offsetX;       // Character offset X when drawing
-	@Int32() external int offsetY;       // Character offset Y when drawing
-	@Int32() external int advanceX;      // Character advance position X
-	external Image image;       // Character image data
+  @Int32() external int value;         // Character value (Unicode)
+  @Int32() external int offsetX;       // Character offset X when drawing
+  @Int32() external int offsetY;       // Character offset Y when drawing
+  @Int32() external int advanceX;      // Character advance position X
+  external _Image image;       // Character image data
 }
 
 // Font, font texture and GlyphInfo array data
 final class Font extends Struct
 {
-	@Int32() external int baseSize;      // Base size (default chars height)
-	@Int32() external int glyphCount;    // Number of glyph characters
-	@Int32() external int glyphPadding;  // Padding around the glyph characters
-	external Texture texture;   // Texture atlas containing the glyphs
-	external Rectangle recs;    // Rectangles in texture for the glyphs. It's a pointer by default on Raylib
-	external GlyphInfo glyphs;  // Glyphs info data. It's a pointer by default on Raylib
+  @Int32() external int baseSize;      // Base size (default chars height)
+  @Int32() external int glyphCount;    // Number of glyph characters
+  @Int32() external int glyphPadding;  // Padding around the glyph characters
+  external Texture texture;   // Texture atlas containing the glyphs
+  external Rectangle recs;    // Rectangles in texture for the glyphs. It's a pointer by default on Raylib
+  external GlyphInfo glyphs;  // Glyphs info data. It's a pointer by default on Raylib
 }
 
 // Camera, defines position/orientation in 3d space
 final class Camera3D extends Struct
 {
-	external Vector3 position;  // Camera position
-	external Vector3 target;    // Camera target it looks-at
-	external Vector3 up;        // Camera up vector (rotation over its axis)
-	@Float() external double fovy;       // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane height in world units in orthographic
-	@Int32() external int projection;    // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
+  external Vector3 position;  // Camera position
+  external Vector3 target;    // Camera target it looks-at
+  external Vector3 up;        // Camera up vector (rotation over its axis)
+  @Float() external double fovy;       // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane height in world units in orthographic
+  @Int32() external int projection;    // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
 }
 
 typedef Camera = Camera3D;             // Camera type fallback, defaults to Camera3D
@@ -283,52 +284,52 @@ typedef Camera = Camera3D;             // Camera type fallback, defaults to Came
 // Camera2D, defines position/orientation in 2d space
 final class Camera2D extends Struct
 {
-	external Vector2 offset;    // Camera offset (screen space offset from window origin)
-	external Vector2 target;    // Camera target (world space target point that is mapped to screen space offset)
-	@Float() external double rotation;   // Camera rotation in degrees (pivots around target)
-	@Float() external double zoom;       // Camera zoom (scaling around target), must not be set to 0, set to 1.0f for no scale
+  external Vector2 offset;    // Camera offset (screen space offset from window origin)
+  external Vector2 target;    // Camera target (world space target point that is mapped to screen space offset)
+  @Float() external double rotation;   // Camera rotation in degrees (pivots around target)
+  @Float() external double zoom;       // Camera zoom (scaling around target), must not be set to 0, set to 1.0f for no scale
 }
 
 // Mesh, vertex data and vao/vbo
 final class Mesh extends Struct
 {
-	@Int32() external int vertexCount;   // Number of vertices stored in arrays
-	@Int32() external int triagleCoung;  // Number of triangles stored (indexed or not)
+  @Int32() external int vertexCount;   // Number of vertices stored in arrays
+  @Int32() external int triagleCoung;  // Number of triangles stored (indexed or not)
 
-	// Vertex attributes data
-	external Pointer<Float> vertices;    // Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
-	external Pointer<Float> texcoords;   // Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
-	external Pointer<Float> texcoords2;  // Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5)
-	external Pointer<Float> normals;     // Vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
-	external Pointer<Float> tangents;    // Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
-	external Pointer<Uint8> colors;      // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
-	external Pointer<Uint16> indices;    // Vertex indices (in case vertex data comes indexed)
+  // Vertex attributes data
+  external Pointer<Float> vertices;    // Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
+  external Pointer<Float> texcoords;   // Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
+  external Pointer<Float> texcoords2;  // Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5)
+  external Pointer<Float> normals;     // Vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
+  external Pointer<Float> tangents;    // Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
+  external Pointer<Uint8> colors;      // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+  external Pointer<Uint16> indices;    // Vertex indices (in case vertex data comes indexed)
 
-	// Animation vertex data
-	external Pointer<Float> animVertices;// Animated vertex positions (after bones transformations)
-	external Pointer<Float> animNormals; // Animated normals (after bones transformations)
-	external Pointer<Uint8> boneIds;     // Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
-	external Pointer<Float> boneWeights; // Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
-	external Pointer<Matrix> boneMatrices; // Bones animated transformation matrices
-	@Int32() external int boneCount;     // Number of bones
+  // Animation vertex data
+  external Pointer<Float> animVertices;// Animated vertex positions (after bones transformations)
+  external Pointer<Float> animNormals; // Animated normals (after bones transformations)
+  external Pointer<Uint8> boneIds;     // Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
+  external Pointer<Float> boneWeights; // Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
+  external Pointer<Matrix> boneMatrices; // Bones animated transformation matrices
+  @Int32() external int boneCount;     // Number of bones
 
-	@Uint32() external int vaoID;        // OpenGL Vertex Array Object id
-	external Pointer<Int32> vboId;       // OpenGL Vertex Buffer Objects id (default vertex data)
+  @Uint32() external int vaoID;        // OpenGL Vertex Array Object id
+  external Pointer<Int32> vboId;       // OpenGL Vertex Buffer Objects id (default vertex data)
 }
 
 // Shader
 final class Shader extends Struct
 {
-	@Uint32() external int id;           // Shader program id
-	external Pointer<Int32> locs;        // Shader locations array (RL_MAX_SHADER_LOCATIONS)
+  @Uint32() external int id;           // Shader program id
+  external Pointer<Int32> locs;        // Shader locations array (RL_MAX_SHADER_LOCATIONS)
 }
 
 // MaterialMap
 final class MaterialMap extends Struct
 {
-	external Texture2D texture;          // Material shader
-	external Color color;                // Material map color
-	@Float() external double value;      // Material map value
+  external Texture2D texture;          // Material shader
+  external Color color;                // Material map color
+  @Float() external double value;      // Material map value
 }
 
 // Material, includes shader and maps
@@ -913,6 +914,464 @@ enum CameraMode {
 //------------------------------------------------------------------------------------
 // It's lonely here...
 
+
+//------------------------------------------------------------------------------------
+// Initializing Dynamic Library
+//------------------------------------------------------------------------------------
+
+final DynamicLibrary _dylib = _load();
+
+DynamicLibrary _load()
+{
+  if (Platform.isWindows) return DynamicLibrary.open('raylib.dll');
+  if (Platform.isLinux) return DynamicLibrary.open('raylib.so');
+  if (Platform.isMacOS) return DynamicLibrary.open('raylib.dylib');
+
+  throw UnsupportedError("Operational system not supported");
+}
+
 //------------------------------------------------------------------------------------
 // Window and Graphics Device Functions (Module: core)
 //------------------------------------------------------------------------------------
+
+typedef _InitWindowRay  = Void Function(Int32, Int32, Pointer<Utf8>);
+typedef _InitWindowDart = void Function(int, int, Pointer<Utf8>);
+final _initWindow = _dylib.lookupFunction<_InitWindowRay, _InitWindowDart>('InitWindow');
+
+typedef _CloseWindowRay = Void Function();
+typedef _CloseWindowDart = void Function();
+final _closeWindow = _dylib.lookupFunction<_CloseWindowRay, _CloseWindowDart>('CloseWindow');
+
+typedef _WindowShouldCloseRay = Bool Function();
+typedef _WindowShouldCloseDart = bool Function();
+final _windowShouldClose = _dylib.lookupFunction<_WindowShouldCloseRay, _WindowShouldCloseDart>('WindowShouldClose');
+
+typedef _IsWindowReadyRay = Bool Function();
+typedef _IsWindowReadyDart = bool Function();
+final _isWindowReady = _dylib.lookupFunction<_IsWindowReadyRay, _IsWindowReadyDart>('IsWindowReady');
+
+typedef _IsFullScreenRay = Bool Function();
+typedef _IsFullScreenDart = bool Function();
+final _isFullScreen = _dylib.lookupFunction<_IsFullScreenRay, _IsFullScreenDart>('IsWindowFullscreen');
+
+typedef _IsHiddenRay = Bool Function();
+typedef _IsHiddenDart = bool Function();
+final _isHidden = _dylib.lookupFunction<_IsHiddenRay, _IsHiddenDart>('IsWindowHidden');
+
+typedef _IsMinimizedRay = Bool Function();
+typedef _IsMinimizedDart = bool Function();
+final _isMinimized = _dylib.lookupFunction<_IsMinimizedRay, _IsMinimizedDart>('IsWindowMinimized');
+
+typedef _IsMaximizedRay = Bool Function();
+typedef _IsMaximizedDart = bool Function();
+final _isMaximized = _dylib.lookupFunction<_IsMaximizedRay, _IsMaximizedDart>('IsWindowMaximized');
+
+typedef _IsFocusedRay = Bool Function();
+typedef _IsFocusedDart = bool Function();
+final _isFocused = _dylib.lookupFunction<_IsFocusedRay, _IsFocusedDart>('symbolName');
+
+typedef _IsWindowResizedRay = Bool Function();
+typedef _IsWindowResizedDart = bool Function();
+final _isResized = _dylib.lookupFunction<_IsWindowResizedRay, _IsWindowResizedDart>('IsWindowResized');
+
+typedef _IsWindowStateRay = Bool Function(Uint32);
+typedef _IsWindowStateDart = bool Function(int);
+final _isWindowState = _dylib.lookupFunction<_IsWindowStateRay, _IsWindowStateDart>('IsWindowState');
+//ConfigFlags
+
+typedef _SetWindowStateRay = Void Function(Uint32);
+typedef _SetWindowStateDart = void Function(int);
+final _setWindowState = _dylib.lookupFunction<_SetWindowStateRay, _SetWindowStateDart>('SetWindowState');
+
+typedef _ClearWindowStateRay = Void Function(Uint32);
+typedef _ClearWindowStateDart = void Function(int);
+final _clearWindowState = _dylib.lookupFunction<_ClearWindowStateRay, _ClearWindowStateDart>('ClearWindowState');
+
+typedef _ToggleFullscreenRay = Void Function();
+typedef _ToggleFullscreenDart = void Function();
+final _toggleFullscreen = _dylib.lookupFunction<_ToggleFullscreenRay, _ToggleFullscreenDart>('ToggleFullscreen');
+
+typedef _ToggleBorderlessWindowedRay = Void Function();
+typedef _ToggleBorderlessWindowedDart = void Function();
+final _toggleBorderlessWindowed = _dylib.lookupFunction<_ToggleBorderlessWindowedRay, _ToggleBorderlessWindowedDart>('ToggleBorderlessWindowed');
+
+typedef _MaximizeWindowRay = Void Function();
+typedef _MaximizeWindowDart = void Function();
+final _maximizeWindow = _dylib.lookupFunction<_MaximizeWindowRay, _MaximizeWindowDart>('MaximizeWindow');
+
+typedef _MinimizeWindowRay = Void Function();
+typedef _MinimizeWindowDart = void Function();
+final _minimizeWindow = _dylib.lookupFunction<_MinimizeWindowRay, _MinimizeWindowDart>('MinimizeWindow');
+
+typedef _RestoreWindowRay = Void Function();
+typedef _RestoreWindowDart = void Function();
+final _restoreWindow = _dylib.lookupFunction<_RestoreWindowRay, _RestoreWindowDart>('RestoreWindow');
+/* 
+typedef _SetWindowIconRay = Void Function(Image);
+typedef _SetWindowIconDart = void Function(Image);
+final _setWindowIcon = _dylib.lookupFunction<_SetWindowIconRay, _SetWindowIconDart>('SetWindowIcon');
+
+typedef _SetWindowIconsRay = Void Function(Pointer<Image>, Int32);
+typedef _SetWindowIconsDart = void Function(Pointer<Image>, int);
+final _setWindowIcons = _dylib.lookupFunction<_SetWindowIconsRay, _SetWindowIconsDart>('SetWindowIcons');
+
+typedef _SetWindowTitleRay = Void Function(Pointer<Utf8>);
+typedef _SetWindowTitleDart = void Function(Pointer<Utf8>);
+final _setWindowTitle = _dylib.lookupFunction<_SetWindowTitleRay, _SetWindowTitleDart>('SetWindowTitle');
+
+typedef _SetWindowPositionRay = Void Function(Int32, Int32);
+typedef _SetWindowPositionDart = void Function(int, int);
+final _setWindowPosition = _dylib.lookupFunction<_SetWindowPositionRay, _SetWindowPositionDart>('SetWindowPosition');
+
+typedef _SetWindowMonitorRay = Void Function(Int32);
+typedef _SetWindowMonitorDart = void Function(int);
+final _setWindowMonitor = _dylib.lookupFunction<_SetWindowMonitorRay, _SetWindowMonitorDart>('SetWindowMonitor');
+
+typedef _SetWindowMinSizeRay = Void Function(Int32, Int32);
+typedef _SetWindowMinSizeDart = void Function(int, int);
+final _setWindowMinSize = _dylib.lookupFunction<_SetWindowMinSizeRay, _SetWindowMinSizeDart>('SetWindowMinSize');
+
+typedef _SetWindowMaxSizeRay = Void Function(Int32, Int32);
+typedef _SetWindowMaxSizeDart = void Function(int, int);
+final _setWindowMaxSize = _dylib.lookupFunction<_SetWindowMaxSizeRay, _SetWindowMaxSizeDart>('SetWindowMaxSize');
+
+typedef _SetWindowSizeRay = Void Function(Int32, Int32);
+typedef _SetWindowSizeDart = void Function(int, int);
+final _setWindowSize = _dylib.lookupFunction<_SetWindowSizeRay, _SetWindowSizeDart>('SetWindowSize');
+
+typedef _SetWindowOpacityRay = Void Function(Float);
+typedef _SetWindowOpacityDart = void Function(double);
+final _setWindowOpacity = _dylib.lookupFunction<_SetWindowOpacityRay, _SetWindowOpacityDart>('SetWindowOpacity');
+
+typedef _SetWindowFocusedRay = Void Function();
+typedef _SetWindowFocusedDart = void Function();
+final _setWindowFocused = _dylib.lookupFunction<_SetWindowFocusedRay, _SetWindowFocusedDart>('SetWindowFocused');
+ */
+// Window-related functions
+abstract class Window
+{
+  // Initialize window and OpenGL context
+  static void Init(int width, int height, String title)
+  {
+    final cTitle = title.toNativeUtf8();
+
+    _initWindow(width, height, cTitle);
+
+    malloc.free(cTitle);
+  }
+  /// Close window and unload OpenGL context
+  static void Close() => _closeWindow();            
+  /// Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)      
+  static bool ShouldClose() => _windowShouldClose();
+  /// Check if window has been initialized successfully
+  static bool IsReady() => _isWindowReady();
+  /// Check if window is currently fullscreen
+  static bool IsFullScreen() => _isFullScreen();
+  /// Check if window is currently hidden
+  static bool IsHidden() => _isHidden();
+  /// Check if window is currently minimized
+  static bool IsMinimized() => _isMinimized();
+  /// Check if window is currently maximized
+  static bool IsMaximized() => _isMaximized();
+  /// Check if window is currently focused
+  static bool IsFocused() => _isFocused();
+  /// Check if window has been resized last frame
+  static bool IsResized() => _isResized();
+  /// Check if one specific window flag is enabled
+  /// 
+  /// The parameter `flag` expects a ConfigFlags value
+  static bool IsState(int flag) => _isWindowState(flag) != 0;
+  /// Set window configuration state using flags
+  /// 
+  /// The parameter `flag` expects a ConfigFlags value
+  static void SetState(int flag) => _setWindowState(flag);
+  /// Clear window configuration state flags
+  /// 
+  /// The parameter `flag` expects a ConfigFlags value
+  static void ClearState(int flag) => _clearWindowState(flag);
+  /// Toggle window state: fullscreen/windowed, resizes monitor to match window resolution
+  static void ToggleFullscreen() => _toggleFullscreen();
+  /// Toggle window state: borderless windowed, resizes window to match monitor resolution
+  static void ToggleBorderlessWindowed() => _toggleBorderlessWindowed();
+  /// Set window state: maximized, if resizable
+  static void Maximize() => _maximizeWindow();
+  /// Set window state: minimized, if resizable
+  static void Minimize() => _minimizeWindow();
+  /// Restore window from being minimized/maximized
+  static void Restore() => _restoreWindow();
+
+  static void SetIcon(Image image)
+  {
+    // Here it starts the NativeResource logic
+    // A problem to future me
+    // Use the binding generator on the python folder
+  }
+}
+
+typedef _LoadImageRay = _Image Function(Pointer<Utf8>);
+typedef _LoadImageDart = _Image Function(Pointer<Utf8>);
+final _loadImage = _dylib.lookupFunction<_LoadImageRay, _LoadImageDart>('LoadImage');
+
+typedef _LoadImageRawRay = _Image Function(Pointer<Utf8>, Int32, Int32, Int32, Int32);
+typedef _LoadImageRawDart = _Image Function(Pointer<Utf8>, int, int, int, int);
+final _loadImageRaw = _dylib.lookupFunction<_LoadImageRawRay, _LoadImageRawDart>('LoadImageRaw');
+
+typedef _LoadImageAnimRay = _Image Function(Pointer<Utf8>, Pointer<Int32>);
+typedef _LoadImageAnimDart = _Image Function(Pointer<Utf8>, Pointer<Int32>);
+final _loadImageAnim = _dylib.lookupFunction<_LoadImageAnimRay, _LoadImageAnimDart>('LoadImageAnim');
+
+typedef _LoadImageAnimFromMemoryRay = _Image Function(Pointer<Utf8>, Pointer<Uint8>, Int32, Pointer<Int32>);
+typedef _LoadImageAnimFromMemoryDart = _Image Function(Pointer<Utf8>, Pointer<Uint8>, int, Pointer<Int32>);
+final _loadImageAnimFromMemory = _dylib.lookupFunction<_LoadImageAnimFromMemoryRay, _LoadImageAnimFromMemoryDart>('LoadImageAnimFromMemory');
+
+typedef _LoadImageFromMemoryRay = _Image Function(Pointer<Utf8>, Pointer<Uint8>, Int32);
+typedef _LoadImageFromMemoryDart = _Image Function(Pointer<Utf8>, Pointer<Uint8>, int);
+final _loadImageFromMemory = _dylib.lookupFunction<_LoadImageFromMemoryRay, _LoadImageFromMemoryDart>('LoadImageFromMemory');
+
+typedef _LoadImageFromTextureRay = _Image Function(Texture2D);
+typedef _LoadImageFromTextureDart = _Image Function(Texture2D);
+final _loadImageFromTexture = _dylib.lookupFunction<_LoadImageFromTextureRay, _LoadImageFromTextureDart>('LoadImageFromTexture');
+
+typedef _LoadImageFromScreenRay = _Image Function();
+typedef _LoadImageFromScreenDart = _Image Function();
+final _loadImageFromScreen = _dylib.lookupFunction<_LoadImageFromScreenRay, _LoadImageFromScreenDart>('LoadImageFromScreen');
+
+typedef _IsImageValidRay = Bool Function(_Image);
+typedef _IsImageValidDart = bool Function(_Image);
+final _isImageValid = _dylib.lookupFunction<_IsImageValidRay, _IsImageValidDart>('IsImageValid');
+
+typedef _UnloadImageRay = Void Function(_Image);
+typedef _UnloadImageDart = void Function(_Image);
+final _unloadImage = _dylib.lookupFunction<_UnloadImageRay, _UnloadImageDart>('UnloadImage');
+
+typedef _ExportImageRay = Bool Function(_Image, Pointer<Utf8>);
+typedef _ExportImageDart = bool Function(_Image, Pointer<Utf8>);
+final _exportImage = _dylib.lookupFunction<_ExportImageRay, _ExportImageDart>('ExportImage');
+
+typedef _ExportImageToMemoryRay = Pointer<Uint8> Function(_Image, Pointer<Utf8>, Pointer<Int32>);
+typedef _ExportImageToMemoryDart = Pointer<Uint8> Function(_Image, Pointer<Utf8>, Pointer<Int32>);
+final _exportImageToMemory = _dylib.lookupFunction<_ExportImageToMemoryRay, _ExportImageToMemoryDart>('ExportImageToMemory');
+
+typedef _ExportImageAsCodeRay = Bool Function(_Image, Pointer<Utf8>);
+typedef _ExportImageAsCodeDart = bool Function(_Image, Pointer<Utf8>);
+final _exportImageAsCode = _dylib.lookupFunction<_ExportImageAsCodeRay, _ExportImageAsCodeDart>('ExportImageAsCode');
+
+class Image implements Disposeable
+{
+  NativeResource<_Image>? memory;
+  int frameCount = 0;
+  int fileSize = 0;
+
+  void _setMemory(_Image result)
+  {
+    if (result.data.address == 0) throw Exception("[Dart] Could not load image!");
+
+    // Allocating memory in C heap
+    Pointer<_Image> pointer = malloc.allocate<_Image>(sizeOf<_Image>());
+    pointer.ref = result;
+    this.memory = NativeResource<_Image>(pointer);
+
+    // Attaching the process to Dart Garbage Collector
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  int get width {
+    if (memory == null || memory!.isDisposed) return 0;
+
+    return memory!.pointer.ref.width;
+  }
+
+  int get height {
+    if (memory == null || memory!.isDisposed) return 0;
+
+    return memory!.pointer.ref.height;
+  }
+
+  int get format {
+    if (memory == null || memory!.isDisposed) return 0;
+
+    return memory!.pointer.ref.format;
+  }
+
+  int get mipmaps {
+    if (memory == null || memory!.isDisposed) return 0;
+
+    return memory!.pointer.ref.mipmaps;
+  }
+
+  Pointer<Void> get data {
+    if (!IsValid()) return nullptr;
+    return memory!.pointer.ref.data;
+  }
+
+  /// Load image from file into CPU memory (RAM)
+  Image(String path)
+  {
+    Pointer<Utf8> cPath = path.toNativeUtf8();
+    try {
+      _setMemory(_loadImage(cPath));
+    } finally {
+      malloc.free(cPath);      
+    }
+  }
+
+  /// Load image from RAW file data
+  Image.Raw(String path, int width, int height, int format, int headerSize)
+  {
+    Pointer<Utf8> cPath = path.toNativeUtf8();
+    try {
+      _setMemory(_loadImageRaw(cPath, width, height, format, headerSize));
+    } finally {
+      malloc.free(cPath);      
+    }
+  }
+
+  /// Load image sequence from file (frames appended to image.data)
+  Image.Anim(String path)
+  {
+    Pointer<Utf8> cPath = path.toNativeUtf8();
+	  Pointer<Int32> frameCount = malloc.allocate<Int32>(sizeOf<Int32>());
+
+    try {
+      this.frameCount = frameCount.value;
+      _Image result = _loadImageAnim(cPath, frameCount); 
+      _setMemory(result);
+    } finally {
+      malloc.free(cPath);
+      malloc.free(frameCount);
+    }
+  }
+
+  /// Load image sequence from memory buffer
+  Image.AnimFromMemory(String fileType, Uint8List bytes)
+  {
+    if (bytes.length == 0) throw Exception("[Dart] byte array passed is empty!");
+    
+    Pointer<Utf8> cFileType = fileType.toNativeUtf8();
+	  Pointer<Int32> frameCount = malloc.allocate<Int32>(sizeOf<Int32>());
+
+    // Transform byte list into a pointer to pass over C
+    Pointer<Uint8> data = malloc.allocate<Uint8>(bytes.length);
+    data.asTypedList(bytes.length).setAll(0, bytes);
+
+    try {
+      this.frameCount = frameCount.value;
+      _Image result = _loadImageAnimFromMemory(cFileType, data, bytes.length, frameCount); 
+      _setMemory(result);
+    } finally {
+      malloc.free(cFileType);
+      malloc.free(frameCount);
+      malloc.free(data);
+    }
+  }
+
+  /// Load image from memory buffer, fileType refers to extension: i.e. '.png'
+  Image.FromMemory(String fileType, Uint8List fileData, int dataSize)
+  {
+    Pointer<Utf8> cFileType = fileType.toNativeUtf8();
+    Pointer<Uint8> data = malloc.allocate<Uint8>(dataSize);
+
+    try {
+      _Image result = _loadImageFromMemory(cFileType, data, dataSize);
+      _setMemory(result);
+    } finally {
+      malloc.free(cFileType);
+      malloc.free(data);
+    }
+  }
+
+  /// Load image from GPU texture data
+  // Texture2D shadow class not yet implemented
+  // uncommment when done
+  // Image.LoadFromTexture(_Texture2D texture)
+  // {
+  //   _Image result = _loadImageFromTexture(texture);
+  //   _setMemory(result);
+  // }
+
+  /// Load image from screen buffer and (screenshot)
+  Image.FromScreen()
+  {
+    _Image result = _loadImageFromScreen();
+    _setMemory(result);
+  }
+
+  // Check if an image is valid (data and parameters)
+  bool IsValid()
+  {
+    if (memory == null || memory!.isDisposed) return false;
+
+    return _isImageValid(this.memory!.pointer.ref);
+  }
+  
+  /// Export image data to file, returns true on success
+  bool Export(String fileName)
+  {
+    if(!IsValid()) return false;
+
+    return using ((Arena arena) {
+      Pointer<Utf8> cFileName = fileName.toNativeUtf8();
+
+      return _exportImage(memory!.pointer.ref, cFileName);
+    });
+  }
+
+  Uint8List ExportToMemory(String fileType)
+  {
+    return using ((Arena arena) {
+      final cFiletype = fileType.toNativeUtf8(allocator: arena);
+      final cFileSize = arena.allocate<Int32>(sizeOf<Int32>());
+
+      final Pointer<Uint8> data = _exportImageToMemory(
+        memory!.pointer.ref,
+        cFiletype,
+        cFileSize
+      ).cast<Uint8>();
+
+      if (data.address == 0) return Uint8List(0);
+
+      try {
+        fileSize = cFileSize.value;
+        final Uint8List result = Uint8List.fromList(data.asTypedList(fileSize));
+        return result;
+      } finally {
+        // Not yet implemented
+        // _unloadFileData(data);
+      }
+    });
+  }
+
+  bool ExportAsCode(String fileName)
+  {
+    if(!IsValid()) return false;
+
+    return using((Arena arena) {
+      Pointer<Utf8> cFileName = fileName.toNativeUtf8();
+
+      return _exportImageAsCode(memory!.pointer.ref, cFileName);
+    });
+  }
+
+  // Garbage Colector dispose reference
+  static final Finalizer<Pointer<_Image>> _finalizer = Finalizer((ptr) 
+  {
+    if (ptr.address == 0) return;
+
+    _unloadImage(ptr.ref);
+
+    malloc.free(ptr);
+  });
+  
+  /// Unload image from CPU memory (RAM)
+  // Manual dispose
+  @override
+  void dispose()
+  {
+    if (memory != null && !memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _unloadImage(memory!.pointer.ref);
+      memory!.dispose();
+    }
+  }
+}
