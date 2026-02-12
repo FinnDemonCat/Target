@@ -14,11 +14,12 @@ class Vector2 implements Disposeable
 {
 	NativeResource<_Vector2>? _memory;
 
-	// ignore: unused_element
 	void _setmemory(_Vector2 result)
 	{
+    if (_memory != null) dispose();
+
     Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
-    this._memory = NativeResource(pointer);
+    _memory = NativeResource(pointer);
 
     _finalizer.attach(pointer, this, detach: this);
   }
@@ -322,13 +323,111 @@ abstract class Window
   static void Minimize() => _minimizeWindow();
   /// Restore window from being minimized/maximized
   static void Restore() => _restoreWindow();
-
-  static void SetIcon(Image image)
+  /// Set icon for window (single image, RGBA 32bit)
+  static void SetIcon(Image image) => _setWindowIcon(image.image);
+  /// Set icon for window (multiple images, RGBA 32bit)
+  static void SetIcons(List<Image> images)
   {
-    // Here it starts the NativeResource logic
-    // A problem to future me
-    // Use the binding generator on the python folder
+    using((Arena arena) {
+      Pointer<_Image> ref = arena.allocate<_Image>(sizeOf<_Image>() * images.length);
+
+      for(int x = 0; x < images.length; x++)
+        ref[x] = images[x].image;
+
+      _setWindowIcons(ref, images.length);      
+    });
   }
+  /// Set title for window
+  static void SetTitle(String title)
+  {
+    using((Arena arena) {
+      Pointer<Utf8> pointer = title.toNativeUtf8();
+
+      _setWindowTitle(pointer);
+    });
+  }
+
+  /// Set window position on screen
+  static void SetPosition(int x, int y) => _setWindowPosition(x, y);
+  /// Set monitor for the current window
+  static void SetMonitor(int monitor) => _setWindowMonitor(monitor);
+  /// Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE)
+  static void SetMinSize(int width, int height) => _setWindowMinSize(width, height);
+  /// Set window maximum dimensions (for FLAG_WINDOW_RESIZABLE)
+  static void SetMaxSize(int width, int height) => _setWindowMaxSize(width, height);
+  /// Set window dimensions
+  static void SetSize(int width, int height) => _setWindowSize(width, height);
+  /// Set window opacity [0.0f..1.0f]
+  static void SetOpacity(double opacity) => _setWindowOpacity(opacity);
+  /// Set window focused
+  static void SetFocused() => _setWindowFocused();
+  /// Get native window handle
+  static Pointer<Void> GetHandle() => _getWindowHandle();
+  /// Get current screen width
+  static int Width() => _getScreenWidth();
+  /// Get current screen height
+  static int Height() => _getScreenHeight();
+  /// Get current render width (it considers HiDPI)
+  static int RenderWidth() => _getRenderWidth();
+  /// Get current render height (it considers HiDPI)
+  static int RenderHeight() => _getRenderHeight();
+  /// Get number of connected monitors
+  static int GetMonitorCount() => _getMonitorCount();
+  /// Get specified monitor position
+  static int GetCurrentMonitor() => _getCurrentMonitor();
+  /// Get specified monitor position
+  static Vector2 GetMonintorPosition(int monitor)
+  {
+    Vector2 position = Vector2();
+    position._setmemory(_getMonitorPosition(monitor));
+
+    return position;
+  }
+  /// Get specified monitor width (current video mode used by monitor)
+  static int GetMonitorWidth(int monitor) => _getMonitorWidth(monitor);
+  /// Get specified monitor height (current video mode used by monitor)
+  static int GetMonitorHeight(int monitor) => _getMonitorHeight(monitor);
+  /// Get specified monitor physical width in millimetres
+  static int GetMonitorPhysicalWidth(int monitor) => _getMonitorPhysicalWidth(monitor);
+  /// Get specified monitor physical height in millimetres
+  static int GetMonitorPhysicalHeight(int monitor) => _getMonitorPhysicalHeight(monitor);
+  /// Get specified monitor refresh rate
+  static int GetMonitorRefreshRate(int monitor) => _getMonitorRefreshRate(monitor);
+  /// Get window position XY on monitor
+  static Vector2 GetPosition()
+  {
+    Vector2 position = Vector2();
+    position._setmemory(_getWindowPosition());
+
+    return position;
+  }
+  /// Get window scale DPI factor
+  static Vector2 GetScaleDPI()
+  {
+    Vector2 position = Vector2();
+    position._setmemory(_getWindowScaleDPI());
+    
+    return position;
+  }
+  /// Get the human-readable, UTF-8 encoded name of the specified monitor
+  static String GetMonitorName(int monitor) => _getMonitorName(monitor).toDartString();
+  /// Set clipboard text content
+  static void SetClipboardText(String text)
+  {
+    using((Arena arena) {
+      Pointer<Utf8> cText = text.toNativeUtf8();
+
+      _setClipboardText(cText);
+    });
+  }
+  /// Get clipboard text content
+  static String GetClipboardText() => _getClipboardText().toDartString();
+  /// Get clipboard image content
+  static Image GetClipboardImage() => Image._Recieve(_getClipboardImage());
+  /// Enable waiting for events on EndDrawing(), no automatic event polling
+  static void EnableEventWaiting() => _enableEventWaiting();
+  /// Disable waiting for events on EndDrawing(), automatic events polling
+  static void DisabelEventWaiting() => _disableEventWaiting();
 }
 
 //------------------------------------------------------------------------------------
@@ -380,9 +479,20 @@ class Image implements Disposeable
     return _memory!.pointer.ref.mipmaps;
   }
 
+  _Image get image 
+  {
+    if (_memory == null) throw StateError("Null reference");
+    return _memory!.pointer.ref;
+  }
+
   Pointer<Void> get data {
     if (!IsValid()) return nullptr;
     return _memory!.pointer.ref.data;
+  }
+
+  Image._Recieve(_Image image)
+  {
+    _setMemory(image);
   }
 
   /// Load image from file into CPU memory (RAM)

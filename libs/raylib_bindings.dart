@@ -946,13 +946,13 @@ final _minimizeWindow = _dylib.lookupFunction<_MinimizeWindowRay, _MinimizeWindo
 typedef _RestoreWindowRay = Void Function();
 typedef _RestoreWindowDart = void Function();
 final _restoreWindow = _dylib.lookupFunction<_RestoreWindowRay, _RestoreWindowDart>('RestoreWindow');
-/* 
-typedef _SetWindowIconRay = Void Function(Image);
-typedef _SetWindowIconDart = void Function(Image);
+
+typedef _SetWindowIconRay = Void Function(_Image);
+typedef _SetWindowIconDart = void Function(_Image);
 final _setWindowIcon = _dylib.lookupFunction<_SetWindowIconRay, _SetWindowIconDart>('SetWindowIcon');
 
-typedef _SetWindowIconsRay = Void Function(Pointer<Image>, Int32);
-typedef _SetWindowIconsDart = void Function(Pointer<Image>, int);
+typedef _SetWindowIconsRay = Void Function(Pointer<_Image>, Int32);
+typedef _SetWindowIconsDart = void Function(Pointer<_Image>, int);
 final _setWindowIcons = _dylib.lookupFunction<_SetWindowIconsRay, _SetWindowIconsDart>('SetWindowIcons');
 
 typedef _SetWindowTitleRay = Void Function(Pointer<Utf8>);
@@ -986,7 +986,91 @@ final _setWindowOpacity = _dylib.lookupFunction<_SetWindowOpacityRay, _SetWindow
 typedef _SetWindowFocusedRay = Void Function();
 typedef _SetWindowFocusedDart = void Function();
 final _setWindowFocused = _dylib.lookupFunction<_SetWindowFocusedRay, _SetWindowFocusedDart>('SetWindowFocused');
-*/
+
+typedef _GetWindowHandleRay = Pointer<Void> Function();
+typedef _GetWindowHandleDart = Pointer<Void> Function();
+final _getWindowHandle = _dylib.lookupFunction<_GetWindowHandleRay, _GetWindowHandleDart>('GetWindowHandle');
+
+typedef _GetScreenWidthRay = Int32 Function();
+typedef _GetScreenWidthDart = int Function();
+final _getScreenWidth = _dylib.lookupFunction<_GetScreenWidthRay, _GetScreenWidthDart>('GetScreenWidth');
+
+typedef _GetScreenHeightRay = Int32 Function();
+typedef _GetScreenHeightDart = int Function();
+final _getScreenHeight = _dylib.lookupFunction<_GetScreenHeightRay, _GetScreenHeightDart>('GetScreenHeight');
+
+typedef _GetRenderWidthRay = Int32 Function();
+typedef _GetRenderWidthDart = int Function();
+final _getRenderWidth = _dylib.lookupFunction<_GetRenderWidthRay, _GetRenderWidthDart>('GetRenderWidth');
+
+typedef _GetRenderHeightRay = Int32 Function();
+typedef _GetRenderHeightDart = int Function();
+final _getRenderHeight = _dylib.lookupFunction<_GetRenderHeightRay, _GetRenderHeightDart>('GetRenderHeight');
+
+typedef _GetMonitorCountRay = Int32 Function();
+typedef _GetMonitorCountDart = int Function();
+final _getMonitorCount = _dylib.lookupFunction<_GetMonitorCountRay, _GetMonitorCountDart>('GetMonitorCount');
+
+typedef _GetCurrentMonitorRay = Int32 Function();
+typedef _GetCurrentMonitorDart = int Function();
+final _getCurrentMonitor = _dylib.lookupFunction<_GetCurrentMonitorRay, _GetCurrentMonitorDart>('GetCurrentMonitor');
+
+typedef _GetMonitorPositionRay = _Vector2 Function(Int32);
+typedef _GetMonitorPositionDart = _Vector2 Function(int);
+final _getMonitorPosition = _dylib.lookupFunction<_GetMonitorPositionRay, _GetMonitorPositionDart>('GetMonitorPosition');
+
+typedef _GetMonitorWidthRay = Int32 Function(Int32);
+typedef _GetMonitorWidthDart = int Function(int);
+final _getMonitorWidth = _dylib.lookupFunction<_GetMonitorWidthRay, _GetMonitorWidthDart>('GetMonitorWidth');
+
+typedef _GetMonitorHeightRay = Int32 Function(Int32);
+typedef _GetMonitorHeightDart = int Function(int);
+final _getMonitorHeight = _dylib.lookupFunction<_GetMonitorHeightRay, _GetMonitorHeightDart>('GetMonitorHeight');
+
+typedef _GetMonitorPhysicalWidthRay = Int32 Function(Int32);
+typedef _GetMonitorPhysicalWidthDart = int Function(int);
+final _getMonitorPhysicalWidth = _dylib.lookupFunction<_GetMonitorPhysicalWidthRay, _GetMonitorPhysicalWidthDart>('GetMonitorPhysicalWidth');
+
+typedef _GetMonitorPhysicalHeightRay = Int32 Function(Int32);
+typedef _GetMonitorPhysicalHeightDart = int Function(int);
+final _getMonitorPhysicalHeight = _dylib.lookupFunction<_GetMonitorPhysicalHeightRay, _GetMonitorPhysicalHeightDart>('GetMonitorPhysicalHeight');
+
+typedef _GetMonitorRefreshRateRay = Int32 Function(Int32);
+typedef _GetMonitorRefreshRateDart = int Function(int);
+final _getMonitorRefreshRate = _dylib.lookupFunction<_GetMonitorRefreshRateRay, _GetMonitorRefreshRateDart>('GetMonitorRefreshRate');
+
+typedef _GetWindowPositionRay = _Vector2 Function();
+typedef _GetWindowPositionDart = _Vector2 Function();
+final _getWindowPosition = _dylib.lookupFunction<_GetWindowPositionRay, _GetWindowPositionDart>('GetWindowPosition');
+
+typedef _GetWindowScaleDPIRay = _Vector2 Function();
+typedef _GetWindowScaleDPIDart = _Vector2 Function();
+final _getWindowScaleDPI = _dylib.lookupFunction<_GetWindowScaleDPIRay, _GetWindowScaleDPIDart>('GetWindowScaleDPI');
+
+typedef _GetMonitorNameRay = Pointer<Utf8> Function(Int);
+typedef _GetMonitorNameDart = Pointer<Utf8> Function(int);
+final _getMonitorName = _dylib.lookupFunction<_GetMonitorNameRay, _GetMonitorNameDart>('GetMonitorName');
+
+typedef _SetClipboardTextRay = Void Function(Pointer<Utf8>);
+typedef _SetClipboardTextDart = void Function(Pointer<Utf8>);
+final _setClipboardText = _dylib.lookupFunction<_SetClipboardTextRay, _SetClipboardTextDart>('SetClipboardText');
+
+typedef _GetClipboardTextRay = Pointer<Utf8> Function();
+typedef _GetClipboardTextDart = Pointer<Utf8> Function();
+final _getClipboardText = _dylib.lookupFunction<_GetClipboardTextRay, _GetClipboardTextDart>('SetClipboardText');
+
+typedef _GetClipboardImageRay = _Image Function();
+typedef _GetClipboardImageDart = _Image Function();
+final _getClipboardImage = _dylib.lookupFunction<_GetClipboardImageRay, _GetClipboardImageDart>('GetClipboardImage');
+
+typedef _EnableEventWaitingRay = Void Function();
+typedef _EnableEventWaitingDart = void Function();
+final _enableEventWaiting = _dylib.lookupFunction<_EnableEventWaitingRay, _EnableEventWaitingDart>('EnableEventWaiting');
+
+typedef _DisableEventWaitingRay = Void Function();
+typedef _DisableEventWaitingDart = void Function();
+final _disableEventWaiting = _dylib.lookupFunction<_DisableEventWaitingRay, _DisableEventWaitingDart>('DisableEventWaiting');
+
 
 //------------------------------------------------------------------------------------
 //                                   Image
