@@ -4,7 +4,271 @@ import 'dart:ffi';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'dart:io';
+import 'dart:math' as math;
 part 'raylib_bindings.dart';
+
+//------------------------------------------------------------------------------------
+/// Module Functions Definition - Vector2 math
+//------------------------------------------------------------------------------------
+class Vector2 implements Disposeable
+{
+	NativeResource<_Vector2>? _memory;
+
+	// ignore: unused_element
+	void _setmemory(_Vector2 result)
+	{
+    Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
+    this._memory = NativeResource(pointer);
+
+    _finalizer.attach(pointer, this, detach: this);
+  }
+
+  double get x { return _memory!.pointer.ref.x; }
+  double get y { return _memory!.pointer.ref.y; }
+  set x (double value) { _memory!.pointer.ref.x = value; }
+  set y (double value) { _memory!.pointer.ref.y = value; }
+
+  /// Set `x` and `y`  at once
+  void Set(double x, double y) { this.x = x; this.y = y; }
+
+  /// Vector with components of value x and y. Defaults to 0.0 and 0.0
+  Vector2([double x = 0.0, double y = 0.0])
+  {
+    Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
+
+    pointer.ref
+    ..x = x
+    ..y = y;
+
+    _memory = NativeResource<_Vector2>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  /// Vector with components value 0.0f
+  factory Vector2.Zero() => Vector2();
+
+  /// Vector with components value 1.0f
+  factory Vector2.One() => Vector2(1.0, 1.0);
+
+  /// Get max value for each pair of components
+  /// 
+  /// Developer Note: This method returns a new instance of Vecto2
+  static Vector2 Max(Vector2 v1, Vector2 v2) => Vector2(math.max(v1.x, v2.x));
+
+  /// Calculate two vectors dot product
+  static double Dot(Vector2 v1, Vector2 v2) => (v1.x * v2.x) + (v1.y * v2.y);
+
+  /// Calculate two vectors cross product
+  static double Cross(Vector2 v1, Vector2 v2) => (v1.x * v2.x) - (v1.y * v2.y); 
+
+  /// Calculate reflected vector to normal
+  static Vector2 Reflect(Vector2 v, Vector2 normal)
+  {
+    double dotProduct = (v.x * normal.x) + (v.y * normal.y);
+
+    return Vector2(
+      v.x - (2.0 * normal.x) * dotProduct,
+      v.y - (2.0 * normal.y) * dotProduct
+    );
+  }
+  
+  /// Check whether two given vectors are almost equal
+  static bool Equals(Vector2 p, Vector2 q)
+  {
+    return ((p.x - q.x).abs() <= (EPSILON * math.max(1.0, math.max(p.x.abs(), q.x.abs())))) &&
+                ((p.y - q.y).abs() <= (EPSILON * math.max(1.0, math.max(p.y.abs(), q.y.abs()))));
+  }
+
+  /// Compute the direction of a refracted ray
+  /// 
+  /// v: normalized direction of the incoming ray
+  /// 
+  /// n: normalized normal vector of the interface of two optical media
+  /// 
+  /// r: ratio of the refractive index of the medium from where the ray comes
+  /// 
+  /// to the refractive index of the medium on the other side of the surface
+  Vector2 Refract(Vector2 v, Vector2 n, double r)
+  {
+    Vector2 result = Vector2.Zero();
+
+    double dot = (v.x * v.x) + (v.y * v.y);
+    double d = 1.0 - r * r * (1.0 - dot * dot);
+
+    if (d >= 0)
+    {
+      d = math.sqrt(d);
+      result.x = r * v.x - (r * dot + d) * n.x;
+      result.y = r * v.y - (r * dot + d) * n.y;
+    }
+
+    return result;
+  }
+  
+  Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
+    if (pointer.address == 0) return;
+
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose() {
+    if(_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+/// **Performance Note:** Performed *in-place* to prevent GC pressure 
+/// and avoid redundant `malloc` calls in the loop.
+///
+/// * **Address:** Remains constant.
+/// * **Memory:** Zero new allocations.
+extension Vector2Math on Vector2
+{
+  /// Add two vectors (v1 + v2)
+  void operator +(Vector2 other) { this.x + other.x; this.y + other.y; }
+  
+  /// Subtract two vectors (v1 - v2)
+  void operator -(Vector2 other) { this.x - other.x; this.y - other.y; }
+
+  /// Subtract vector by float value
+  void SubractValue(double sub) { this.x -= sub; this.y -= sub; }
+
+  /// Calculate vector length
+  double Length() => math.sqrt((this.x * this.x) + (this.y + this.y));
+
+  /// Calculate vector square length
+  double LengthSqr() => ((this.x * this.x) + (this.y + this.y));
+
+  /// Calculate distance between two vectors
+  double Distance(Vector2 v2)
+  {
+	  return math.sqrt((this.x - v2.x) * (this.x - v2.x)) + ((this.y - v2.y) + (this.y - v2.y));
+  }
+
+  /// Calculate square distance between two vectors
+  double DistanceSqr(Vector2 v2)
+  {
+	  return ((this.x - v2.x) * (this.x - v2.x)) + ((this.y - v2.y) + (this.y - v2.y));
+  }
+
+  /// Calculate the signed angle from this to v2, relative to the origin (0, 0)
+  ///
+  /// NOTE: Coordinate system convention: positive X right, positive Y down
+  ///
+  /// positive angles appear clockwise, and negative angles appear counterclockwise
+  double Angle(Vector2 v2)
+  {
+    double dot = (this.x * v2.x) + (this.y * v2.y);
+    double det = (this.x * v2.y) - (this.y * v2.x);
+
+    return math.atan2(det, dot);
+  }
+
+  /// Calculate angle defined by a two vectors line
+  ///
+  /// NOTE: Parameters need to be normalized
+  /// 
+  /// DEVELOPER NOTE: Calculates LineAngle with `this` as start and `arg` as end
+  ///
+  /// Current implementation should be aligned with glm::angle
+  double LineAngle(Vector2 end) => -math.atan2(end.y - this.y, end.x - this.x);
+  
+  /// Scale vector (multiply by value)
+  void Scale(double value) { this.x *= value; this.y *= value; }
+
+  /// Multiply `this` vector by `arg` vector
+  void Multiply(Vector2 v2) { this.x * v2.x; this.y * v2.y; }
+
+  /// Negate `this` vector
+  void Negate() { this.x *= -1; this.y *= -1; }
+
+  /// Divide `this` vector by `arg` vector
+  void Divide(Vector2 value) { this.x /= value.x; this.y /= value.y; }
+
+  /// Transforms a Vector2 by a given Matrix
+  void Transform() {}
+
+  /// Calculate linear interpolation between two vectors
+  /// 
+  /// Developer Note: For memory persistance, this extension modifies `this` to be the result of LERP of `v1`, `v2` and `ammount`
+  void LerpOf(Vector2 v1, Vector2 v2, double ammount)
+  {
+    this.x = v1.x + ammount * (v2.x - v1.x);
+    this.y = v1.y + ammount * (v2.y - v1.y);
+  }
+
+  /// Rotate vector by angle
+  void Rotate(double angle)
+  {
+    double cosresult = math.cos(angle);
+    double sinresult = math.sin(angle);
+
+    this.x = (this.x * cosresult - this.y * sinresult);
+    this.y = (this.x * sinresult + this.y * cosresult);
+  }
+
+  /// Move Vector towards target
+  void MoveTowards(Vector2 target, double maxDistance)
+  {
+    double dx = target.x - this.x;
+    double dy = target.y - this.y;
+    double value = (dx * dx) + (dy * dy);
+
+    if ((value == 0) || (maxDistance >= 0) && (value <= maxDistance * maxDistance)) return;
+
+    double dist = math.sqrt(value);
+
+    this.x = this.x + dx / dist * maxDistance;
+    this.y = this.y + dy / dist * maxDistance;
+  }
+
+  void Invert()
+  {
+    this.x = 1.0 / this.x;
+    this.y = 1.0 / this.y;
+  }
+
+  /// Clamp the components of the vector between
+  ///
+  /// min and max values specified by the given vectors
+  void Clamp(Vector2 min, Vector2 max)
+  {
+    this.x = math.min(max.x, math.max(min.x, this.x));
+    this.y = math.min(max.y, math.max(min.y, this.y));
+  }
+
+  /// Clamp the magnitude of the vector between two min and max values
+  void ClampValue(double min, double max)
+  {
+    double length = (this.x * this.x) + (this.y * this.y);
+    if (length > 0.0)
+    {
+      length = math.sqrt(length);
+      double scale = 1.0;
+
+      if (length < min)
+      {
+        scale = min/length;
+      }
+      else if (length > max)
+      {
+        scale = max/length;
+      }
+
+      this.x = this.x * scale;
+      this.y = this.y * scale;
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   Window
+//------------------------------------------------------------------------------------
+
 
 // Window-related functions
 abstract class Window
@@ -85,7 +349,6 @@ class Image implements Disposeable
     // Allocating memory in C heap
     Pointer<_Image> pointer = malloc.allocate<_Image>(sizeOf<_Image>());
     pointer.ref = result;
-
 
     this._memory = NativeResource<_Image>(pointer);
 

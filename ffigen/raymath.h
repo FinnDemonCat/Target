@@ -273,7 +273,7 @@ RMAPI Vector2 Vector2Zero(void)
     return result;
 }
 
-// Vector with components value 1.0f
+// // Vector with components value 1.0f
 RMAPI Vector2 Vector2One(void)
 {
     Vector2 result = { 1.0f, 1.0f };
@@ -281,7 +281,7 @@ RMAPI Vector2 Vector2One(void)
     return result;
 }
 
-// Add two vectors (v1 + v2)
+// // Add two vectors (v1 + v2)
 RMAPI Vector2 Vector2Add(Vector2 v1, Vector2 v2)
 {
     Vector2 result = { v1.x + v2.x, v1.y + v2.y };
@@ -297,7 +297,7 @@ RMAPI Vector2 Vector2AddValue(Vector2 v, float add)
     return result;
 }
 
-// Subtract two vectors (v1 - v2)
+// // Subtract two vectors (v1 - v2)
 RMAPI Vector2 Vector2Subtract(Vector2 v1, Vector2 v2)
 {
     Vector2 result = { v1.x - v2.x, v1.y - v2.y };

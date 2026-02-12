@@ -28,20 +28,21 @@ const String RAYLIB_VERSION = '5.6-dev';
 const double PI = 3.14159265358979323846;
 const double DEG2RAG = (PI/180.0);
 const double RAD2DEG = (180.0/PI);
+const double EPSILON = 0.000001;
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
 
 // Vector2, 2 components
-final class Vector2 extends Struct
+final class _Vector2 extends Struct
 {
   @Float() external double x;          // Vector x component
   @Float() external double y;          // Vector y component
 }
 
 // Vector3, 3 components
-final class Vector3 extends Struct
+final class _Vector3 extends Struct
 {
   @Float() external double x;          // Vector x component
   @Float() external double y;          // Vector y component
@@ -49,7 +50,7 @@ final class Vector3 extends Struct
 }
 
 // Vector4, 4 components
-final class Vector4 extends Struct
+final class _Vector4 extends Struct
 {
   @Float() external double x;          // Vector x component
   @Float() external double y;          // Vector y component
@@ -58,7 +59,7 @@ final class Vector4 extends Struct
 }
 
 // Quaternion, 4 components (Vector4 alias)
-typedef Quaternion = Vector4;
+typedef Quaternion = _Vector4;
 
 // Matrix, 4x4 components, column major, OpenGL style, right-handed
 // ToDO: Implement native Raylib Matrix constructors inside struct
@@ -211,9 +212,9 @@ final class Font extends Struct
 // Camera, defines position/orientation in 3d space
 final class Camera3D extends Struct
 {
-  external Vector3 position;  // Camera position
-  external Vector3 target;    // Camera target it looks-at
-  external Vector3 up;        // Camera up vector (rotation over its axis)
+  external _Vector3 position;  // Camera position
+  external _Vector3 target;    // Camera target it looks-at
+  external _Vector3 up;        // Camera up vector (rotation over its axis)
   @Float() external double fovy;       // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane height in world units in orthographic
   @Int32() external int projection;    // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
 }
@@ -223,8 +224,8 @@ typedef Camera = Camera3D;             // Camera type fallback, defaults to Came
 // Camera2D, defines position/orientation in 2d space
 final class Camera2D extends Struct
 {
-  external Vector2 offset;    // Camera offset (screen space offset from window origin)
-  external Vector2 target;    // Camera target (world space target point that is mapped to screen space offset)
+  external _Vector2 offset;    // Camera offset (screen space offset from window origin)
+  external _Vector2 target;    // Camera target (world space target point that is mapped to screen space offset)
   @Float() external double rotation;   // Camera rotation in degrees (pivots around target)
   @Float() external double zoom;       // Camera zoom (scaling around target), must not be set to 0, set to 1.0f for no scale
 }
@@ -282,9 +283,9 @@ final class Material extends Struct
 // Transform, vertex transformation data
 final class Transform extends Struct
 {
-  external Vector3 translation;        // Translation
+  external _Vector3 translation;        // Translation
   external Quaternion rotation;        // Rotation
-  external Vector3 scale;              // Scale
+  external _Vector3 scale;              // Scale
 }
 
 // Bone, skeletal animation bone
@@ -324,23 +325,23 @@ final class ModelAnimation extends Struct
 // Ray, ray for raycasting
 final class Ray extends Struct
 {
-  external Vector3 position;           // Ray position (origin)
-  external Vector3 direction;          // Ray direction (normalized)
+  external _Vector3 position;           // Ray position (origin)
+  external _Vector3 direction;          // Ray direction (normalized)
 }
 
 final class RayCollision extends Struct
 {
   @Bool() external bool hit;           // Did the ray hit something?
   @Float() external double distance;   // Distance to the nearest hit
-  external Vector3 point;              // Point of the nearest hit
-  external Vector3 normal;             // Surface normal of hit
+  external _Vector3 point;              // Point of the nearest hit
+  external _Vector3 normal;             // Surface normal of hit
 }
 
 // BoundingBox
 final class BoundingBox extends Struct
 {
-  external Vector3 min;                // Minimum vertex box-corner
-  external Vector3 max;                // Maximum vertex box-corner
+  external _Vector3 min;                // Minimum vertex box-corner
+  external _Vector3 max;                // Maximum vertex box-corner
 }
 
 // Wave, audio wave data
