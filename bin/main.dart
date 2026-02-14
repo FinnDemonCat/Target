@@ -1,11 +1,20 @@
-import 'dart:io';
+import '../libs/raylib.dart';
 
 void main()
 {
-	print("Hello World!");
+  Window.Init(width: 800, height: 800, title: "Dart Test");
+  Frame.SetTargetFPS(30);
+  Window.SetState(ConfigFlags.FLAG_WINDOW_TOPMOST);  
 
-	String? string = stdin.readLineSync();
-	string ??= "Nothing!\n";
+  while(!Window.ShouldClose())
+  {
+    Update();
+  }
+}
 
-	print(string);
+void Update()
+{
+  Draw.Begin();
+  Draw.ClearBackground(Color.GREEN);
+  Draw.End();
 }

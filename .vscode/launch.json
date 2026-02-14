@@ -1,25 +1,35 @@
 {
-	// Use IntelliSense to learn about possible attributes.
-	// Hover to view descriptions of existing attributes.
-	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-	"version": "0.2.0",
-	"configurations": [
-		{
-			"name": "Dart: JIT (Debug)",
-			"type": "dart",
-			"request": "launch",
-			"program": "bin/main.dart",
-			"preLaunchTask": "CMake: debug",
-			"console": "externalTerminal"
-		},
-		{
-            "name": "Dart: AOT (Run)",
-            "type": "cppvsdbg",
-			"cwd": "${workspaceFolder}/build",
-            "request": "launch",
-            "program": "${workspaceFolder}/build/TargetEngine.exe", 
-            "preLaunchTask": "CMake: build",
-			"console": "externalTerminal"
-        }
-	]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Dart: JIT (Debug)",
+      "type": "dart",
+      "request": "launch",
+      "program": "bin/main.dart",
+      "console": "debugConsole",
+      "args": ["--enable-asserts"]
+    },
+    /* 
+    {
+      "name": "Dart: JIT (Debug)",
+      "type": "dart",
+      "request": "launch",
+      "program": "bin/main.dart",
+      // "preLaunchTask": "CMake: debug",
+      // "console": "externalTerminal"
+    },
+     */
+    {
+      "name": "Dart: AOT (Run)",
+      "type": "cppvsdbg",
+      "cwd": "${workspaceFolder}/build",
+        "request": "launch",
+        "program": "${workspaceFolder}/build/TargetEngine.exe", 
+      // "preLaunchTask": "CMake: build",
+      // "console": "externalTerminal"
+    }
+  ]
 }

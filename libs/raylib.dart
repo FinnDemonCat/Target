@@ -21,13 +21,15 @@ class Vector2 implements Disposeable
     Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
     _memory = NativeResource(pointer);
 
-    _finalizer.attach(pointer, this, detach: this);
+    _finalizer.attach(this, pointer, detach: this);
   }
 
   double get x { return _memory!.pointer.ref.x; }
   double get y { return _memory!.pointer.ref.y; }
   set x (double value) { _memory!.pointer.ref.x = value; }
   set y (double value) { _memory!.pointer.ref.y = value; }
+
+  _Vector2 get vector => _memory!.pointer.ref;
 
   /// Set `x` and `y`  at once
   void Set(double x, double y) { this.x = x; this.y = y; }
@@ -106,7 +108,7 @@ class Vector2 implements Disposeable
     return result;
   }
   
-  Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
     if (pointer.address == 0) return;
 
     malloc.free(pointer);
@@ -267,21 +269,71 @@ extension Vector2Math on Vector2
 }
 
 //------------------------------------------------------------------------------------
+//                                  Rectangle
+//------------------------------------------------------------------------------------
+
+/// Rectangle, 4 components
+class Rectangle implements Disposeable
+{
+  NativeResource<_Rectangle>? _memory;
+
+  // ignore: unused_element
+  void _setMemory(_Rectangle result)
+  {
+    Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
+    pointer.ref = result;
+
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource<_Rectangle>(pointer);
+  }
+
+  _Rectangle get rect => _memory!.pointer.ref;
+
+  Rectangle([double x = 0.0, double y = 0.0, double width = 0.0, double height = 0.0])
+  {
+    Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
+    pointer.ref
+    ..x = x
+    ..y = y
+    ..width = width
+    ..height = height;
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource<_Rectangle>(pointer);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Rectangle>>((pointer)
+  {
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
 //                                   Window
 //------------------------------------------------------------------------------------
 
-
-// Window-related functions
+/// Window-related functions
 abstract class Window
 {
   // Initialize window and OpenGL context
-  static void Init(int width, int height, String title)
+  static void Init({required int width, required int height, required String title})
   {
-    final cTitle = title.toNativeUtf8();
+    using ((Arena arena) {
+      final cTitle = title.toNativeUtf8(allocator: arena);
 
-    _initWindow(width, height, cTitle);
-
-    malloc.free(cTitle);
+      _initWindow(width, height, cTitle);
+    });
   }
   /// Close window and unload OpenGL context
   static void Close() => _closeWindow();            
@@ -341,7 +393,7 @@ abstract class Window
   static void SetTitle(String title)
   {
     using((Arena arena) {
-      Pointer<Utf8> pointer = title.toNativeUtf8();
+      Pointer<Utf8> pointer = title.toNativeUtf8(allocator: arena);
 
       _setWindowTitle(pointer);
     });
@@ -415,7 +467,7 @@ abstract class Window
   static void SetClipboardText(String text)
   {
     using((Arena arena) {
-      Pointer<Utf8> cText = text.toNativeUtf8();
+      Pointer<Utf8> cText = text.toNativeUtf8(allocator: arena);
 
       _setClipboardText(cText);
     });
@@ -428,6 +480,120 @@ abstract class Window
   static void EnableEventWaiting() => _enableEventWaiting();
   /// Disable waiting for events on EndDrawing(), automatic events polling
   static void DisabelEventWaiting() => _disableEventWaiting();
+}
+
+//------------------------------------------------------------------------------------
+//                                   Cursor
+//------------------------------------------------------------------------------------
+
+abstract class Cursor
+{
+  /// Shows cursor
+  static void Show() => _showCursor();
+  /// Hides cursor
+  static void Hide() => _hideCursor();
+  /// Check if cursor is not visible
+  static bool IsHidden() => _isCursorHidden();
+  /// Enables cursor (unlock cursor)
+  static void Enable() => _enableCursor();
+  /// Disables cursor (lock cursor)
+  static void Disable() => _disableCursor();
+  /// Check if cursor is on the screen
+  static bool IsOnScreen() => _isCursorOnScreen();
+}
+
+//------------------------------------------------------------------------------------
+//                                   Frame
+//------------------------------------------------------------------------------------
+
+/// Timing-related functions
+abstract class Frame
+{
+  /// Set target FPS (maximum)
+  static void SetTargetFPS(int fps) => _setTargetFPS(fps);
+  /// Get time in seconds for last frame drawn (delta time)
+  static double GetFrameTime() => _getFrameTime();
+  /// Get elapsed time in seconds since InitWindow()
+  static double GetTime() => _getTime();
+  /// Get current FPS
+  static int GetFPS() => _getFPS();
+}
+
+//------------------------------------------------------------------------------------
+//                                   Color
+//------------------------------------------------------------------------------------
+
+class Color implements Disposeable
+{
+  NativeResource<_Color>? _memory;
+
+  // ignore: unused_element
+  _setMemory(_Color result)
+  {
+    Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource(pointer);
+  }
+
+  _Color get color => _memory!.pointer.ref;
+
+  static final Color LIGHTGRAY  = Color(200, 200, 200, 255);
+  static final Color GRAY       = Color(130, 130, 130, 255);
+  static final Color DARKGRAY   = Color( 80,  80,  80, 255);
+  static final Color YELLOW     = Color( 53, 249,   0, 255);
+  static final Color GOLD       = Color(255, 203,   0, 255);
+  static final Color ORANGE     = Color(255, 161,   0, 255);
+  static final Color PINK       = Color(255, 109, 194, 255);
+  static final Color RED        = Color(230,  41,  55, 255);
+  static final Color MAROON     = Color(190,  33,  55, 255);
+  static final Color GREEN      = Color(  0, 228,  48, 255);
+  static final Color LIME       = Color(  0, 158,  47, 255);
+  static final Color DARKGREEN  = Color(  0, 117,  44, 255);
+  static final Color SKYBLUE    = Color(102, 191, 255, 255);
+  static final Color BLUE       = Color(  0, 121, 241, 255);
+  static final Color DARKBLUE   = Color(  0,  82, 172, 255);
+  static final Color VIOLET     = Color(135,  60, 190, 255);
+  static final Color DARKPURPLE = Color(112,  31, 126, 255);
+  static final Color BEIGE      = Color(211, 176, 131, 255);
+  static final Color BROWN      = Color(127, 106,  79, 255);
+  static final Color DARKBROWN  = Color( 76,  63,  47, 255);
+  static final Color WHITE      = Color(255, 255, 255, 255);
+  static final Color BLACK      = Color(  0,   0,   0, 255);
+  static final Color BLANK      = Color(  0,   0,   0,   0); // Transparent
+  static final Color RAYWHITE   = Color(245, 245, 245, 255);
+
+  Color(int r, int g, int b, int a)
+  {
+    Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
+    pointer.ref
+    ..r = r
+    ..g = g
+    ..b = b
+    ..a = a;
+
+    _memory = NativeResource<_Color>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+  
+  static final Finalizer _finalizer = Finalizer<Pointer<_Color>>((pointer)
+  {
+    if (pointer.address != 0)
+    {
+      malloc.free(pointer);
+    }
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
 }
 
 //------------------------------------------------------------------------------------
@@ -602,7 +768,7 @@ class Image implements Disposeable
     if(!IsValid()) return false;
 
     return using ((Arena arena) {
-      Pointer<Utf8> cFileName = fileName.toNativeUtf8();
+      Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
 
       return _exportImage(_memory!.pointer.ref, cFileName);
     });
@@ -627,6 +793,8 @@ class Image implements Disposeable
         final Uint8List result = Uint8List.fromList(data.asTypedList(fileSize));
         return result;
       } finally {
+        malloc.free(cFiletype);
+        malloc.free(cFileSize);
         // Not yet implemented
         // _unloadFileData(data);
       }
@@ -638,7 +806,7 @@ class Image implements Disposeable
     if(!IsValid()) return false;
 
     return using((Arena arena) {
-      Pointer<Utf8> cFileName = fileName.toNativeUtf8();
+      Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
 
       return _exportImageAsCode(_memory!.pointer.ref, cFileName);
     });
@@ -697,6 +865,8 @@ class Texture2D implements Disposeable
     _setmemory(struct);
   }
 
+  _Texture2D get texture => _memory!.pointer.ref;
+
   /// Load texture from file into GPU memory (VRAM)
   Texture2D(String fileName)
   {
@@ -729,8 +899,16 @@ class Texture2D implements Disposeable
   void Update(Pointer<Void> pixels)
   {
     if (!isValid()) return;
-    _updateTexture(_memory!.pointer.ref, pixels);
+    _updateTexture(texture, pixels);
   }
+
+  void UpdateRect(Rectangle rect, Pointer<Void> pixels)
+  {
+    if (!isValid()) return;
+    _updateTextureRec(texture, rect.rect, pixels);
+  }
+
+  
 
   // Garbage collector setup
   static final Finalizer<Pointer<_Texture>> _finalizer = Finalizer((ptr)
@@ -770,17 +948,19 @@ class TextureCubemap extends Texture2D
 
 class RenderTexture2D implements Disposeable
 {
-  NativeResource<_RenderTexture2D>? memory;
+  NativeResource<_RenderTexture2D>? _memory;
+
+  _RenderTexture2D get ref => _memory!.pointer.ref;
 
 	void _setmemory(_RenderTexture2D result)
 	{
 		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (memory != null) dispose();
+    if (_memory != null) dispose();
 
     // Allocating memory in C heap
     Pointer<_RenderTexture2D> pointer = malloc.allocate<_RenderTexture2D>(sizeOf<_RenderTexture2D>());
     pointer.ref = result;
-    this.memory = NativeResource<_RenderTexture2D>(pointer);
+    this._memory = NativeResource<_RenderTexture2D>(pointer);
 
     _finalizer.attach(this, pointer, detach: this);
 	}
@@ -795,8 +975,8 @@ class RenderTexture2D implements Disposeable
   /// Check if a render texture is valid (loaded in GPU)
   bool isValid()
   {
-    if(memory == null) return false;
-    return _isRenderTextureValid(memory!.pointer.ref);
+    if(_memory == null) return false;
+    return _isRenderTextureValid(_memory!.pointer.ref);
   }
   
   // Garbage collector setup
@@ -813,11 +993,138 @@ class RenderTexture2D implements Disposeable
   @override
   void dispose()
   {
-    if (memory != null && !memory!.isDisposed)
+    if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _unloadRenderTexture(memory!.pointer.ref);
-      memory!.dispose();
+      _unloadRenderTexture(_memory!.pointer.ref);
+      _memory!.dispose();
     }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   Camera2D
+//------------------------------------------------------------------------------------
+
+class Camera2D implements Disposeable
+{
+  NativeResource<_Camera2D>? _memory;
+
+  _Camera2D get camera => _memory!.pointer.ref;
+
+  Camera2D({
+    required Vector2 offset,
+    required Vector2 target,
+    required double rotation,
+    required double zoom
+  }) {
+    Pointer<_Camera2D> pointer = malloc.allocate<_Camera2D>(sizeOf<_Camera2D>());
+    pointer.ref
+    ..offset = offset.vector
+    ..target = target.vector
+    ..rotation = rotation
+    ..zoom = zoom;
+
+    _memory = NativeResource<_Camera2D>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Camera2D>>((pointer) {
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+// Todo
+class Camera3D implements Disposeable
+{
+  NativeResource<_Camera3D>? _memory;
+
+  // Camera3D({
+  //   required Vector3 offset,
+  //   required Vector3 target,
+  //   required double rotation,
+  //   required double zoom
+  // }) {
+  //   Pointer<_Camera3D> pointer = malloc.allocate<_Camera3D>(sizeOf<_Camera3D>());
+  //   pointer.ref
+  //   ..
+  // }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Camera3D>>((pointer) {
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   Draw
+//------------------------------------------------------------------------------------
+/// Drawing-related functions
+abstract class Draw
+{
+  /// Set background color (framebuffer clear color)
+  static void ClearBackground(Color color) => _clearBackground(color.color);
+  /// Setup canvas (framebuffer) to start drawing
+  static void Begin() => _beginDrawing();
+  /// End canvas drawing and swap buffers (double buffering)
+  static void End() => _endDrawing();
+  /// Update screen by calling `Begin()` `renderLogic()` and `End()` while also clearing the background
+  static void RenderFrame({required void Function() renderLogic, required Color color})
+  {
+    Begin();
+    ClearBackground(color);
+    renderLogic();
+    End();
+  }
+
+  /// Begin 2D mode with custom camera (2D)
+  static void Begin2D(Camera2D camera) => _beginMode2D(camera.camera);
+  /// Ends 2D mode with custom camera
+  static void End2D() => _endMode2D();
+  /// Update screen by calling `Begin2D()` `renderLogic()` and `End2D()` while also clearing the background
+  static void RenderFrame2D({
+    required void Function() renderLogic,
+    required Camera2D camera,
+    required Color color
+  }) {
+    Begin2D(camera);
+    ClearBackground(color);
+    renderLogic();
+    End2D();
+  }
+
+  /// Begin drawing to render texture
+  static void BeginTextureMode(RenderTexture2D render) => _beginTextureMode(render.ref);
+  /// Ends drawing to render texture
+  static void EndTextureMode() => _endTextureMode();
+  /// Update screen by calling `BeginTextureMode()` `renderLogic()` and `EndTextureMode()` while also clearing the background
+  static void RenderTextureFrame({
+    required void Function() renderLogic,
+    required RenderTexture2D render,
+    required Color color
+  }) {
+    BeginTextureMode(render);
+    ClearBackground(color);
+    renderLogic();
+    EndTextureMode();
   }
 }

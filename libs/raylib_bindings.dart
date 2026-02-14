@@ -9,14 +9,20 @@ abstract interface class Disposeable
 class NativeResource<T extends NativeType> implements Disposeable {
   final Pointer<T> pointer;
   NativeResource(this.pointer);
+  bool _disposed = false;
 
-  bool get isDisposed { return pointer.address == 0; }
+
+  bool get isDisposed => _disposed;
+  void MarkAsDisposed() { _disposed = true; }
 
   @override
   void dispose()
   {
     if (!isDisposed)
+    {
+      MarkAsDisposed();
       malloc.free(this.pointer);
+    }
   }
 }
 
@@ -73,7 +79,7 @@ final class Matrix extends Struct
 
 // Color, 4 components, R8G8B8A8 (32bit)
 // Use Colors.NewColor to instantiate a new Color
-final class Color extends Struct
+final class _Color extends Struct
 {
   @Uint8() external int r;             // Color red value
   @Uint8() external int g;             // Color green value
@@ -131,7 +137,7 @@ final class Colors implements Disposeable
 }
 */
 // Rectangle, 4 components
-final class Rectangle extends Struct
+final class _Rectangle extends Struct
 {
   @Float() external double x;          // Rectangle top-left corner position x
   @Float() external double y;          // Rectangle top-left corner position y
@@ -180,7 +186,7 @@ typedef _RenderTexture2D = _RenderTexture;
 // ToDO: Implement constructor functions as native of the class
 final class NPatchInfo extends Struct
 {
-  external Rectangle source;  // Texture source rectangle
+  external _Rectangle source;  // Texture source rectangle
   @Int32() external int left;          // Left border offset
   @Int32() external int top;           // Top border offset
   @Int32() external int right;         // Right border offset
@@ -205,12 +211,12 @@ final class Font extends Struct
   @Int32() external int glyphCount;    // Number of glyph characters
   @Int32() external int glyphPadding;  // Padding around the glyph characters
   external _Texture texture;   // Texture atlas containing the glyphs
-  external Rectangle recs;    // Rectangles in texture for the glyphs. It's a pointer by default on Raylib
+  external _Rectangle recs;    // Rectangles in texture for the glyphs. It's a pointer by default on Raylib
   external GlyphInfo glyphs;  // Glyphs info data. It's a pointer by default on Raylib
 }
 
 // Camera, defines position/orientation in 3d space
-final class Camera3D extends Struct
+final class _Camera3D extends Struct
 {
   external _Vector3 position;  // Camera position
   external _Vector3 target;    // Camera target it looks-at
@@ -222,7 +228,7 @@ final class Camera3D extends Struct
 typedef Camera = Camera3D;             // Camera type fallback, defaults to Camera3D
 
 // Camera2D, defines position/orientation in 2d space
-final class Camera2D extends Struct
+final class _Camera2D extends Struct
 {
   external _Vector2 offset;    // Camera offset (screen space offset from window origin)
   external _Vector2 target;    // Camera target (world space target point that is mapped to screen space offset)
@@ -268,7 +274,7 @@ final class Shader extends Struct
 final class MaterialMap extends Struct
 {
   external _Texture2D texture;          // Material shader
-  external Color color;                // Material map color
+  external _Color color;                // Material map color
   @Float() external double value;      // Material map value
 }
 
@@ -863,9 +869,9 @@ final DynamicLibrary _dylib = _load();
 
 DynamicLibrary _load()
 {
-  if (Platform.isWindows) return DynamicLibrary.open('raylib.dll');
-  if (Platform.isLinux) return DynamicLibrary.open('raylib.so');
-  if (Platform.isMacOS) return DynamicLibrary.open('raylib.dylib');
+  if (Platform.isWindows) return DynamicLibrary.open('../bin/libraylib.dll');
+  if (Platform.isLinux) return DynamicLibrary.open('libraylib.so');
+  if (Platform.isMacOS) return DynamicLibrary.open('libraylib.dylib');
 
   throw UnsupportedError("Operational system not supported");
 }
@@ -1071,6 +1077,53 @@ typedef _DisableEventWaitingRay = Void Function();
 typedef _DisableEventWaitingDart = void Function();
 final _disableEventWaiting = _dylib.lookupFunction<_DisableEventWaitingRay, _DisableEventWaitingDart>('DisableEventWaiting');
 
+//------------------------------------------------------------------------------------
+//                                   Cursor
+//------------------------------------------------------------------------------------
+
+typedef _ShowCursorRay = Void Function();
+typedef _ShowCursorDart = void Function();
+final _showCursor = _dylib.lookupFunction<_ShowCursorRay, _ShowCursorDart>('ShowCursor');
+
+typedef _HideCursorRay = Void Function();
+typedef _HideCursorDart = void Function();
+final _hideCursor = _dylib.lookupFunction<_HideCursorRay, _HideCursorDart>('HideCursor');
+
+typedef _IsCursorHiddenRay = Bool Function();
+typedef _IsCursorHiddenDart = bool Function();
+final _isCursorHidden = _dylib.lookupFunction<_IsCursorHiddenRay, _IsCursorHiddenDart>('IsCursorHidden');
+
+typedef _EnableCursorRay = Void Function();
+typedef _EnableCursorDart = void Function();
+final _enableCursor = _dylib.lookupFunction<_EnableCursorRay, _EnableCursorDart>('EnableCursor');
+
+typedef _DisableCursorRay = Void Function();
+typedef _DisableCursorDart = void Function();
+final _disableCursor = _dylib.lookupFunction<_DisableCursorRay, _DisableCursorDart>('DisableCursor');
+
+typedef _IsCursorOnScreenRay = Bool Function();
+typedef _IsCursorOnScreenDart = bool Function();
+final _isCursorOnScreen = _dylib.lookupFunction<_IsCursorOnScreenRay, _IsCursorOnScreenDart>('IsCursorOnScreen');
+
+//------------------------------------------------------------------------------------
+//                                   Frame
+//------------------------------------------------------------------------------------
+
+typedef _SetTargetFPSRay = Void Function(Int32);
+typedef _SetTargetFPSDart = void Function(int);
+final _setTargetFPS = _dylib.lookupFunction<_SetTargetFPSRay, _SetTargetFPSDart>('SetTargetFPS');
+
+typedef _GetFrameTimeRay = Float Function();
+typedef _GetFrameTimeDart = double Function();
+final _getFrameTime = _dylib.lookupFunction<_GetFrameTimeRay, _GetFrameTimeDart>('GetFrameTime');
+
+typedef _GetTimeRay = Double Function();
+typedef _GetTimeDart = double Function();
+final _getTime = _dylib.lookupFunction<_GetTimeRay, _GetTimeDart>('GetTime');
+
+typedef _GetFPSRay = Int32 Function();
+typedef _GetFPSDart = int Function();
+final _getFPS = _dylib.lookupFunction<_GetFPSRay, _GetFPSDart>('GetFPS');
 
 //------------------------------------------------------------------------------------
 //                                   Image
@@ -1164,7 +1217,74 @@ typedef _UpdateTextureRay = Void Function(_Texture2D, Pointer<Void>);
 typedef _UpdateTextureDart = void Function(_Texture2D, Pointer<Void>);
 final _updateTexture = _dylib.lookupFunction<_UpdateTextureRay, _UpdateTextureDart>('UpdateTexture');
 
-typedef _UpdateTextureRecRay = Void Function(_Texture2D, Rectangle, Pointer<Void>);
-typedef _UpdateTextureRecDart = void Function(_Texture2D, Rectangle, Pointer<Void>);
+typedef _UpdateTextureRecRay = Void Function(_Texture2D, _Rectangle, Pointer<Void>);
+typedef _UpdateTextureRecDart = void Function(_Texture2D, _Rectangle, Pointer<Void>);
 final _updateTextureRec = _dylib.lookupFunction<_UpdateTextureRecRay, _UpdateTextureRecDart>('UpdateTextureRec');
 
+typedef _ClearBackgroundRay = Void Function(_Color);
+typedef _ClearBackgroundDart = void Function(_Color);
+final _clearBackground = _dylib.lookupFunction<_ClearBackgroundRay, _ClearBackgroundDart>('ClearBackground');
+
+typedef _BeginDrawingRay = Void Function();
+typedef _BeginDrawingDart = void Function();
+final _beginDrawing = _dylib.lookupFunction<_BeginDrawingRay, _BeginDrawingDart>('BeginDrawing');
+
+typedef _EndDrawingRay = Void Function();
+typedef _EndDrawingDart = void Function();
+final _endDrawing = _dylib.lookupFunction<_EndDrawingRay, _EndDrawingDart>('EndDrawing');
+
+typedef _BeginMode2DRay = Void Function(_Camera2D);
+typedef _BeginMode2DDart = void Function(_Camera2D);
+final _beginMode2D = _dylib.lookupFunction<_BeginMode2DRay, _BeginMode2DDart>('BeginMode2D');
+
+typedef _EndMode2DRay = Void Function();
+typedef _EndMode2DDart = void Function();
+final _endMode2D = _dylib.lookupFunction<_EndMode2DRay, _EndMode2DDart>('EndMode2D');
+
+// typedef _BeginMode3DRay = Void Function(_Camera3D);
+// typedef _BeginMode3DDart = void Function(_Camera3D);
+// final _beginMode3D = _dylib.lookupFunction<_BeginMode3DRay, _BeginMode3DDart>('BeginMode3D');
+
+// typedef _EndMode3DRay = Void Function();
+// typedef _EndMode3DDart = void Function();
+// final _endMode3D = _dylib.lookupFunction<_EndMode3DRay, _EndMode3DDart>('EndMode3D');
+
+typedef _BeginTextureModeRay = Void Function(_RenderTexture2D);
+typedef _BeginTextureModeDart = void Function(_RenderTexture2D);
+final _beginTextureMode = _dylib.lookupFunction<_BeginTextureModeRay, _BeginTextureModeDart>('BeginTextureMode');
+
+typedef _EndTextureModeRay = Void Function();
+typedef _EndTextureModeDart = void Function();
+final _endTextureMode = _dylib.lookupFunction<_EndTextureModeRay, _EndTextureModeDart>('EndTextureMode');
+
+// typedef _BeginShaderModeRay = Void Function(Shader);
+// typedef _BeginShaderModeDart = void Function(Shader);
+// final _beginShaderMode = _dylib.lookupFunction<_BeginShaderModeRay, _BeginShaderModeDart>('BeginShaderMode');
+
+// typedef _EndShaderModeRay = Void Function();
+// typedef _EndShaderModeDart = void Function();
+// final _endShaderMode = _dylib.lookupFunction<_EndShaderModeRay, _EndShaderModeDart>('EndShaderMode');
+
+// typedef _BeginBlendModeRay = Void Function(Int32);
+// typedef _BeginBlendModeDart = void Function(int);
+// final _beginBlendMode = _dylib.lookupFunction<_BeginBlendModeRay, _BeginBlendModeDart>('BeginBlendMode');
+
+// typedef _EndBlendModeRay = Void Function();
+// typedef _EndBlendModeDart = void Function();
+// final _endBlendMode = _dylib.lookupFunction<_EndBlendModeRay, _EndBlendModeDart>('EndBlendMode');
+
+// typedef _BeginScissorModeRay = Void Function(Int32, Int32, Int32, Int32);
+// typedef _BeginScissorModeDart = void Function(int, int, int, int);
+// final _beginScissorMode = _dylib.lookupFunction<_BeginScissorModeRay, _BeginScissorModeDart>('BeginScissorMode');
+
+// typedef _EndScissorModeRay = Void Function();
+// typedef _EndScissorModeDart = void Function();
+// final _endScissorMode = _dylib.lookupFunction<_EndScissorModeRay, _EndScissorModeDart>('EndScissorMode');
+
+// typedef _BeginVrStereoModeRay = Void Function(VrStereoConfig);
+// typedef _BeginVrStereoModeDart = void Function(VrStereoConfig);
+// final _beginVrStereoMode = _dylib.lookupFunction<_BeginVrStereoModeRay, _BeginVrStereoModeDart>('BeginVrStereoMode');
+
+// typedef _EndVrStereoModeRay = Void Function();
+// typedef _EndVrStereoModeDart = void Function();
+// final _endVrStereoMode = _dylib.lookupFunction<_EndVrStereoModeRay, _EndVrStereoModeDart>('EndVrStereoMode');

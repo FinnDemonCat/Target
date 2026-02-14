@@ -81,7 +81,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # Custom command for CMakeFiles\run_debug
 
 build CMakeFiles/run_debug | ${cmake_ninja_workdir}CMakeFiles/run_debug: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Calie\Documents\Code\Dart\Target\build && start cmd /C dart run --enable-asserts "C:/Users/Calie/Documents/Code/Dart/Target/bin/main.dart" & pause"
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Calie\Documents\Code\Dart\Target && dart run --enable-asserts C:/Users/Calie/Documents/Code/Dart/Target/bin/main.dart"
   DESC = Executing dart in JIT (Debug) mode
 
 
