@@ -184,13 +184,21 @@ extension Vector2Math on Vector2
   void Scale(double value) { this.x *= value; this.y *= value; }
 
   /// Multiply `this` vector by `arg` vector
-  void Multiply(Vector2 v2) { this.x * v2.x; this.y * v2.y; }
+  void operator*(Vector2 v2)
+  {
+    this.x * v2.x;
+    this.y * v2.y;
+  }
 
   /// Negate `this` vector
   void Negate() { this.x *= -1; this.y *= -1; }
 
   /// Divide `this` vector by `arg` vector
-  void Divide(Vector2 value) { this.x /= value.x; this.y /= value.y; }
+  void operator/(Vector2 value)
+  {
+    this.x /= value.x;
+    this.y /= value.y;
+  }
 
   /// Transforms a Vector2 by a given Matrix
   void Transform() {}
@@ -269,6 +277,570 @@ extension Vector2Math on Vector2
 }
 
 //------------------------------------------------------------------------------------
+/// Module Functions Definition - Vector3 math
+//------------------------------------------------------------------------------------
+
+class Vector3 implements Disposeable
+{
+  NativeResource<_Vector3>? _memory;
+
+  // ignore: unused_element
+  void _setmemory(_Vector3 result)
+  {
+    if (_memory != null) _memory!.dispose();
+
+    Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
+    pointer.ref
+    ..x = result.x
+    ..y = result.y
+    ..z = result.z;
+
+    _memory = NativeResource(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  double get x => _memory!.pointer.ref.x;
+  double get y => _memory!.pointer.ref.y;
+  double get z => _memory!.pointer.ref.z;
+
+  set x (double value) => _memory!.pointer.ref.x = value;
+  set y (double value) => _memory!.pointer.ref.y = value;
+  set z (double value) => _memory!.pointer.ref.z = value;
+
+  ///Set all values in a single call
+  void Set(double x, double y, double z)
+  {
+    this.x = x;
+    this.y = y;
+    this.z = z;
+  }
+
+  _Vector3 get ref => _memory!.pointer.ref;
+
+  Vector3([double x = 0.0, double y = 0.0, double z = 0.0])
+  {
+    if (_memory != null) _memory!.dispose();
+
+    Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
+    pointer.ref
+    ..x = x
+    ..y = y
+    ..z = z;
+
+    _memory = NativeResource(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  static Vector3 CrossProduct(Vector3 v1, Vector3 v2)
+  {
+    Vector3 result = Vector3();
+    result.x = v1.y * v2.z - v1.z * v2.y;
+    result.y = v1.z * v2.x - v1.x * v2.z;
+    result.z = v1.x * v2.y - v1.y * v2.x;
+
+    return result;
+  }
+
+  static Vector3 Perpendicular(Vector3 v)
+  {
+    Vector3 result = Vector3();
+    double min = v.x.abs();
+    Vector3 cardinalAxis = Vector3(1.0, 0.0, 0.0);
+
+    if (v.y.abs() < min)
+    {
+      min = v.y.abs();
+      cardinalAxis = Vector3(0.0, 1.0, 0.0);
+    }
+
+    if (v.z.abs() < min)
+    {
+      cardinalAxis = Vector3(0.0, 0.0, 1.0);
+    }
+
+    result.x = v.y * cardinalAxis.z - v.z * cardinalAxis.y;
+    result.y = v.z * cardinalAxis.x - v.x * cardinalAxis.z;
+    result.z = v.x * cardinalAxis.y - v.y * cardinalAxis.x;
+
+    return result;
+  }
+
+  /// Calculate distance between two vectors
+  double Distance(Vector3 v1, Vector3 v2)
+  {
+    double dx = v2.x - v1.x;
+    double dy = v2.y - v1.y;
+    double dz = v2.z - v1.z;
+
+    return math.sqrt(dx*dx + dy*dy + dz*dz);
+  }
+
+  /// Calculate square distance between two vectors
+  double DistanceSqr(Vector3 v1, Vector3 v2)
+  {
+    double dx = v2.x - v1.x;
+    double dy = v2.y - v1.y;
+    double dz = v2.z - v1.z;
+
+    return dx*dx + dy*dy + dz*dz;
+  }
+
+  /// Calculate angle between two vectors
+  double Angle(Vector3 v1, Vector3 v2)
+  {
+    double crossX = v1.y*v2.z - v1.z*v2.y;
+    double crossY = v1.z*v2.x - v1.x*v2.z;
+    double crossZ = v1.x*v2.y - v1.y*v2.x;
+    double len = math.sqrt(crossX*crossX + crossY*crossY + crossZ*crossZ);
+    double dot = (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
+
+    return math.atan2(len, dot);
+  }
+
+  ///Calculate the projection of the vector v1 on to v2
+  static Vector3 Project(Vector3 v1, Vector3 v2)
+  {
+    Vector3 result = Vector3();
+
+    double v1dv2 = (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
+    double v2dv2 = (v2.x*v2.x + v2.y*v2.y + v2.z*v2.z);
+    
+    // magnitude division by zero guard
+    double mag = (v2dv2 != 0.0) ? (v1dv2 / v2dv2) : 0.0;
+
+    result.x = v2.x * mag;
+    result.y = v2.y * mag;
+    result.z = v2.z * mag;
+
+    return result;
+  }
+
+  ///Calculate the rejection of the vector v1 on to v2
+  static Vector3 Reject(Vector3 v1, Vector3 v2)
+  {
+    Vector3 result = Vector3();
+
+    double v1dv2 = (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
+    double v2dv2 = (v2.x*v2.x + v2.y*v2.y + v2.z*v2.z);
+
+    double mag = v1dv2/v2dv2;
+
+    result.x = v1.x - (v2.x*mag);
+    result.y = v1.y - (v2.y*mag);
+    result.z = v1.z - (v2.z*mag);
+
+    return result;
+  }
+
+  Finalizer _finalizer = Finalizer<Pointer<_Vector3>>((pointer) {
+    malloc.free(pointer);
+  });
+
+  /// Orthonormalize provided vectors
+  /// Makes vectors normalized and orthogonal to each other
+  /// Gram-Schmidt function implementation
+  static void OrthoNormalize(Vector3 v1, Vector3 v2)
+  {
+    double length = 0.0;
+    double ilength = 0.0;
+
+    // Vector3Normalize(v1)
+    length = math.sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
+    
+    if (length == 0.0) length = 1.0;
+    ilength = 1.0 / length;
+
+    v1.x *= ilength;
+    v1.y *= ilength;
+    v1.z *= ilength;
+
+    // Vector3CrossProduct(v1, v2)
+    double vn1x = v1.y*v2.z - v1.z*v2.y;
+    double vn1y = v1.z*v2.x - v1.x*v2.z;
+    double vn1z = v1.x*v2.y - v1.y*v2.x;
+
+    double l2 = math.sqrt(vn1x*vn1x + vn1y*vn1y + vn1z*vn1z);
+    
+    if (l2 == 0.0) l2 = 1.0;
+    double il2 = 1.0 / l2;
+    
+    vn1x *= il2;
+    vn1y *= il2;
+    vn1z *= il2;
+
+    v2.x = vn1y*v1.z - vn1z*v1.y;
+    v2.y = vn1z*v1.x - vn1x*v1.z;
+    v2.z = vn1x*v1.y - vn1y*v1.x;
+  }
+
+  /// Vector with components value 0.0f
+  factory Vector3.Zero() => Vector3();
+
+  /// Vector with components value 1.0f
+  factory Vector3.One() => Vector3(1.0, 1.0, 1.0);
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _memory!.dispose();
+      _finalizer.detach(this);
+    }
+  }
+}
+
+extension Vector3Math on Vector3
+{
+  /// Add two vectors
+  void operator+(Vector3 v2)
+  {
+    this.x += v2.x;
+    this.y += v2.y;
+    this.z += v2.z;
+  }
+  
+  /// Add vector and float value
+  void AddValue(double add)
+  {
+    this.x += add;
+    this.y += add;
+    this.z += add;
+  }
+
+  /// Subtract two vectors
+  void operator-(Vector3 v2)
+  {
+    this.x -= v2.x;
+    this.y -= v2.y;
+    this.z -= v2.z;
+  }
+
+  /// Subtract vector by float value
+  void SubtractValue(double add)
+  {
+    this.x -= add;
+    this.y -= add;
+    this.z -= add;
+  }
+
+  /// Multiply vector by scalar
+  void Scale(double scale)
+  {
+    this.x *= scale;
+    this.y *= scale;
+    this.z *= scale;
+  }
+
+  /// Multiply vector by vector
+  void operator*(Vector3 v2)
+  {
+    this.x *= v2.x;
+    this.y *= v2.y;
+    this.z *= v2.z;
+  }
+  /// Calculate vector length
+  double Length() => math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+  /// Calculate vector square length
+  double DotProduct(Vector3 v) => this.x*v.x + this.y*v.y + this.z*v.z;
+  /// Calculate two vectors dot product
+  double LengthSqr() => this.x*this.x + this.y*this.y + this.z*this.z;
+  /// Negate provided vector (invert direction)
+  void Negate()
+  {
+    this.x *= -1;
+    this.y *= -1;
+    this.z *= -1;
+  }
+  /// Divide vector by vector
+  void operator/(Vector3 v)
+  {
+    this.x /= v.x;
+    this.y /= v.y;
+    this.z /= v.z;
+  }
+  /// Normalize provided vector
+  void Normalize()
+  {
+    double length = math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
+    
+    if (length != 0.0)
+    {
+      double ilength = 1.0 / length;
+
+      this.x *= ilength;
+      this.y *= ilength;
+      this.z *= ilength;
+    }
+  }
+
+  void RotateByQuaternion(Quaternion q)
+  {
+
+  }
+}
+
+//----------------------------------------------------------------------------------
+/// Module Functions Definition - Vector4 math
+//----------------------------------------------------------------------------------
+class Vector4 implements Disposeable
+{
+  NativeResource<_Vector4>? _memory;
+
+  // ignore: unused_element
+  void _setmemory(_Vector4 result)
+  {
+    Pointer<_Vector4> pointer = malloc.allocate<_Vector4>(sizeOf<_Vector4>());
+    pointer.ref
+    ..x = result.x
+    ..y = result.y
+    ..z = result.z
+    ..w = result.w;
+
+    _memory = NativeResource(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  _Vector4 get ref => _memory!.pointer.ref;
+
+  double get x => _memory!.pointer.ref.x;
+  double get y => _memory!.pointer.ref.y;
+  double get z => _memory!.pointer.ref.z;
+  double get w => _memory!.pointer.ref.w;
+
+  set x(double value) => _memory!.pointer.ref.x = value;
+  set y(double value) => _memory!.pointer.ref.y = value;
+  set z(double value) => _memory!.pointer.ref.z = value;
+  set w(double value) => _memory!.pointer.ref.w = value;
+
+  void Set([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0])
+  {
+    this.ref
+    ..x = x
+    ..y = y
+    ..z = z
+    ..w = w;
+  }
+
+  Vector4([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0])
+  {
+    Pointer<_Vector4> pointer = malloc.allocate<_Vector4>(sizeOf<_Vector4>());
+    pointer.ref
+    ..x = x
+    ..y = y
+    ..z = z
+    ..w = w;
+
+    _memory = NativeResource(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  factory Vector4.Zero() => Vector4();
+
+  factory Vector4.One() => Vector4(1.0, 1.0, 1.0, 1.0);
+
+  static double DotProduct(Vector4 v1, Vector4 v2) => (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z + v1.w*v2.w);
+
+  /// Calculate distance between two vectors
+  static double Distance(Vector4 v1, Vector4 v2)
+  {
+    return math.sqrt(
+      (v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y - v2.y) +
+      (v1.z - v2.z)*(v1.z - v2.z) + (v1.w - v2.w)*(v1.w - v2.w)
+    );
+  }
+
+  /// Calculate square distance between two vectors
+  static double DistanceSqr(Vector4 v1, Vector4 v2)
+  {
+    return (
+      (v1.x - v2.x)*(v1.x - v2.x) + (v1.y - v2.y)*(v1.y - v2.y) +
+      (v1.z - v2.z)*(v1.z - v2.z) + (v1.w - v2.w)*(v1.w - v2.w)
+    );
+  }
+
+  /// Get min value for each pair of components
+  /// 
+  /// Creates new instance
+  static Vector4 Min(Vector4 v1, Vector4 v2)
+  {
+    Vector4 result = Vector4();
+
+    result.x = math.min(v1.x, v2.x);
+    result.y = math.min(v1.y, v2.y);
+    result.z = math.min(v1.z, v2.z);
+    result.w = math.min(v1.w, v2.w);
+
+    return result;
+  }
+
+  /// Get max value for each pair of components
+  /// 
+  /// Creates new instance
+  static Vector4 Max(Vector4 v1, Vector4 v2)
+  {
+    Vector4 result = Vector4();
+
+    result.x = math.max(v1.x, v2.x);
+    result.y = math.max(v1.y, v2.y);
+    result.z = math.max(v1.z, v2.z);
+    result.w = math.max(v1.w, v2.w);
+
+    return result;
+  }
+
+  /// Check whether two given vectors are almost equal
+  static bool Equals(Vector4 p, Vector4 q)
+  {
+    return ((p.x - q.x).abs() <= (EPSILON * math.max(1.0, math.max(p.x.abs(), q.x.abs())))) &&
+           ((p.y - q.y).abs() <= (EPSILON * math.max(1.0, math.max(p.y.abs(), q.y.abs())))) &&
+           ((p.z - q.z).abs() <= (EPSILON * math.max(1.0, math.max(p.z.abs(), q.z.abs())))) &&
+           ((p.w - q.w).abs() <= (EPSILON * math.max(1.0, math.max(p.w.abs(), q.w.abs()))));
+  }
+
+  Finalizer _finalizer = Finalizer<Pointer<_Vector4>>((pointer) {
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+extension Vector4Math on Vector4
+{
+  void operator+(Vector4 v)
+  {
+    this.x += v.x;
+    this.y += v.y;
+    this.z += v.z;
+    this.w += v.w;
+  }
+
+  void AddValue(double add)
+  {
+    this.x += add;
+    this.y += add;
+    this.z += add;
+    this.w += add;
+  }
+
+  void operator-(Vector4 v)
+  {
+    this.x -= v.x;
+    this.y -= v.y;
+    this.z -= v.z;
+    this.w -= v.w;
+  }
+
+  void SubtractValue(double sub)
+  {
+    this.x -= sub;
+    this.y -= sub;
+    this.z -= sub;
+    this.w -= sub;
+  }
+
+  double Length() => math.sqrt((this.x*this.x) + (this.y*this.y) + (this.z*this.z));
+
+  double LengthSqr() => (this.x*this.x) + (this.y*this.y) + (this.z*this.z);
+
+  void Scale(double scale)
+  {
+    this.x *= scale;
+    this.y *= scale;
+    this.z *= scale;
+    this.w *= scale;
+  }
+
+  /// Multiply vector by vector
+  void operator*(Vector4 v)
+  {
+    this.x *= v.x;
+    this.y *= v.y;
+    this.z *= v.z;
+    this.w *= v.w;
+  }
+
+  /// Negate vector
+  void Negate()
+  {
+    this.x *= -1;
+    this.y *= -1;
+    this.z *= -1;
+    this.w *= -1;
+  }
+
+  /// Divide vector by vector
+  void operator/(Vector4 divide)
+  {
+    this.x /= divide.x;
+    this.y /= divide.y;
+    this.z /= divide.z;
+    this.w /= divide.w;
+  }
+
+  /// Normalize provided vector
+  void Normalize()
+  {
+    double length = math.sqrt((this.x*this.x) + (this.y*this.y) + (this.z*this.z) + (this.w*this.w));
+
+    if (length > 0)
+    {
+      double ilength = 1.0 / length;
+
+      this.x *= ilength;
+      this.y *= ilength;
+      this.z *= ilength;
+      this.w *= ilength;
+    }
+  }
+
+  /// Calculate linear interpolation between two vectors
+  void LerpOf(Vector4 v2, double ammount)
+  {
+    this.x = this.x + ammount*(v2.x - this.x);
+    this.y = this.y + ammount*(v2.y - this.y);
+    this.z = this.z + ammount*(v2.z - this.z);
+    this.w = this.w + ammount*(v2.w - this.w);
+  }
+
+  /// Move Vector towards target
+  void MoveTowards(Vector4 target, double maxDistance)
+  {
+    double dx = target.x - this.x;
+    double dy = target.y - this.y;
+    double dz = target.z - this.z;
+    double dw = target.w - this.w;
+    double value = (dx*dx) + (dy*dy) + (dz*dz) + (dw*dw);
+
+    if ((value == 0) || ((maxDistance >= 0) && (value <= maxDistance*maxDistance))) return;
+
+    double dist = math.sqrt(value);
+
+    this.x += dx/dist*maxDistance;
+    this.y += dx/dist*maxDistance;
+    this.z += dx/dist*maxDistance;
+    this.w += dx/dist*maxDistance;
+  }
+
+  /// Invert the given vector
+  void Invert()
+  {
+    this.x = 1.0 / this.x;
+    this.y = 1.0 / this.y;
+    this.z = 1.0 / this.z;
+    this.w = 1.0 / this.w;
+  }
+}
+
+//------------------------------------------------------------------------------------
 //                                  Rectangle
 //------------------------------------------------------------------------------------
 
@@ -280,6 +852,8 @@ class Rectangle implements Disposeable
   // ignore: unused_element
   void _setMemory(_Rectangle result)
   {
+    if (_memory != null) _memory!.dispose();
+
     Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
     pointer.ref = result;
 
