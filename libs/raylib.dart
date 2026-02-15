@@ -132,10 +132,16 @@ class Vector2 implements Disposeable
 extension Vector2Math on Vector2
 {
   /// Add two vectors (v1 + v2)
-  void operator +(Vector2 other) { this.x + other.x; this.y + other.y; }
+  void Add(Vector2 other) { this.x += other.x; this.y += other.y; }
+
+  /// Returns the sum of `this` and `other` vectors
+  Vector2 operator +(Vector2 other) => Vector2(this.x+other.x, this.y+other.y);
   
   /// Subtract two vectors (v1 - v2)
-  void operator -(Vector2 other) { this.x - other.x; this.y - other.y; }
+  void Subtract(Vector2 other) { this.x -= other.x; this.y -= other.y; }
+
+  /// Returns the dif of `this` and `other` vectors
+  Vector2 operator -(Vector2 other) => Vector2(this.x-other.x, this.y-other.y);
 
   /// Subtract vector by float value
   void SubractValue(double sub) { this.x -= sub; this.y -= sub; }
@@ -183,22 +189,20 @@ extension Vector2Math on Vector2
   /// Scale vector (multiply by value)
   void Scale(double value) { this.x *= value; this.y *= value; }
 
-  /// Multiply `this` vector by `arg` vector
-  void operator*(Vector2 v2)
-  {
-    this.x * v2.x;
-    this.y * v2.y;
-  }
+  /// Multiplies `this` vector by `other` (In-place)
+  void Multiply(Vector2 other) { this.x *= other.x; this.y *= other.y; }
+
+  /// Returns the product of `this` and `other` vectors (New instance)
+  Vector2 operator *(Vector2 other) => Vector2(this.x * other.x, this.y * other.y);
+
+  /// Divides `this` vector by `other` (In-place)
+  void Divide(Vector2 other) { this.x /= other.x; this.y /= other.y; }
+
+  /// Returns the quotient of `this` and `other` vectors (New instance)
+  Vector2 operator /(Vector2 other) => Vector2(this.x / other.x, this.y / other.y);
 
   /// Negate `this` vector
   void Negate() { this.x *= -1; this.y *= -1; }
-
-  /// Divide `this` vector by `arg` vector
-  void operator/(Vector2 value)
-  {
-    this.x /= value.x;
-    this.y /= value.y;
-  }
 
   /// Transforms a Vector2 by a given Matrix
   void Transform() {}
@@ -492,28 +496,32 @@ class Vector3 implements Disposeable
 
 extension Vector3Math on Vector3
 {
-  /// Add two vectors
-  void operator+(Vector3 v2)
-  {
+  /// Add two vectors (v1 + v2) - In-place
+  void Add(Vector3 v2) {
     this.x += v2.x;
     this.y += v2.y;
     this.z += v2.z;
   }
-  
+
+  /// Returns a new vector as the sum of this and v2
+  Vector3 operator +(Vector3 v2) => Vector3(this.x + v2.x, this.y + v2.y, this.z + v2.z);
+
+  /// Subtract two vectors (v1 - v2) - In-place
+  void Subtract(Vector3 v2) {
+    this.x -= v2.x;
+    this.y -= v2.y;
+    this.z -= v2.z;
+  }
+
+  /// Returns a new vector as the difference of this and v2
+  Vector3 operator -(Vector3 v2) => Vector3(this.x - v2.x, this.y - v2.y, this.z - v2.z);
+
   /// Add vector and float value
   void AddValue(double add)
   {
     this.x += add;
     this.y += add;
     this.z += add;
-  }
-
-  /// Subtract two vectors
-  void operator-(Vector3 v2)
-  {
-    this.x -= v2.x;
-    this.y -= v2.y;
-    this.z -= v2.z;
   }
 
   /// Subtract vector by float value
@@ -532,13 +540,16 @@ extension Vector3Math on Vector3
     this.z *= scale;
   }
 
-  /// Multiply vector by vector
-  void operator*(Vector3 v2)
+  /// Multiply `this` by `v2` (In-place)
+  void Multiply(Vector3 v2)
   {
     this.x *= v2.x;
     this.y *= v2.y;
     this.z *= v2.z;
   }
+  /// Returns the product of x, y, and z of `this` vector and `other` vector (New instance)
+  Vector3 operator *(Vector3 other) => Vector3(this.x*other.x, this.y*other.y, this.z*other.z);
+
   /// Calculate vector length
   double Length() => math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
   /// Calculate vector square length
@@ -552,13 +563,17 @@ extension Vector3Math on Vector3
     this.y *= -1;
     this.z *= -1;
   }
-  /// Divide vector by vector
-  void operator/(Vector3 v)
-  {
-    this.x /= v.x;
-    this.y /= v.y;
-    this.z /= v.z;
+
+  /// Divides `this` by `v2` (In-place)
+  void Divide(Vector3 v2) {
+    this.x /= v2.x;
+    this.y /= v2.y;
+    this.z /= v2.z;
   }
+
+  /// Returns the quotient of x, y, and z of `this` vector and `other` vector (New instance)
+  Vector3 operator /(Vector3 other) => Vector3(this.x / other.x, this.y / other.y, this.z / other.z);
+
   /// Normalize provided vector
   void Normalize()
   {
@@ -574,9 +589,14 @@ extension Vector3Math on Vector3
     }
   }
 
+  /// Transform a vector by quaternion rotation
   void RotateByQuaternion(Quaternion q)
   {
+    double dx = this.x; double dy = this.y; double dz = this.z;
 
+    this.x = dx*(q.x*q.x + q.w*q.w - q.y*q.y - q.z*q.z) + dy*(2*q.x*q.y - 2*q.w*q.z) + dz*(2*q.x*q.z + 2*q.w*q.y);
+    this.y = dx*(2*q.w*q.z + 2*q.x*q.y) + dy*(q.w*q.w - q.x*q.x + q.y*q.y - q.z*q.z) + dz*(-2*q.w*q.x + 2*q.y*q.z);
+    this.z = dx*(-2*q.w*q.y + 2*q.x*q.z) + dy*(2*q.w*q.x + 2*q.y*q.z) + dz*(q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
   }
 }
 
@@ -597,6 +617,12 @@ class Vector4 implements Disposeable
     ..z = result.z
     ..w = result.w;
 
+    _memory = NativeResource(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Vector4._internal(Pointer<_Vector4> pointer)
+  {
     _memory = NativeResource(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
@@ -715,13 +741,15 @@ class Vector4 implements Disposeable
 
 extension Vector4Math on Vector4
 {
-  void operator+(Vector4 v)
+  void Add(Vector4 v)
   {
     this.x += v.x;
     this.y += v.y;
     this.z += v.z;
     this.w += v.w;
   }
+
+  Vector4 operator+(Vector4 v2) => Vector4(this.x+v2.x, this.y+v2.y, this.z+v2.z, this.w+v2.w);
 
   void AddValue(double add)
   {
@@ -731,13 +759,15 @@ extension Vector4Math on Vector4
     this.w += add;
   }
 
-  void operator-(Vector4 v)
+  void Subtract(Vector4 v)
   {
     this.x -= v.x;
     this.y -= v.y;
     this.z -= v.z;
     this.w -= v.w;
   }
+
+  Vector4 operator-(Vector4 v2) => Vector4(this.x-v2.x, this.y-v2.y, this.z-v2.z, this.w-v2.w);
 
   void SubtractValue(double sub)
   {
@@ -759,14 +789,17 @@ extension Vector4Math on Vector4
     this.w *= scale;
   }
 
-  /// Multiply vector by vector
-  void operator*(Vector4 v)
+  // Multiplies `this` vector by `other`
+  void Multiply(Vector4 other)
   {
-    this.x *= v.x;
-    this.y *= v.y;
-    this.z *= v.z;
-    this.w *= v.w;
+    this.x *= other.x;
+    this.y *= other.y;
+    this.z *= other.z;
+    this.w *= other.w;
   }
+
+  /// Multiply vector by vector
+  Vector4 operator *(Vector4 v) => Vector4(this.x*v.x, this.y*v.y, this.z*v.z, this.w*v.w);
 
   /// Negate vector
   void Negate()
@@ -777,14 +810,18 @@ extension Vector4Math on Vector4
     this.w *= -1;
   }
 
-  /// Divide vector by vector
-  void operator/(Vector4 divide)
-  {
-    this.x /= divide.x;
-    this.y /= divide.y;
-    this.z /= divide.z;
-    this.w /= divide.w;
+  /// Divides `this` vector by `other` (In-place)
+  void Divide(Vector4 other) {
+    if (other.x == 0 || other.y == 0 || other.z == 0 || other.w == 0) throw Exception("Division by zero!");
+
+    this.x /= other.x;
+    this.y /= other.y;
+    this.z /= other.z;
+    this.w /= other.w;
   }
+
+  /// Divide vector by vector (New instance)
+  Vector4 operator /(Vector4 v) => Vector4(this.x/v.x, this.y/v.y, this.z/v.z, this.w/v.w);
 
   /// Normalize provided vector
   void Normalize()
@@ -839,6 +876,577 @@ extension Vector4Math on Vector4
     this.w = 1.0 / this.w;
   }
 }
+//------------------------------------------------------------------------------------
+/// Module Functions Definition - Quaternion math
+//------------------------------------------------------------------------------------
+
+class Quaternion extends Vector4
+{
+  Quaternion._internal(Pointer<_Quaternion> pointer) : super._internal(pointer);
+
+  factory Quaternion([double x = 0.0, double y = 0.0, double z = 0.0, double w = 1.0])
+  {
+    Pointer<_Quaternion> pointer = malloc.allocate<_Quaternion>(sizeOf<_Quaternion>());
+    pointer.ref
+    ..x = x
+    ..y = y
+    ..z = z
+    ..w = w;
+
+    return Quaternion._internal(pointer);
+  }
+}
+
+//------------------------------------------------------------------------------------
+// Module Functions Definition - Matrix math
+//------------------------------------------------------------------------------------
+
+class Matrix implements Disposeable
+{
+  NativeResource<_Matrix>? _memory;
+
+  // ignore: unused_element
+  void _setMemory(_Matrix result)
+  {
+    Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  _Matrix get ref => _memory!.pointer.ref;
+
+  double get m0 => ref.m0;
+  double get m1 => ref.m1;
+  double get m2 => ref.m2;
+  double get m3 => ref.m3;
+  double get m4 => ref.m4;
+  double get m5 => ref.m5;
+  double get m6 => ref.m6;
+  double get m7 => ref.m7;
+  double get m8 => ref.m8;
+  double get m9 => ref.m9;
+  double get m10 => ref.m10;
+  double get m11 => ref.m11;
+  double get m12 => ref.m12;
+  double get m13 => ref.m13;
+  double get m14 => ref.m14;
+  double get m15 => ref.m15;
+
+  set m0(double value) => ref.m0 = value;
+  set m1(double value) => ref.m1 = value;
+  set m2(double value) => ref.m2 = value;
+  set m3(double value) => ref.m3 = value;
+  set m4(double value) => ref.m4 = value;
+  set m5(double value) => ref.m5 = value;
+  set m6(double value) => ref.m6 = value;
+  set m7(double value) => ref.m7 = value;
+  set m8(double value) => ref.m8 = value;
+  set m9(double value) => ref.m9 = value;
+  set m10(double value) => ref.m10 = value;
+  set m11(double value) => ref.m11 = value;
+  set m12(double value) => ref.m12 = value;
+  set m13(double value) => ref.m13 = value;
+  set m14(double value) => ref.m14 = value;
+  set m15(double value) => ref.m15 = value;
+
+  set column1(Vector4 v) {
+    _Matrix r = ref;
+    r.m0 = v.x; r.m1 = v.y; r.m2 = v.z; r.m3 = v.w;
+  }
+
+  set column2(Vector4 v) {
+    _Matrix r = ref;
+    r.m4 = v.x; r.m5 = v.y; r.m6 = v.z; r.m7 = v.w;
+  }
+  
+  set column3(Vector4 v) {
+    _Matrix r = ref;
+    r.m8 = v.x; r.m9 = v.y; r.m10 = v.z; r.m11 = v.w;
+  }
+
+  set column4(Vector4 v) {
+    _Matrix r = ref;
+    r.m12 = v.x; r.m13 = v.y; r.m14 = v.z; r.m15 = v.w;
+  }
+
+  Vector4 get column1 => Vector4._internal((_memory!.pointer.cast<Float>() + 0).cast<_Vector4>());
+  Vector4 get column2 => Vector4._internal((_memory!.pointer.cast<Float>() + 4).cast<_Vector4>());
+  Vector4 get column3 => Vector4._internal((_memory!.pointer.cast<Float>() + 8).cast<_Vector4>());
+  Vector4 get column4 => Vector4._internal((_memory!.pointer.cast<Float>() + 12).cast<_Vector4>());
+  
+  Matrix([
+    double m0 = 1.0, double m4 = 0.0, double m8 = 0.0, double m12 = 0.0,
+    double m1 = 0.0, double m5 = 1.0, double m9 = 0.0, double m13 = 0.0,
+    double m2 = 0.0, double m6 = 0.0, double m10 = 1.0, double m14 = 0.0,
+    double m3 = 0.0, double m7 = 0.0, double m11 = 0.0, double m15 = 1.0,
+  ]) {
+    Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
+    
+    pointer.ref
+      ..m0 = m0   ..m4 = m4   ..m8 = m8   ..m12 = m12
+      ..m1 = m1   ..m5 = m5   ..m9 = m9   ..m13 = m13
+      ..m2 = m2   ..m6 = m6   ..m10 = m10 ..m14 = m14
+      ..m3 = m3   ..m7 = m7   ..m11 = m11 ..m15 = m15;
+
+    _memory = NativeResource<_Matrix>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+  
+  /// Get identity matrix
+  static final Matrix Identity = Matrix();
+
+  /// Get translation matrix
+  static Matrix Translate({double x = 0.0, double y = 0.0, double z = 0.0})
+  {
+    Matrix result = Matrix();
+
+    result.m12 = x;
+    result.m13 = y;
+    result.m14 = z;
+
+    return result;
+  }
+
+  /// Create rotation matrix from axis and angle
+  /// 
+  /// NOTE: Angle should be provided in radians
+  static Matrix Rotate(Vector3 axis, double angle)
+  {
+    Matrix result = Matrix();
+
+    double x = axis.x, y = axis.y, z = axis.z;
+    double lengthSqr = x*x + y*y + z*z;
+
+    if ((lengthSqr != 1.0) && (lengthSqr != 0.0))
+    {
+      double ilength = 1.0/math.sqrt(lengthSqr);
+      x *= ilength;
+      y *= ilength;
+      z *= ilength;
+    }
+
+    double sinres = math.sin(angle);
+    double cosres = math.cos(angle);
+    double t = 1.0 - cosres;
+
+    result.m0 = x*x*t + cosres;
+    result.m1 = y*x*t + z*sinres;
+    result.m2 = z*x*t - y*sinres;
+    result.m3 = 0.0;
+
+    result.m4 = x*y*t - z*sinres;
+    result.m5 = y*y*t + cosres;
+    result.m6 = z*y*t + x*sinres;
+    result.m7 = 0.0;
+
+    result.m8 = x*z*t + y*sinres;
+    result.m9 = y*z*t - x*sinres;
+    result.m10 = z*z*t + cosres;
+    result.m11 = 0.0;
+
+    result.m12 = 0.0;
+    result.m13 = 0.0;
+    result.m14 = 0.0;
+    result.m15 = 1.0;
+
+    return result;
+  }
+  
+  /// Get x-rotation matrix
+  /// 
+  /// NOTE: Angle must be provided in radians
+  static Matrix RotateX(double angle)
+  {
+    Matrix result = Matrix();
+
+    double cosres = math.cos(angle);
+    double sinres = math.sin(angle);
+
+    result.m5 = cosres;
+    result.m6 = sinres;
+    result.m9 = -sinres;
+    result.m10 = cosres;
+    
+    return result;
+  }
+
+  /// Get y-rotation matrix
+  /// 
+  /// NOTE: Angle must be provided in radians
+  static Matrix RotateY(double angle)
+  {
+    Matrix result = Matrix();
+
+    double cosres = math.cos(angle);
+    double sinres = math.sin(angle);
+
+    result.m0 = cosres;
+    result.m2 = -sinres;
+    result.m8 = sinres;
+    result.m10 = cosres;
+
+    return result;
+  }
+
+  /// Get z-rotation matrix
+  /// 
+  /// NOTE: Angle must be provided in radians
+  static Matrix RotateZ(double angle)
+  {
+    Matrix result = Matrix();
+
+    double cosres = math.cos(angle);
+    double sinres = math.sin(angle);
+
+    result.m0 = cosres;
+    result.m1 = sinres;
+    result.m4 = -sinres;
+    result.m5 = cosres;
+
+    return result;
+  }
+
+  /// Get xyz-rotation matrix
+  /// 
+  /// NOTE: Angle must be provided in radians
+  static Matrix RotateXYZ(Vector3 angle)
+  {
+    Matrix result = Matrix();
+
+    double cosz = math.cos(-angle.z);
+    double sinz = math.sin(-angle.z);
+    double cosy = math.cos(-angle.y);
+    double siny = math.sin(-angle.y);
+    double cosx = math.cos(-angle.x);
+    double sinx = math.sin(-angle.x);
+
+    result.m0 = cosz*cosy;
+    result.m1 = (cosz*siny*sinx) - (sinz*cosx);
+    result.m2 = (cosz*siny*cosx) + (sinz*sinx);
+
+    result.m4 = sinz*cosy;
+    result.m5 = (sinz*siny*sinx) + (cosz*cosx);
+    result.m6 = (sinz*siny*cosx) - (cosz*sinx);
+
+    result.m8 = -siny;
+    result.m9 = cosy*sinx;
+    result.m10= cosy*cosx;
+
+    return result;
+  }
+
+  /// Get perspective projection matrix
+  static Matrix Frustrum({
+    required double left     , required double right   ,
+    required double bottom   , required double top     , 
+    required double nearPlane, required double farPlane
+  }) {
+    Matrix result = Matrix();
+
+    double rl = (right - left);
+    double tb = (top - bottom);
+    double fn = (farPlane - nearPlane);
+
+    result.m0 = (nearPlane*2.0)/rl;
+    result.m1 = 0.0;
+    result.m2 = 0.0;
+    result.m3 = 0.0;
+
+    result.m4 = 0.0;
+    result.m5 = (nearPlane*2.0)/tb;
+    result.m6 = 0.0;
+    result.m7 = 0.0;
+
+    result.m8 = (right + left)/rl;
+    result.m9 = (top + bottom)/tb;
+    result.m10 = -(farPlane + nearPlane)/fn;
+    result.m11 = -1.0;
+
+    result.m12 = 0.0;
+    result.m13 = 0.0;
+    result.m14 = -(farPlane*nearPlane*2.0)/fn;
+    result.m15 = 0.0;
+
+    return result;
+  }
+
+  /// Get perspective projection matrix
+  /// 
+  /// NOTE: Fovy angle must be provided in radians
+  static Matrix Perspective({
+    required double fovY, required double aspect,
+    required double nearPlane, required double farPlane
+  }) {
+    Matrix result = Matrix();
+
+    double top = nearPlane*math.tan(fovY*0.5);
+    double bottom = -top;
+    double right = top*aspect;
+    double left = -right;
+
+    // MatrixFrustum(-right, right, -top, top, near, far);
+    double rl = (right - left);
+    double tb = (top - bottom);
+    double fn = (farPlane - nearPlane);
+
+    result.m0 = (nearPlane*2.0)/rl;
+    result.m5 = (nearPlane*2.0)/tb;
+    result.m8 = (right + left)/rl;
+    result.m9 = (top + bottom)/tb;
+    result.m10 = -(farPlane + nearPlane)/fn;
+    result.m11 = -1.0;
+    result.m14 = -(farPlane*nearPlane*2.0)/fn;
+
+    return result;
+  }
+
+  /// Get orthographic projection matrix
+  static Matrix Ortho({
+    required double left, required double right,
+    required double bottom, required double top,
+    required double nearPlane, required double farPlane
+  }) {
+    Matrix result = Matrix();
+
+    double rl = (right - left);
+    double tb = (top - bottom);
+    double fn = (farPlane - nearPlane);
+
+    result.m0 = 2.0/rl;
+    result.m1 = 0.0;
+    result.m2 = 0.0;
+    result.m3 = 0.0;
+    result.m4 = 0.0;
+    result.m5 = 2.0/tb;
+    result.m6 = 0.0;
+    result.m7 = 0.0;
+    result.m8 = 0.0;
+    result.m9 = 0.0;
+    result.m10 = -2.0/fn;
+    result.m11 = 0.0;
+    result.m12 = -(left + right)/rl;
+    result.m13 = -(top + bottom)/tb;
+    result.m14 = -(farPlane + nearPlane)/fn;
+    result.m15 = 1.0;
+
+    return result;
+  }
+
+  static Matrix LookAt({required Vector3 eye, required Vector3 target, required Vector3 up})
+  {
+    Matrix result = Matrix();
+
+    double length = 0.0;
+    double ilength = 0.0;
+
+    // Vector3Subtract(eye, target)
+    Vector3 vz = eye - target;
+    // { eye.x - target.x, eye.y - target.y, eye.z - target.z };
+
+    // Vector3Normalize(vz)
+    Vector3 v = vz;
+    length = math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+    if (length == 0.0) length = 1.0;
+    ilength = 1.0/length;
+    vz.x *= ilength;
+    vz.y *= ilength;
+    vz.z *= ilength;
+
+    // Vector3CrossProduct(up, vz)
+    Vector3 vx = Vector3.CrossProduct(up, vz);
+    // { up.y*vz.z - up.z*vz.y, up.z*vz.x - up.x*vz.z, up.x*vz.y - up.y*vz.x };
+
+    // Vector3Normalize(x)
+    v = vx;
+    length = math.sqrt(v.x*v.x + v.y*v.y + v.z*v.z);
+    if (length == 0.0) length = 1.0;
+    ilength = 1.0/length;
+    vx.x *= ilength;
+    vx.y *= ilength;
+    vx.z *= ilength;
+
+    // Vector3CrossProduct(vz, vx)
+    Vector3 vy = Vector3.CrossProduct(vz, vx);
+    // { vz.y*vx.z - vz.z*vx.y, vz.z*vx.x - vz.x*vx.z, vz.x*vx.y - vz.y*vx.x };
+
+    result.m0 = vx.x;
+    result.m1 = vy.x;
+    result.m2 = vz.x;
+    result.m3 = 0.0;
+    result.m4 = vx.y;
+    result.m5 = vy.y;
+    result.m6 = vz.y;
+    result.m7 = 0.0;
+    result.m8 = vx.z;
+    result.m9 = vy.z;
+    result.m10 = vz.z;
+    result.m11 = 0.0;
+    result.m12 = -(vx.x*eye.x + vx.y*eye.y + vx.z*eye.z);   // Vector3DotProduct(vx, eye)
+    result.m13 = -(vy.x*eye.x + vy.y*eye.y + vy.z*eye.z);   // Vector3DotProduct(vy, eye)
+    result.m14 = -(vz.x*eye.x + vz.y*eye.y + vz.z*eye.z);   // Vector3DotProduct(vz, eye)
+    result.m15 = 1.0;
+
+    return result;
+  }
+
+  Finalizer _finalizer = Finalizer<Pointer<_Matrix>>((pointer) {
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+extension MatrixMath on Matrix
+{
+  /// Add `other` matrix to `this`
+  void Add(Matrix right)
+  {
+    this.column1 += right.column1;
+    this.column2 += right.column2;
+    this.column3 += right.column3;
+    this.column4 += right.column4;
+  }
+
+  /// Returns the sum of `this` and `other` matrix
+  Matrix operator +(Matrix other)
+  {
+    Matrix result = Matrix();
+
+    result.column1.Add(this.column1);
+    result.column2.Add(this.column2);
+    result.column3.Add(this.column3);
+    result.column4.Add(this.column4);
+
+    result.column1.Add(other.column1);
+    result.column2.Add(other.column2);
+    result.column3.Add(other.column3);
+    result.column4.Add(other.column4);
+
+    return result;
+  }
+  /// Subtract `other` matrix to `this`
+  void Subtract(Matrix right)
+  {
+    this.column1 -= right.column1;
+    this.column2 -= right.column2;
+    this.column3 -= right.column3;
+    this.column4 -= right.column4;
+  }
+
+  /// Returns the sum of `this` and `other` matrix
+  Matrix operator -(Matrix other)
+  {
+    Matrix result = Matrix();
+
+    result.column1.Subtract(this.column1);
+    result.column2.Subtract(this.column2);
+    result.column3.Subtract(this.column3);
+    result.column4.Subtract(this.column4);
+
+    result.column1.Subtract(other.column1);
+    result.column2.Subtract(other.column2);
+    result.column3.Subtract(other.column3);
+    result.column4.Subtract(other.column4);
+
+    return result;
+  }
+
+  /// Get two matrix multiplication
+  /// 
+  /// NOTE: When multiplying matrices... the order matters!
+  /// 
+  /// Warning! Untested. Proceed with caution
+  Matrix operator *(Matrix right)
+  {
+    Matrix result = Matrix();
+
+    final l0 = m0,  l1 = m1,  l2 = m2,  l3 = m3;
+    final l4 = m4,  l5 = m5,  l6 = m6,  l7 = m7;
+    final l8 = m8,  l9 = m9,  l10 = m10, l11 = m11;
+    final l12 = m12, l13 = m13, l14 = m14, l15 = m15;
+
+    final r0 = right.m0,  r1 = right.m1,  r2 = right.m2,  r3 = right.m3;
+    final r4 = right.m4,  r5 = right.m5,  r6 = right.m6,  r7 = right.m7;
+    final r8 = right.m8,  r9 = right.m9,  r10 = right.m10, r11 = right.m11;
+    final r12 = right.m12, r13 = right.m13, r14 = right.m14, r15 = right.m15;
+
+    result.m0 = l0*r0 + l1*r4 + l2*r8 + l3*r12;
+    result.m1 = l0*r1 + l1*r5 + l2*r9 + l3*r13;
+    result.m2 = l0*r2 + l1*r6 + l2*r10 + l3*r14;
+    result.m3 = l0*r3 + l1*r7 + l2*r11 + l3*r15;
+
+    result.m4 = l4*r0 + l5*r4 + l6*r8 + l7*r12;
+    result.m5 = l4*r1 + l5*r5 + l6*r9 + l7*r13;
+    result.m6 = l4*r2 + l5*r6 + l6*r10 + l7*r14;
+    result.m7 = l4*r3 + l5*r7 + l6*r11 + l7*r15;
+
+    result.m8 = l8*r0 + l9*r4 + l10*r8 + l11*r12;
+    result.m9 = l8*r1 + l9*r5 + l10*r9 + l11*r13;
+    result.m10 = l8*r2 + l9*r6 + l10*r10 + l11*r14;
+    result.m11 = l8*r3 + l9*r7 + l10*r11 + l11*r15;
+
+    result.m12 = l12*r0 + l13*r4 + l14*r8 + l15*r12;
+    result.m13 = l12*r1 + l13*r5 + l14*r9 + l15*r13;
+    result.m14 = l12*r2 + l13*r6 + l14*r10 + l15*r14;
+    result.m15 = l12*r3 + l13*r7 + l14*r11 + l15*r15;
+
+    return result;
+  }
+
+  /// Invert provided matrix
+  void Invert()
+  {
+    double a00 = this.m0, a01 = this.m1, a02 = this.m2, a03 = this.m3;
+    double a10 = this.m4, a11 = this.m5, a12 = this.m6, a13 = this.m7;
+    double a20 = this.m8, a21 = this.m9, a22 = this.m10, a23 = this.m11;
+    double a30 = this.m12, a31 = this.m13, a32 = this.m14, a33 = this.m15;
+
+    double b00 = a00*a11 - a01*a10;
+    double b01 = a00*a12 - a02*a10;
+    double b02 = a00*a13 - a03*a10;
+    double b03 = a01*a12 - a02*a11;
+    double b04 = a01*a13 - a03*a11;
+    double b05 = a02*a13 - a03*a12;
+    double b06 = a20*a31 - a21*a30;
+    double b07 = a20*a32 - a22*a30;
+    double b08 = a20*a33 - a23*a30;
+    double b09 = a21*a32 - a22*a31;
+    double b10 = a21*a33 - a23*a31;
+    double b11 = a22*a33 - a23*a32;
+
+    double det = (b00*b11 - b01*b10 + b02*b09 + b03*b08 - b04*b07 + b05*b06);
+    if (det.abs() < 0.000001) return;
+
+    // Calculate the invert determinant (inlined to avoid double-caching)
+    double invDet = 1.0 / det;
+
+    this.m0 = (a11*b11 - a12*b10 + a13*b09)*invDet;
+    this.m1 = (-a01*b11 + a02*b10 - a03*b09)*invDet;
+    this.m2 = (a31*b05 - a32*b04 + a33*b03)*invDet;
+    this.m3 = (-a21*b05 + a22*b04 - a23*b03)*invDet;
+    this.m4 = (-a10*b11 + a12*b08 - a13*b07)*invDet;
+    this.m5 = (a00*b11 - a02*b08 + a03*b07)*invDet;
+    this.m6 = (-a30*b05 + a32*b02 - a33*b01)*invDet;
+    this.m7 = (a20*b05 - a22*b02 + a23*b01)*invDet;
+    this.m8 = (a10*b10 - a11*b08 + a13*b06)*invDet;
+    this.m9 = (-a00*b10 + a01*b08 - a03*b06)*invDet;
+    this.m10 = (a30*b04 - a31*b02 + a33*b00)*invDet;
+    this.m11 = (-a20*b04 + a21*b02 - a23*b00)*invDet;
+    this.m12 = (-a10*b09 + a11*b07 - a12*b06)*invDet;
+    this.m13 = (a00*b09 - a01*b07 + a02*b06)*invDet;
+    this.m14 = (-a30*b03 + a31*b01 - a32*b00)*invDet;
+    this.m15 = (a20*b03 - a21*b01 + a22*b00)*invDet;
+  }
+} 
 
 //------------------------------------------------------------------------------------
 //                                  Rectangle

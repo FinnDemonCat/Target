@@ -65,11 +65,11 @@ final class _Vector4 extends Struct
 }
 
 // Quaternion, 4 components (Vector4 alias)
-typedef Quaternion = _Vector4;
+typedef _Quaternion = _Vector4;
 
 // Matrix, 4x4 components, column major, OpenGL style, right-handed
 // ToDO: Implement native Raylib Matrix constructors inside struct
-final class Matrix extends Struct
+final class _Matrix extends Struct
 {
   @Float() external double m0; @Float() external double m4; @Float() external double m8;  @Float() external double m12;
   @Float() external double m1; @Float() external double m5; @Float() external double m9;  @Float() external double m13;
@@ -256,7 +256,7 @@ final class Mesh extends Struct
   external Pointer<Float> animNormals; // Animated normals (after bones transformations)
   external Pointer<Uint8> boneIds;     // Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
   external Pointer<Float> boneWeights; // Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
-  external Pointer<Matrix> boneMatrices; // Bones animated transformation matrices
+  external Pointer<_Matrix> boneMatrices; // Bones animated transformation matrices
   @Int32() external int boneCount;     // Number of bones
 
   @Uint32() external int vaoID;        // OpenGL Vertex Array Object id
@@ -290,7 +290,7 @@ final class Material extends Struct
 final class Transform extends Struct
 {
   external _Vector3 translation;        // Translation
-  external Quaternion rotation;        // Rotation
+  external _Quaternion rotation;        // Rotation
   external _Vector3 scale;              // Scale
 }
 
@@ -304,7 +304,7 @@ final class BoneInfo extends Struct
 // Model, meshes, materials and animation data
 final class Model extends Struct
 {
-  external Matrix transform;           // Local transform matrix
+  external _Matrix transform;           // Local transform matrix
 
   @Int32() external int meshCount;     // Number of meshes
   @Int32() external int materialCount; // Number of materials
@@ -407,8 +407,8 @@ final class VrDeviceInfo extends Struct
 
 final class VrStereoConfig extends Struct
 {
-  @Array(2) external Array<Matrix> projection;
-  @Array(2) external Array<Matrix> viewOffset;
+  @Array(2) external Array<_Matrix> projection;
+  @Array(2) external Array<_Matrix> viewOffset;
   @Array(2) external Array<Float> leftLensCenter;
   @Array(2) external Array<Float> rightLensCenter;
   @Array(2) external Array<Float> leftScreenCenter;
