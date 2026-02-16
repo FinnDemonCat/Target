@@ -335,6 +335,12 @@ class Vector3 implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
+  /// Vector with components value 0.0f
+  factory Vector3.Zero() => Vector3();
+
+  /// Vector with components value 1.0f
+  factory Vector3.One() => Vector3(1.0, 1.0, 1.0);
+
   static Vector3 CrossProduct(Vector3 v1, Vector3 v2)
   {
     Vector3 result = Vector3();
@@ -477,11 +483,214 @@ class Vector3 implements Disposeable
     v2.z = vn1x*v1.y - vn1y*v1.x;
   }
 
-  /// Vector with components value 0.0f
-  factory Vector3.Zero() => Vector3();
+  /// Calculate cubic hermite interpolation between two vectors and their tangents
+  /// 
+  /// as described in the GLTF 2.0 specification: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#interpolation-cubic
+  Vector3 CubicHermite(Vector3 v1, Vector3 tangent1, Vector3 v2, Vector3 tangent2, double amount)
+  {
+    Vector3 result = Vector3();
 
-  /// Vector with components value 1.0f
-  factory Vector3.One() => Vector3(1.0, 1.0, 1.0);
+    double amountPow2 = amount*amount;
+    double amountPow3 = amount*amount*amount;
+
+    result.x = (2*amountPow3 - 3*amountPow2 + 1)*v1.x + (amountPow3 - 2*amountPow2 + amount)*tangent1.x + (-2*amountPow3 + 3*amountPow2)*v2.x + (amountPow3 - amountPow2)*tangent2.x;
+    result.y = (2*amountPow3 - 3*amountPow2 + 1)*v1.y + (amountPow3 - 2*amountPow2 + amount)*tangent1.y + (-2*amountPow3 + 3*amountPow2)*v2.y + (amountPow3 - amountPow2)*tangent2.y;
+    result.z = (2*amountPow3 - 3*amountPow2 + 1)*v1.z + (amountPow3 - 2*amountPow2 + amount)*tangent1.z + (-2*amountPow3 + 3*amountPow2)*v2.z + (amountPow3 - amountPow2)*tangent2.z;
+
+    return result;
+  }
+
+  /// Calculate reflected vector to normalVector3 Vector3Reflect(Vector3 v, Vector3 normal)
+  Vector3 Reflect(Vector3 v, Vector3 normal)
+  {
+    Vector3 result = Vector3();
+
+    // I is the original vector
+    // N is the normal of the incident plane
+    // R = I - (2*N*(DotProduct[I, N]))
+
+    double dotProduct = (v.x*normal.x + v.y*normal.y + v.z*normal.z);
+
+    result.x = v.x - (2.0*normal.x)*dotProduct;
+    result.y = v.y - (2.0*normal.y)*dotProduct;
+    result.z = v.z - (2.0*normal.z)*dotProduct;
+
+    return result;
+  }
+
+  /// Get min value for each pair of components
+  Vector3 Min(Vector3 v1, Vector3 v2)
+  {
+    Vector3 result = Vector3();
+
+    result.x = math.min(v1.x, v2.x);
+    result.y = math.min(v1.y, v2.y);
+    result.z = math.min(v1.z, v2.z);
+
+    return result;
+  }
+
+  /// Get max value for each pair of components
+  Vector3 Max(Vector3 v1, Vector3 v2)
+  {
+    Vector3 result = Vector3();
+
+    result.x = math.max(v1.x, v2.x);
+    result.y = math.max(v1.y, v2.y);
+    result.z = math.max(v1.z, v2.z);
+
+    return result;
+  }
+
+  /// Compute barycenter coordinates (u, v, w) for point p with respect to triangle (a, b, c)
+  /// 
+  /// NOTE: Assumes P is on the plane of the triangleVector3 Vector3Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
+  Vector3 Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
+  {
+    Vector3 result = Vector3();
+
+    double v0x = b.x - a.x, v0y = b.y - a.y, v0z = b.z - a.z;   // Vector3Subtract(b, a)
+    double v1x = c.x - a.x, v1y = c.y - a.y, v1z = c.z - a.z;   // Vector3Subtract(c, a)
+    double v2x = p.x - a.x, v2y = p.y - a.y, v2z = p.z - a.z;   // Vector3Subtract(p, a)
+
+    double d00 = (v0x*v0x + v0y*v0y + v0z*v0z);    // Vector3DotProduct(v0, v0)
+    double d01 = (v0x*v1x + v0y*v1y + v0z*v1z);    // Vector3DotProduct(v0, v1)
+    double d11 = (v1x*v1x + v1y*v1y + v1z*v1z);    // Vector3DotProduct(v1, v1)
+    double d20 = (v2x*v0x + v2y*v0y + v2z*v0z);    // Vector3DotProduct(v2, v0)
+    double d21 = (v2x*v1x + v2y*v1y + v2z*v1z);    // Vector3DotProduct(v2, v1)
+
+    double denom = d00*d11 - d01*d01;
+
+    result.y = (d11*d20 - d01*d21)/denom;
+    result.z = (d00*d21 - d01*d20)/denom;
+    result.x = 1.0 - (result.z + result.y);
+
+    return result;
+  }
+
+  /// Projects a Vector3 from screen space into object space
+  /// 
+  /// NOTE: Self-contained function, no other raymath functions are called
+  Vector3 Unproject(Vector3 source, Matrix projection, Matrix view)
+  {
+    Vector3 result = Vector3();
+
+    var matViewProj = [ // MatrixMultiply(view, projection);
+      view.m0*projection.m0 + view.m1*projection.m4 + view.m2*projection.m8 + view.m3*projection.m12,
+      view.m0*projection.m1 + view.m1*projection.m5 + view.m2*projection.m9 + view.m3*projection.m13,
+      view.m0*projection.m2 + view.m1*projection.m6 + view.m2*projection.m10 + view.m3*projection.m14,
+      view.m0*projection.m3 + view.m1*projection.m7 + view.m2*projection.m11 + view.m3*projection.m15,
+      view.m4*projection.m0 + view.m5*projection.m4 + view.m6*projection.m8 + view.m7*projection.m12,
+      view.m4*projection.m1 + view.m5*projection.m5 + view.m6*projection.m9 + view.m7*projection.m13,
+      view.m4*projection.m2 + view.m5*projection.m6 + view.m6*projection.m10 + view.m7*projection.m14,
+      view.m4*projection.m3 + view.m5*projection.m7 + view.m6*projection.m11 + view.m7*projection.m15,
+      view.m8*projection.m0 + view.m9*projection.m4 + view.m10*projection.m8 + view.m11*projection.m12,
+      view.m8*projection.m1 + view.m9*projection.m5 + view.m10*projection.m9 + view.m11*projection.m13,
+      view.m8*projection.m2 + view.m9*projection.m6 + view.m10*projection.m10 + view.m11*projection.m14,
+      view.m8*projection.m3 + view.m9*projection.m7 + view.m10*projection.m11 + view.m11*projection.m15,
+      view.m12*projection.m0 + view.m13*projection.m4 + view.m14*projection.m8 + view.m15*projection.m12,
+      view.m12*projection.m1 + view.m13*projection.m5 + view.m14*projection.m9 + view.m15*projection.m13,
+      view.m12*projection.m2 + view.m13*projection.m6 + view.m14*projection.m10 + view.m15*projection.m14,
+      view.m12*projection.m3 + view.m13*projection.m7 + view.m14*projection.m11 + view.m15*projection.m15
+    ];
+
+    // Calculate inverted matrix -> MatrixInvert(matViewProj);
+    // Cache the matrix values (speed optimization)
+    double a00 = matViewProj[0],  a01 = matViewProj[1],  a02 = matViewProj[2],  a03 = matViewProj[3];
+    double a10 = matViewProj[4],  a11 = matViewProj[5],  a12 = matViewProj[6],  a13 = matViewProj[7];
+    double a20 = matViewProj[8],  a21 = matViewProj[9],  a22 = matViewProj[10], a23 = matViewProj[11];
+    double a30 = matViewProj[12], a31 = matViewProj[13], a32 = matViewProj[14], a33 = matViewProj[15];
+
+    double b00 = a00*a11 - a01*a10;
+    double b01 = a00*a12 - a02*a10;
+    double b02 = a00*a13 - a03*a10;
+    double b03 = a01*a12 - a02*a11;
+    double b04 = a01*a13 - a03*a11;
+    double b05 = a02*a13 - a03*a12;
+    double b06 = a20*a31 - a21*a30;
+    double b07 = a20*a32 - a22*a30;
+    double b08 = a20*a33 - a23*a30;
+    double b09 = a21*a32 - a22*a31;
+    double b10 = a21*a33 - a23*a31;
+    double b11 = a22*a33 - a23*a32;
+
+    // Calculate the invert determinant (inlined to avoid double-caching)
+    double invDet = 1.0/(b00*b11 - b01*b10 + b02*b09 + b03*b08 - b04*b07 + b05*b06);
+
+    var matViewProjInv = [
+      (a11*b11 - a12*b10 + a13*b09)*invDet,
+      (-a01*b11 + a02*b10 - a03*b09)*invDet,
+      (a31*b05 - a32*b04 + a33*b03)*invDet,
+      (-a21*b05 + a22*b04 - a23*b03)*invDet,
+      (-a10*b11 + a12*b08 - a13*b07)*invDet,
+      (a00*b11 - a02*b08 + a03*b07)*invDet,
+      (-a30*b05 + a32*b02 - a33*b01)*invDet,
+      (a20*b05 - a22*b02 + a23*b01)*invDet,
+      (a10*b10 - a11*b08 + a13*b06)*invDet,
+      (-a00*b10 + a01*b08 - a03*b06)*invDet,
+      (a30*b04 - a31*b02 + a33*b00)*invDet,
+      (-a20*b04 + a21*b02 - a23*b00)*invDet,
+      (-a10*b09 + a11*b07 - a12*b06)*invDet,
+      (a00*b09 - a01*b07 + a02*b06)*invDet,
+      (-a30*b03 + a31*b01 - a32*b00)*invDet,
+      (a20*b03 - a21*b01 + a22*b00)*invDet
+    ];
+
+    // Create quaternion from source point
+    double quatx = source.x, quaty = source.y, quatz = source.z, quatw = 1.0;
+
+    // Multiply quat point by unprojecte matrix
+    // QuaternionTransform(quat, matViewProjInv)
+    double qtx = matViewProjInv[0]*quatx + matViewProjInv[4]*quaty + matViewProjInv[8]*quatz + matViewProjInv[12]*quatw;
+    double qty = matViewProjInv[1]*quatx + matViewProjInv[5]*quaty + matViewProjInv[9]*quatz + matViewProjInv[13]*quatw;
+    double qtz = matViewProjInv[2]*quatx + matViewProjInv[6]*quaty + matViewProjInv[10]*quatz + matViewProjInv[14]*quatw;
+    double qtw = matViewProjInv[3]*quatx + matViewProjInv[7]*quaty + matViewProjInv[11]*quatz + matViewProjInv[15]*quatw;
+
+    // Normalized world points in vectors
+    result.x = qtx/qtw;
+    result.y = qty/qtw;
+    result.z = qtz/qtw;
+
+    return result;
+  }
+
+  /// Check whether two given vectors are almost equal
+  bool Equals(Vector3 p, Vector3 q)
+  {
+    return (((p.x - q.x).abs()) <= (EPSILON*math.max(1.0, math.max((p.x).abs(), (q.x).abs())))) &&
+           (((p.y - q.y).abs()) <= (EPSILON*math.max(1.0, math.max((p.y).abs(), (q.y).abs())))) &&
+           (((p.z - q.z).abs()) <= (EPSILON*math.max(1.0, math.max((p.z).abs(), (q.z).abs()))));
+  }
+
+  /// Compute the direction of a refracted ray
+  /// 
+  /// v: normalized direction of the incoming ray
+  /// 
+  /// n: normalized normal vector of the interface of two optical media
+  /// 
+  /// r: ratio of the refractive index of the medium from where the ray comes
+  /// 
+  /// to the refractive index of the medium on the other side of the surface
+  /// 
+  Vector3 Refract(Vector3 v, Vector3 n, double r)
+  {
+    Vector3 result = Vector3();
+
+    double dot = v.x*n.x + v.y*n.y + v.z*n.z;
+    double d = 1.0 - r*r*(1.0 - dot*dot);
+
+    if (d >= 0.0)
+    {
+      d = math.sqrt(d);
+      v.x = r*v.x - (r*dot + d)*n.x;
+      v.y = r*v.y - (r*dot + d)*n.y;
+      v.z = r*v.z - (r*dot + d)*n.z;
+
+      result = v;
+    }
+
+    return result;
+  }
 
   @override
   void dispose()
@@ -553,9 +762,9 @@ extension Vector3Math on Vector3
   /// Calculate vector length
   double Length() => math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z);
   /// Calculate vector square length
-  double DotProduct(Vector3 v) => this.x*v.x + this.y*v.y + this.z*v.z;
+  double DotProduct(Vector3 v) => (this.x*v.x + this.y*v.y + this.z*v.z);
   /// Calculate two vectors dot product
-  double LengthSqr() => this.x*this.x + this.y*this.y + this.z*this.z;
+  double LengthSqr() => (this.x*this.x + this.y*this.y + this.z*this.z);
   /// Negate provided vector (invert direction)
   void Negate()
   {
@@ -592,11 +801,133 @@ extension Vector3Math on Vector3
   /// Transform a vector by quaternion rotation
   void RotateByQuaternion(Quaternion q)
   {
-    double dx = this.x; double dy = this.y; double dz = this.z;
+    double dx = this.x, dy = this.y, dz = this.z;
+    double qx = q.x, qy = q.y, qz = q.z, qw = q.w;
 
-    this.x = dx*(q.x*q.x + q.w*q.w - q.y*q.y - q.z*q.z) + dy*(2*q.x*q.y - 2*q.w*q.z) + dz*(2*q.x*q.z + 2*q.w*q.y);
-    this.y = dx*(2*q.w*q.z + 2*q.x*q.y) + dy*(q.w*q.w - q.x*q.x + q.y*q.y - q.z*q.z) + dz*(-2*q.w*q.x + 2*q.y*q.z);
-    this.z = dx*(-2*q.w*q.y + 2*q.x*q.z) + dy*(2*q.w*q.x + 2*q.y*q.z) + dz*(q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
+    this.x = dx*(qx*qx + qw*qw - qy*qy - qz*qz) + dy*(2*qx*qy - 2*qw*qz) + dz*(2*qx*qz + 2*qw*qy);
+    this.y = dx*(2*qw*qz + 2*qx*qy) + dy*(qw*qw - qx*qx + qy*qy - qz*qz) + dz*(-2*qw*qx + 2*qy*qz);
+    this.z = dx*(-2*qw*qy + 2*qx*qz) + dy*(2*qw*qx + 2*qy*qz) + dz*(qw*qw - qx*qx - qy*qy + qz*qz);
+  }
+
+  /// Transforms a Vector3 by a given Matrix
+  void Transform(Matrix mat)
+  {
+    double x = this.x, y = this.y, z = this.z;
+
+    this.x = mat.m0*x + mat.m4*y + mat.m8*z + mat.m12;
+    this.y = mat.m1*x + mat.m5*y + mat.m9*z + mat.m13;
+    this.z = mat.m2*x + mat.m6*y + mat.m10*z + mat.m14;
+  }
+
+  /// Rotates a vector around an axis
+  void RotateByAxisAngle(Vector3 axis, double angle)
+  {
+    double vx = this.x, vy = this.y, vz = this.z;
+    double ax = axis.x, ay = axis.y, az = axis.z;
+
+    double length = math.sqrt(ax*ax + ay*ay + az*az);
+    if (length == 0.0) return;
+    double ilength = 1.0 / length;
+    ax *= ilength; ay *= ilength; az *= ilength;
+
+    angle /= 2.0;
+    double a = math.sin(angle);
+    double wx = ax*a;
+    double wy = ay*a;
+    double wz = az*a;
+    a = math.cos(angle);
+
+    // Vector3CrossProduct(w, v)
+    double wvx = wy*vz - wz*vy;
+    double wvy = wz*vx - wx*vz;
+    double wvz = wx*vy - wy*vx;
+
+    // Vector3CrossProduct(w, wv)
+    double wwvx = wy*wvz - wz*wvy;
+    double wwvy = wz*wvx - wx*wvz;
+    double wwvz = wx*wvy - wy*wvx;
+
+    // Vector3Scale(wwv, 2)
+    wwvx *= 2;
+    wwvy *= 2;
+    wwvz *= 2;
+    this.x += wvx + wwvx;
+    this.y += wvy + wwvy;
+    this.z += wvz + wwvz;
+  }
+
+  /// Move Vector towards target
+  void MoveTowards(Vector3 target, double maxDistance)
+  {
+    double dx = target.x - this.x;
+    double dy = target.y - this.y;
+    double dz = target.z - this.z;
+    double value = (dx*dx) + (dy*dy) + (dz*dz);
+
+    if (value == 0.0) return;
+    
+    if (maxDistance >= 0 && value <= maxDistance*maxDistance)
+    {
+      this.x = target.x;
+      this.y = target.y;
+      this.z = target.z;
+      return;
+    }
+
+    double dist = math.sqrt(value);
+
+    this.x += dx/dist*maxDistance;
+    this.y += dy/dist*maxDistance;
+    this.z += dz/dist*maxDistance;
+  }
+
+  /// Calculate linear interpolation between two vectors (In Place)
+  void LerpOf(Vector3 v2, double amount)
+  {
+    this.x += amount*(v2.x - this.x);
+    this.y += amount*(v2.y - this.y);
+    this.z += amount*(v2.z - this.z);
+  }
+
+  /// Invert the given vector
+  void Invert()
+  {
+    this.x = 1.0/this.x;
+    this.y = 1.0/this.y;
+    this.z = 1.0/this.z;
+  }
+
+  /// Clamp the components of the vector between
+  /// 
+  /// min and max values specified by the given vectors
+  void Clamp(Vector3 min, Vector3 max)
+  {
+    this.x = math.min(max.x, math.max(min.x, this.x));
+    this.y = math.min(max.y, math.max(min.y, this.y));
+    this.z = math.min(max.z, math.max(min.z, this.z));
+  }
+
+  void ClampValue(double min, double max)
+  {
+    double length = (this.x*this.x) + (this.y*this.y) + (this.z*this.z);
+    if (length > 0.0)
+    {
+      length = math.sqrt(length);
+
+      double scale = 1;    // By default, 1 as the neutral element.
+      if (length < min)
+      {
+        scale = min/length;
+      }
+      else if (length > max)
+      {
+        scale = max/length;
+      }
+
+      this.x*=scale;
+      this.y*=scale;
+      this.z*=scale;
+    }
   }
 }
 
@@ -967,20 +1298,20 @@ class Quaternion extends Vector4
     double fourBiggestSquaredMinus1 = fourWSquaredMinus1;
     if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
     {
-        fourBiggestSquaredMinus1 = fourXSquaredMinus1;
-        biggestIndex = 1;
+      fourBiggestSquaredMinus1 = fourXSquaredMinus1;
+      biggestIndex = 1;
     }
 
     if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
     {
-        fourBiggestSquaredMinus1 = fourYSquaredMinus1;
-        biggestIndex = 2;
+      fourBiggestSquaredMinus1 = fourYSquaredMinus1;
+      biggestIndex = 2;
     }
 
     if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
     {
-        fourBiggestSquaredMinus1 = fourZSquaredMinus1;
-        biggestIndex = 3;
+      fourBiggestSquaredMinus1 = fourZSquaredMinus1;
+      biggestIndex = 3;
     }
 
     double biggestVal = math.sqrt(fourBiggestSquaredMinus1 + 1.0)*0.5;
@@ -992,30 +1323,30 @@ class Quaternion extends Vector4
 
     switch (biggestIndex)
     {
-      case 0:
-        result.w = biggestVal;
-        result.x = (m6 - m9)*mult;
-        result.y = (m8 - m2)*mult;
-        result.z = (m1 - m4)*mult;
-        break;
-      case 1:
-        result.x = biggestVal;
-        result.w = (m6 - m9)*mult;
-        result.y = (m1 + m4)*mult;
-        result.z = (m8 + m2)*mult;
-        break;
-      case 2:
-        result.y = biggestVal;
-        result.w = (m8 - m2)*mult;
-        result.x = (m1 + m4)*mult;
-        result.z = (m6 + m9)*mult;
-        break;
-      case 3:
-        result.z = biggestVal;
-        result.w = (m1 - m4)*mult;
-        result.x = (m8 + m2)*mult;
-        result.y = (m6 + m9)*mult;
-        break;
+    case 0:
+      result.w = biggestVal;
+      result.x = (m6 - m9)*mult;
+      result.y = (m8 - m2)*mult;
+      result.z = (m1 - m4)*mult;
+      break;
+    case 1:
+      result.x = biggestVal;
+      result.w = (m6 - m9)*mult;
+      result.y = (m1 + m4)*mult;
+      result.z = (m8 + m2)*mult;
+      break;
+    case 2:
+      result.y = biggestVal;
+      result.w = (m8 - m2)*mult;
+      result.x = (m1 + m4)*mult;
+      result.z = (m6 + m9)*mult;
+      break;
+    case 3:
+      result.z = biggestVal;
+      result.w = (m1 - m4)*mult;
+      result.x = (m8 + m2)*mult;
+      result.y = (m6 + m9)*mult;
+      break;
     }
 
     return result;
@@ -1067,6 +1398,87 @@ class Quaternion extends Vector4
     }
 
     return result;
+  }
+
+  /// Get the rotation angle and axis for a given quaternion
+  /// 
+  /// Dev note: primitive tipes aren't passed by reference. Prepare a variable to get the return angle
+  double ToAxisAngle(Vector3 outAxis, double outAngle)
+  {
+    double qx = this.x, qy = this.y,
+           qz = this.z, qw = this.w;
+
+    if (qw  > 1.0)
+    {
+      // QuaternionNormalize(q);
+      double length = math.sqrt(qx*qx + qy*qy + qz*qz + qw*qw);
+      if (length == 0.0) length = 1.0;
+      double ilength = 1.0 / length;
+
+      qx = qx*ilength;
+      qy = qy*ilength;
+      qz = qz*ilength;
+      qw = qw*ilength;
+    }
+
+    double resAxisX = 0.0, resAxisY = 0.0, resAxisZ = 0.0;
+
+    double resAngle = 2.0*math.acos(qw);
+    double den = math.sqrt(1.0 - qw*qw);
+
+    if (den > EPSILON)
+    {
+      resAxisX = qx/den;
+      resAxisY = qy/den;
+      resAxisZ = qz/den;
+    }
+    else
+    {
+      // This occurs when the angle is zero.
+      // Not a problem: just set an arbitrary normalized axis.
+      resAxisX = 1.0;
+    }
+
+    outAxis.Set(resAxisX, resAxisY, resAxisZ);
+    return resAngle;
+  }
+
+  /// Get the quaternion equivalent to Euler angles
+  /// 
+  /// NOTE: Rotation order is ZYX
+  static Quaternion FromEuler({required double pitch, required double yaw, required double roll})
+  {
+    Quaternion result = Quaternion();
+
+    double x0 = math.cos(pitch*0.5);
+    double x1 = math.sin(pitch*0.5);
+    double y0 = math.cos(yaw*0.5);
+    double y1 = math.sin(yaw*0.5);
+    double z0 = math.cos(roll*0.5);
+    double z1 = math.sin(roll*0.5);
+
+    result.x = x1*y0*z0 - x0*y1*z1;
+    result.y = x0*y1*z0 + x1*y0*z1;
+    result.z = x0*y0*z1 - x1*y1*z0;
+    result.w = x0*y0*z0 + x1*y1*z1;
+
+    return result;
+  }
+
+  /// Check whether two given quaternions are almost equal
+  bool Equals(Quaternion p, Quaternion q)
+  {
+    double px = p.x, py = p.y, pz = p.z, pw = p.w;
+    double qx = q.x, qy = q.y, qz = q.z, qw = q.w;
+
+    return ((((px - qx).abs()) <= (EPSILON*math.max(1.0, math.max((px).abs(), (qx).abs())))) &&
+            (((py - qy).abs()) <= (EPSILON*math.max(1.0, math.max((py).abs(), (qy).abs())))) &&
+            (((pz - qz).abs()) <= (EPSILON*math.max(1.0, math.max((pz).abs(), (qz).abs())))) &&
+            (((pw - qw).abs()) <= (EPSILON*math.max(1.0, math.max((pw).abs(), (qw).abs()))))) ||
+            ((((px + qx).abs()) <= (EPSILON*math.max(1.0, math.max((px).abs(), (qx).abs())))) &&
+            (((py + qy).abs()) <= (EPSILON*math.max(1.0, math.max((py).abs(), (qy).abs())))) &&
+            (((pz + qz).abs()) <= (EPSILON*math.max(1.0, math.max((pz).abs(), (qz).abs())))) &&
+            (((pw + qw).abs()) <= (EPSILON*math.max(1.0, math.max((pw).abs(), (qw).abs())))));
   }
 }
 
@@ -1306,6 +1718,44 @@ extension QuaternionMath on Quaternion
     result.m10 = 1 - 2*(a2 + b2);
 
     return result;
+  }
+
+  /// Get the Euler angles equivalent to quaternion (roll, pitch, yaw)
+  /// 
+  /// NOTE: Angles are returned in a Vector3 struct in radians
+  Vector3 ToEuler()
+  {
+    Vector3 result = Vector3();
+    double qx = this.x, qy = this.y, qz = this.z, qw = this.w; 
+
+    // Roll (x-axis rotation)
+    double x0 = 2.0*(qw*qx + qy*qz);
+    double x1 = 1.0 - 2.0*(qx*qx + qy*qy);
+    result.x = math.atan2(x0, x1);
+
+    // Pitch (y-axis rotation)
+    double y0 = 2.0*(qw*qy - qz*qx);
+    y0 = y0 > 1.0 ? 1.0 : y0;
+    y0 = y0 < -1.0 ? -1.0 : y0;
+    result.y = math.asin(y0);
+
+    // Yaw (z-axis rotation)
+    double z0 = 2.0*(qw*qz + qx*qy);
+    double z1 = 1.0 - 2.0*(qy*qy + qz*qz);
+    result.z = math.atan2(z0, z1);
+
+    return result;
+  }
+
+  /// Transform a quaternion given a transformation matrix (In place)
+  void Transform(Matrix mat)
+  {
+    double qx = this.x, qy = this.y, qz = this.z, qw = this.w;
+    
+    this.x = mat.m0*qx + mat.m4*qy + mat.m8*qz + mat.m12*qw;
+    this.y = mat.m1*qx + mat.m5*qy + mat.m9*qz + mat.m13*qw;
+    this.z = mat.m2*qx + mat.m6*qy + mat.m10*qz + mat.m14*qw;
+    this.w = mat.m3*qx + mat.m7*qy + mat.m11*qz + mat.m15*qw;
   }
 }
 
@@ -1702,6 +2152,226 @@ class Matrix implements Disposeable
     return result;
   }
 
+  /// Compose a transformation matrix from rotational, translational and scaling components
+  static Matrix Compose(Vector3 translation, Quaternion rotation, Vector3 scale)
+  {
+    // Initialize vectors components and scale them
+    double rx = scale.x, ry = 0.0, rz = 0.0;
+    double ux = 0.0, uy = scale.y, uz = 0.0;
+    double fx = 0.0, fy = 0.0, fz = scale.z;
+
+    double qx = rotation.x, qy = rotation.y, qz = rotation.z, qw = rotation.w;
+
+    // Right vector
+    double resRx = rx*(qx*qx + qw*qw - qy*qy - qz*qz) + ry*(2*qx*qy - 2*qw*qz) + rz*( 2*qx*qz + 2*qw*qy);
+    double resRy = rx*(2*qw*qz + 2*qx*qy) + ry*(qw*qw - qx*qx + qy*qy - qz*qz) + rz*(-2*qw*qx + 2*qy*qz);
+    double resRz = rx*(-2*qw*qy + 2*qx*qz) + ry*(2*qw*qx + 2*qy*qz) + rz*(qw*qw - qx*qx - qy*qy + qz*qz);
+
+    // Up vector
+    double resUx = ux*(qx*qx + qw*qw - qy*qy - qz*qz) + uy*(2*qx*qy - 2*qw*qz) + uz*( 2*qx*qz + 2*qw*qy);
+    double resUy = ux*(2*qw*qz + 2*qx*qy) + uy*(qw*qw - qx*qx + qy*qy - qz*qz) + uz*(-2*qw*qx + 2*qy*qz);
+    double resUz = ux*(-2*qw*qy + 2*qx*qz) + uy*(2*qw*qx + 2*qy*qz) + uz*(qw*qw - qx*qx - qy*qy + qz*qz);
+
+    // Forward vector
+    double resFx = fx*(qx*qx + qw*qw - qy*qy - qz*qz) + fy*(2*qx*qy - 2*qw*qz) + fz*( 2*qx*qz + 2*qw*qy);
+    double resFy = fx*(2*qw*qz + 2*qx*qy) + fy*(qw*qw - qx*qx + qy*qy - qz*qz) + fz*(-2*qw*qx + 2*qy*qz);
+    double resFz = fx*(-2*qw*qy + 2*qx*qz) + fy*(2*qw*qx + 2*qy*qz) + fz*(qw*qw - qx*qx - qy*qy + qz*qz);
+    
+    // Set result matrix output
+    return Matrix(
+      resRx, resUx, resFx, translation.x,
+      resRy, resUy, resFy, translation.y,
+      resRz, resUz, resFz, translation.z,
+      0.0, 0.0, 0.0, 1.0
+    );
+  }
+
+  /// Decompose a transformation matrix into its rotational, translational and scaling components and remove shear
+  static void Decompose(Matrix mat, Vector3 translation, Quaternion rotation, Vector3 scale)
+  {
+    double eps = 1e-9;
+
+    // Extract Translation
+    translation.x = mat.m12;
+    translation.y = mat.m13;
+    translation.z = mat.m14;
+
+    // Matrix Columns - Rotation will be extracted into here
+    var matcolums = [ mat.m0, mat.m4, mat.m8,
+                      mat.m1, mat.m5, mat.m9,
+                      mat.m2, mat.m6, mat.m10 ];
+    
+    // Shear Parameters XY, XZ, and YZ (extract and ignored)
+    var shear = [ 0.0, 0.0, 0.0 ];
+
+    // Normalized Scale Parameters
+    double sclX = 0.0, sclY = 0.0, sclZ = 0.0;
+
+    // Max-Normalizing helps numerical stability
+    double stabilizer = eps;
+    for(int x = 0; x < 9; x++)
+      stabilizer = math.max(stabilizer, matcolums[x].abs());
+
+    double istabilizer = 1.0 / stabilizer;
+    for(int x = 0; x < 9; x++) matcolums[x] *= istabilizer;
+
+
+    // X Scale
+    var vx = matcolums[0], vy = matcolums[1], vz = matcolums[2];
+    sclX = math.sqrt(vx*vx + vy*vy + vz*vz);
+    if (sclX > eps)
+    {
+      matcolums[0] *= (1.0/sclX);
+      matcolums[1] *= (1.0/sclX);
+      matcolums[2] *= (1.0/sclX);
+    }
+
+    // Compute XY shear and make col2 orthogonal
+    shear[0] = (matcolums[0]*matcolums[3] + matcolums[1]*matcolums[4] + matcolums[2]*matcolums[5]);
+    vx = matcolums[0] * shear[0];
+    vy = matcolums[1] * shear[0];
+    vz = matcolums[2] * shear[0];
+    
+    matcolums[3] -= vx;
+    matcolums[4] -= vy;
+    matcolums[5] -= vz;
+
+    // Y Scale
+    vx = matcolums[3]; vy = matcolums[4]; vz = matcolums[5];
+    sclY = math.sqrt(vx*vx + vy*vy + vz*vz);
+    if (sclY > eps)
+    {
+      matcolums[3] *= 1.0/sclY;  
+      matcolums[4] *= 1.0/sclY;
+      matcolums[5] *= 1.0/sclY;
+
+      shear[0] /= sclY;
+    }
+
+    // Compute XZ and YZ shears and make col3 orthogonal
+    // Compute XZ
+    shear[1] = (matcolums[0]*matcolums[6] + matcolums[1]*matcolums[7] + matcolums[2]*matcolums[8]);
+    // Scale
+    vx = matcolums[0] * shear[1];
+    vy = matcolums[1] * shear[1];
+    vz = matcolums[2] * shear[1];
+    // Subtract
+    matcolums[6] -= vx;
+    matcolums[7] -= vy;
+    matcolums[8] -= vz;
+
+    // Compute YZ shear
+    shear[2] = (matcolums[3]*matcolums[6] + matcolums[4]*matcolums[7] + matcolums[5]*matcolums[8]);
+    // Scale
+    vx = matcolums[3] * shear[2];
+    vy = matcolums[4] * shear[2];
+    vz = matcolums[5] * shear[2];
+    // Subtract
+    matcolums[6] -= vx;
+    matcolums[7] -= vy;
+    matcolums[8] -= vz;
+
+    // Z Scale
+    vx = matcolums[6]; vy = matcolums[7]; vz = matcolums[8];
+    sclZ = math.sqrt(vx*vx + vy*vy + vz*vz);
+    if(sclZ > eps)
+    {
+      matcolums[6] *= 1.0/sclZ;
+      matcolums[7] *= 1.0/sclZ;
+      matcolums[8] *= 1.0/sclZ;
+
+      shear[1] /= sclZ;
+      shear[2] /= sclZ;
+    }
+
+    //   x y z
+    // 0 0 1 2
+    // 1 3 4 5
+    // 2 6 7 8
+    vx = matcolums[4]*matcolums[8] - matcolums[5]*matcolums[7];
+    vy = matcolums[5]*matcolums[6] - matcolums[3]*matcolums[8];
+    vz = matcolums[3]*matcolums[7] - matcolums[4]*matcolums[6];
+
+    vx *= matcolums[0];
+    vy *= matcolums[1];
+    vz *= matcolums[2];
+    var det = vx + vy + vz;
+
+    if (det < 0)
+    {
+      sclX *= -1; sclY *= -1; sclZ *= -1;
+
+      for (int i = 0; i < 9; i++) matcolums[i] *= -1;
+    }
+
+    // Set Scale
+    scale.Set(sclX * stabilizer, sclY * stabilizer, sclZ * stabilizer);
+
+    // Main matcolums diagonal
+    // m0  -> matcolums[0]
+    // m5  -> matcolums[4]
+    // m10 -> matcolums[8]
+
+    double fourWSquaredMinus1 = matcolums[0] + matcolums[4] + matcolums[8];
+    double fourXSquaredMinus1 = matcolums[0] - matcolums[4] - matcolums[8];
+    double fourYSquaredMinus1 = matcolums[4] - matcolums[0] - matcolums[8];
+    double fourZSquaredMinus1 = matcolums[8] - matcolums[0] - matcolums[4];
+
+    int biggestIndex = 0;
+    double fourBiggestSquaredMinus1 = fourWSquaredMinus1;
+    if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
+    {
+      fourBiggestSquaredMinus1 = fourXSquaredMinus1;
+      biggestIndex = 1;
+    }
+
+    if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
+    {
+      fourBiggestSquaredMinus1 = fourYSquaredMinus1;
+      biggestIndex = 2;
+    }
+
+    if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
+    {
+      fourBiggestSquaredMinus1 = fourZSquaredMinus1;
+      biggestIndex = 3;
+    }
+
+    double biggestVal = math.sqrt(fourBiggestSquaredMinus1 + 1.0)*0.5;
+    double mult = 0.25/biggestVal;
+
+    double m1 = matcolums[3], m2 = matcolums[6], m4 = matcolums[1];
+    double m6 = matcolums[7], m8 = matcolums[2], m9 = matcolums[5];
+
+    switch (biggestIndex)
+    {
+    case 0:
+      rotation.w = biggestVal;
+      rotation.x = (m6 - m9)*mult;
+      rotation.y = (m8 - m2)*mult;
+      rotation.z = (m1 - m4)*mult;
+      break;
+    case 1:
+      rotation.x = biggestVal;
+      rotation.w = (m6 - m9)*mult;
+      rotation.y = (m1 + m4)*mult;
+      rotation.z = (m8 + m2)*mult;
+      break;
+    case 2:
+      rotation.y = biggestVal;
+      rotation.w = (m8 - m2)*mult;
+      rotation.x = (m1 + m4)*mult;
+      rotation.z = (m6 + m9)*mult;
+      break;
+    case 3:
+      rotation.z = biggestVal;
+      rotation.w = (m1 - m4)*mult;
+      rotation.x = (m8 + m2)*mult;
+      rotation.y = (m6 + m9)*mult;
+      break;
+    }
+  }
+
   Finalizer _finalizer = Finalizer<Pointer<_Matrix>>((pointer) {
     malloc.free(pointer);
   });
@@ -1882,7 +2552,7 @@ class Rectangle implements Disposeable
     _memory = NativeResource<_Rectangle>(pointer);
   }
 
-  _Rectangle get rect => _memory!.pointer.ref;
+  _Rectangle get ref => _memory!.pointer.ref;
 
   Rectangle([double x = 0.0, double y = 0.0, double width = 0.0, double height = 0.0])
   {
@@ -2499,7 +3169,7 @@ class Texture2D implements Disposeable
   void UpdateRect(Rectangle rect, Pointer<Void> pixels)
   {
     if (!isValid()) return;
-    _updateTextureRec(texture, rect.rect, pixels);
+    _updateTextureRec(texture, rect.ref, pixels);
   }
 
   
