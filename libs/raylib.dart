@@ -629,6 +629,8 @@ class Vector4 implements Disposeable
 
   _Vector4 get ref => _memory!.pointer.ref;
 
+  set ref (_Vector4 v) => _memory!.pointer.ref = v;
+
   double get x => _memory!.pointer.ref.x;
   double get y => _memory!.pointer.ref.y;
   double get z => _memory!.pointer.ref.z;
@@ -894,6 +896,416 @@ class Quaternion extends Vector4
     ..w = w;
 
     return Quaternion._internal(pointer);
+  }
+
+  /// Calculate quaternion cubic spline interpolation using Cubic Hermite Spline algorithm
+  /// as described in the GLTF 2.0 specification: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#interpolation-cubic
+  static Quaternion CubicHermiteSpline({
+    required Quaternion q1, required Quaternion outTan1,
+    required Quaternion q2, required Quaternion inTan2,
+    required double t
+  }) {
+    double t2 = t*t;
+    double t3 = t2*t;
+    double h00 = 2*t3 - 3*t2 + 1;
+    double h10 = t3 - 2*t2 + t;
+    double h01 = -2*t3 + 3*t2;
+    double h11 = t3 - t2;
+
+    Quaternion result = Quaternion();
+    result.x = h00*q1.x + h10*outTan1.x + h01*q2.x + h11*inTan2.x;
+    result.y = h00*q1.y + h10*outTan1.y + h01*q2.y + h11*inTan2.y;
+    result.z = h00*q1.z + h10*outTan1.z + h01*q2.z + h11*inTan2.z;
+    result.w = h00*q1.w + h10*outTan1.w + h01*q2.w + h11*inTan2.w;
+
+    result.Normalize();
+
+    return result;
+  }
+
+  /// Calculate quaternion based on the rotation from one vector to another
+  /// 
+  /// Note: AI warned about passing oposite vectors
+  static Quaternion FromVector3ToVector3(Vector3 from, Vector3 to)
+  {
+    Quaternion result = Quaternion();
+
+    double cos2Theta = (from.x*to.x + from.y*to.y + from.z*to.z); // Vector3DotProduct(from, to)
+    Vector3 cross = Vector3(from.y*to.z - from.z*to.y, from.z*to.x - from.x*to.z, from.x*to.y - from.y*to.x); // Vector3CrossProduct(from, to)
+
+    result.x = cross.x;
+    result.y = cross.y;
+    result.z = cross.z;
+    result.w = math.sqrt(cross.x*cross.x + cross.y*cross.y + cross.z*cross.z + cos2Theta*cos2Theta) + cos2Theta;
+
+    // QuaternionNormalize(q);
+    // NOTE: Normalize to essentially nlerp the original and identity to 0.5
+    Quaternion q = result;
+    double length = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w);
+    if (length == 0.0) length = 1.0;
+    double ilength = 1.0/length;
+
+    result.x = q.x*ilength;
+    result.y = q.y*ilength;
+    result.z = q.z*ilength;
+    result.w = q.w*ilength;
+
+    return result;
+  }
+
+  /// Get a quaternion for a given rotation matrix
+  static Quaternion FromMatrix(Matrix matrix)
+  {
+    Quaternion result = Quaternion();
+
+    double fourWSquaredMinus1 = matrix.m0  + matrix.m5 + matrix.m10;
+    double fourXSquaredMinus1 = matrix.m0  - matrix.m5 - matrix.m10;
+    double fourYSquaredMinus1 = matrix.m5  - matrix.m0 - matrix.m10;
+    double fourZSquaredMinus1 = matrix.m10 - matrix.m0 - matrix.m5;
+
+    int biggestIndex = 0;
+    double fourBiggestSquaredMinus1 = fourWSquaredMinus1;
+    if (fourXSquaredMinus1 > fourBiggestSquaredMinus1)
+    {
+        fourBiggestSquaredMinus1 = fourXSquaredMinus1;
+        biggestIndex = 1;
+    }
+
+    if (fourYSquaredMinus1 > fourBiggestSquaredMinus1)
+    {
+        fourBiggestSquaredMinus1 = fourYSquaredMinus1;
+        biggestIndex = 2;
+    }
+
+    if (fourZSquaredMinus1 > fourBiggestSquaredMinus1)
+    {
+        fourBiggestSquaredMinus1 = fourZSquaredMinus1;
+        biggestIndex = 3;
+    }
+
+    double biggestVal = math.sqrt(fourBiggestSquaredMinus1 + 1.0)*0.5;
+    double mult = 0.25/biggestVal;
+
+    // Caching values to avoid multiple accesses through FFI
+    double m1 = matrix.m1, m2 = matrix.m2, m4 = matrix.m4;
+    double m6 = matrix.m6, m8 = matrix.m8, m9 = matrix.m9;
+
+    switch (biggestIndex)
+    {
+      case 0:
+        result.w = biggestVal;
+        result.x = (m6 - m9)*mult;
+        result.y = (m8 - m2)*mult;
+        result.z = (m1 - m4)*mult;
+        break;
+      case 1:
+        result.x = biggestVal;
+        result.w = (m6 - m9)*mult;
+        result.y = (m1 + m4)*mult;
+        result.z = (m8 + m2)*mult;
+        break;
+      case 2:
+        result.y = biggestVal;
+        result.w = (m8 - m2)*mult;
+        result.x = (m1 + m4)*mult;
+        result.z = (m6 + m9)*mult;
+        break;
+      case 3:
+        result.z = biggestVal;
+        result.w = (m1 - m4)*mult;
+        result.x = (m8 + m2)*mult;
+        result.y = (m6 + m9)*mult;
+        break;
+    }
+
+    return result;
+  }
+
+  /// Get identity quaternion
+  factory Quaternion.Identity() => Quaternion();
+  
+  /// Get rotation quaternion for an angle and axis
+  /// 
+  /// NOTE: Angle must be provided in radians
+  /// 
+  /// Dev Note: This function was adapted, proceed with caution. _I am tired_
+  static Quaternion FromAxisAngle(Vector3 axis, double angle)
+  {
+    Quaternion result = Quaternion();
+
+    double axisLength = math.sqrt(axis.x*axis.x + axis.y*axis.y + axis.z*axis.z);
+
+    if (axisLength != 0)
+    {
+      angle *= 0.5;
+
+      double length = 0.0;
+      double ilength = 0.0;
+
+      // Caching values to prevent modifying original instance
+      // Vector3Normalize(axis)
+      double iaxisLen = 1.0 / axisLength;
+      double ax = axis.x * iaxisLen;
+      double ay = axis.y * iaxisLen;
+      double az = axis.z * iaxisLen;
+
+      double sinres = math.sin(angle);
+      double cosres = math.cos(angle);
+
+      result.x = ax*sinres;
+      result.y = ay*sinres;
+      result.z = az*sinres;
+      result.w = cosres;
+
+      length = math.sqrt(result.x*result.x + result.y*result.y + result.z*result.z + result.w*result.w);
+      if (length == 0.0) length = 1.0;
+      ilength = 1.0/length;
+      result.x = result.x*ilength;
+      result.y = result.y*ilength;
+      result.z = result.z*ilength;
+      result.w = result.w*ilength;
+    }
+
+    return result;
+  }
+}
+
+extension QuaternionMath on Quaternion
+{
+  /// Add two quaternions (In place)
+  void Add(Quaternion q)
+  {
+    this.x += q.x;
+    this.y += q.y;
+    this.z += q.z;
+    this.w += q.w;
+  }
+
+  /// Add two quaternions (New Instance)
+  Quaternion operator +(Quaternion q) {
+    Quaternion result = Quaternion(); 
+
+    result.x = this.x + q.x;
+    result.y = this.y + q.y;
+    result.z = this.z + q.z;
+    result.w = this.w + q.w;
+    return result;
+  }
+
+  /// Add quaternion and double value
+  void AddValue(double add) { this.x += add; this.y += add; this.z += add; this.w += add; }
+
+  /// Add two quaternions (In place)
+  void Subtract(Quaternion q)
+  {
+    this.x -= q.x;
+    this.y -= q.y;
+    this.z -= q.z;
+    this.w -= q.w;
+  }
+  
+  /// Add two quaternions (New Instance)
+  Quaternion operator -(Quaternion q)
+  {
+    Quaternion result = Quaternion();
+
+    result.x = this.x - q.x;
+    result.y = this.y - q.y;
+    result.z = this.z - q.z;
+    result.w = this.w - q.w;
+
+    return result;
+  }
+
+  /// Subtract quaternion and double value
+  void SubtractValue(double sub) { this.x -= sub; this.y -= sub; this.z -= sub; this.w -= sub; }
+
+  /// Computes the length of a quaternion
+  double Length() => math.sqrt((this.x*this.x) + (this.y*this.y) + (this.z*this.z) + (this.w*this.w));
+
+  /// Normalize provided quaternion
+  void Normalize()
+  {
+    double length = math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z + this.w*this.w);
+    if (length == 0.0) length = 1.0;
+    double ilength = 1.0/length;
+
+    double qx = this.x, qy = this.y;
+    double qz = this.z, qw = this.w;
+
+    this.x = qx*ilength;
+    this.y = qy*ilength;
+    this.z = qz*ilength;
+    this.w = qw*ilength;
+  }
+
+  /// Invert provided quaternion
+  void Invert()
+  {
+    double lengthSq = this.x*this.x + this.y*this.y + this.z*this.z + this.w*this.w;
+
+    if (lengthSq != 0.0)
+    {
+      double ilength = 1.0/lengthSq;
+
+      this.x *= -ilength;
+      this.y *= -ilength;
+      this.z *= -ilength;
+      this.w *=  ilength;
+    }
+  }
+
+  /// Calculate two quaternion multiplication (In place)
+  void Multiply(Quaternion q)
+  {
+    double qax = this.x, qay = this.y, qaz = this.z, qaw = this.w;
+    double qbx = q.x, qby = q.y, qbz = q.z, qbw = q.w;
+
+    this.x = qax*qbw + qaw*qbx + qay*qbz - qaz*qby;
+    this.y = qay*qbw + qaw*qby + qaz*qbx - qax*qbz;
+    this.z = qaz*qbw + qaw*qbz + qax*qby - qay*qbx;
+    this.w = qaw*qbw - qax*qbx - qay*qby - qaz*qbz;
+  }
+
+  /// Calculate two quaternion multiplication (New Instance)
+  Quaternion operator *(Quaternion q)
+  {
+    Quaternion result = Quaternion();
+
+    double qax = this.x, qay = this.y, qaz = this.z, qaw = this.w;
+    double qbx = q.x, qby = q.y, qbz = q.z, qbw = q.w;
+
+    result.x = qax*qbw + qaw*qbx + qay*qbz - qaz*qby;
+    result.y = qay*qbw + qaw*qby + qaz*qbx - qax*qbz;
+    result.z = qaz*qbw + qaw*qbz + qax*qby - qay*qbx;
+    result.w = qaw*qbw - qax*qbx - qay*qby - qaz*qbz;
+
+    return result;
+  }
+
+  /// Scale quaternion by float value
+  void Scale(double value)
+  {
+    this.x *= value;
+    this.y *= value;
+    this.z *= value;
+    this.w *= value;
+  }
+
+  /// Divide `this` quatertnion by `q` quatertnion
+  void Divide(Quaternion q) { this.x/=q.x; this.y/=q.y; this.z/=q.z; this.w/=q.w; }
+
+  /// Calculate linear interpolation between two quaternions
+  void LerpOf(Quaternion q2, double amount)
+  {
+    double qx = this.x, qy = this.y;
+    double qz = this.z, qw = this.w;
+
+    this.x = qx + amount*(q2.x - qx);
+    this.y = qy + amount*(q2.y - qy);
+    this.z = qz + amount*(q2.z - qz);
+    this.w = qw + amount*(q2.w - qw);
+  }
+  
+  /// Calculate slerp-optimized interpolation between two quaternions
+  void NLerpOf(Quaternion q2, double amount)
+  {
+    double qx = this.x, qy = this.y;
+    double qz = this.z, qw = this.w;
+
+    this.x = qx + amount*(q2.x - qx);
+    this.y = qy + amount*(q2.y - qy);
+    this.z = qz + amount*(q2.z - qz);
+    this.w = qw + amount*(q2.w - qw);
+
+    double length = math.sqrt(this.x*this.x + this.y*this.y + this.z*this.z + this.w*this.w);
+    if (length == 0.0) length = 1.0;
+    double ilength = 1.0/length;
+
+    this.x *= ilength;
+    this.y *= ilength;
+    this.z *= ilength;
+    this.w *= ilength;
+  }
+
+  /// Calculates spherical linear interpolation between two quaternions
+  void SlerpOf(Quaternion q2, double amount)
+  {
+    double cosHalfTheta = this.x*q2.x + this.y*q2.y + this.z*q2.z + this.w*q2.w;
+    // Not to modify the original instance
+    double q2x = q2.x, q2y = q2.y, q2z = q2.z, q2w = q2.w;
+
+    if (cosHalfTheta < 0)
+    {
+      q2x = -q2x; q2y = -q2y; q2z = -q2z; q2w = -q2w;
+      cosHalfTheta = -cosHalfTheta;
+    }
+
+    if (cosHalfTheta.abs() >= 1.0) return;
+    else if (cosHalfTheta > 0.95) // Since arguments are passed as references, Gemini suggested not passing this q2 as parameter
+    {
+      this.x = x + amount*(q2x - x);
+      this.y = y + amount*(q2y - y);
+      this.z = z + amount*(q2z - z);
+      this.w = w + amount*(q2w - w);
+
+      this.Normalize();
+    }
+    else
+    {
+      double halfTheta = math.acos(cosHalfTheta);
+      double sinHalfTheta = math.sqrt(1.0 - cosHalfTheta*cosHalfTheta);
+      double q1x = this.x, q1y = this.y;
+      double q1z = this.z, q1w = this.w;
+
+      if (sinHalfTheta.abs() < EPSILON)
+      {
+        this.x = (q1x*0.5 + q2x*0.5);
+        this.y = (q1y*0.5 + q2y*0.5);
+        this.z = (q1z*0.5 + q2z*0.5);
+        this.w = (q1w*0.5 + q2w*0.5);
+      }
+      else
+      {
+        double ratioA = math.sin((1 - amount)*halfTheta)/sinHalfTheta;
+        double ratioB = math.sin(amount*halfTheta)/sinHalfTheta;
+
+        this.x = (q1x*ratioA + q2x*ratioB);
+        this.y = (q1y*ratioA + q2y*ratioB);
+        this.z = (q1z*ratioA + q2z*ratioB);
+        this.w = (q1w*ratioA + q2w*ratioB);
+      }
+    }
+  }
+
+  /// Get a matrix for a given quaternion
+  Matrix ToMatrix()
+  {
+    Matrix result = Matrix();
+    
+    double a2 = this.x*this.x;
+    double b2 = this.y*this.y;
+    double c2 = this.z*this.z;
+    double ac = this.x*this.z;
+    double ab = this.x*this.y;
+    double bc = this.y*this.z;
+    double ad = this.w*this.x;
+    double bd = this.w*this.y;
+    double cd = this.w*this.z;
+
+    result.m0 = 1 - 2*(b2 + c2);
+    result.m1 = 2*(ab + cd);
+    result.m2 = 2*(ac - bd);
+
+    result.m4 = 2*(ab - cd);
+    result.m5 = 1 - 2*(a2 + c2);
+    result.m6 = 2*(bc + ad);
+
+    result.m8 = 2*(ac + bd);
+    result.m9 = 2*(bc - ad);
+    result.m10 = 1 - 2*(a2 + b2);
+
+    return result;
   }
 }
 
