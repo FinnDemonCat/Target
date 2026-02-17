@@ -8,9 +8,10 @@ abstract interface class Disposeable
 // C memory resourcers manager class
 class NativeResource<T extends NativeType> implements Disposeable {
   final Pointer<T> pointer;
-  NativeResource(this.pointer);
   bool _disposed = false;
+  bool IsOwner = true;
 
+  NativeResource(this.pointer, { this.IsOwner = true });
 
   bool get isDisposed => _disposed;
   void MarkAsDisposed() { _disposed = true; }
@@ -18,7 +19,7 @@ class NativeResource<T extends NativeType> implements Disposeable {
   @override
   void dispose()
   {
-    if (!isDisposed)
+    if (!isDisposed && IsOwner)
     {
       MarkAsDisposed();
       malloc.free(this.pointer);
@@ -87,55 +88,6 @@ final class _Color extends Struct
   @Uint8() external int a;             // Color alpha value
 }
 
-// Equivalent to typedef definitions of Default Raylib colors
-// Default members's pointers are held on the class. Call dispose() to clean memory
-/*
-final class Colors implements Disposeable
-{
-  static final Pointer<Color> LIGHTGRAY  = NewColor(200, 200, 200, 255);
-  static final Pointer<Color> GRAY       = NewColor(130, 130, 130, 255);
-  static final Pointer<Color> DARKGRAY   = NewColor( 80,  80,  80, 255);
-  static final Pointer<Color> YELLOW     = NewColor( 53, 249,   0, 255);
-  static final Pointer<Color> GOLD       = NewColor(255, 203,   0, 255);
-  static final Pointer<Color> ORANGE     = NewColor(255, 161,   0, 255);
-  static final Pointer<Color> PINK       = NewColor(255, 109, 194, 255);
-  static final Pointer<Color> RED        = NewColor(230,  41,  55, 255);
-  static final Pointer<Color> MAROON     = NewColor(190,  33,  55, 255);
-  static final Pointer<Color> GREEN      = NewColor(  0, 228,  48, 255);
-  static final Pointer<Color> LIME       = NewColor(  0, 158,  47, 255);
-  static final Pointer<Color> DARKGREEN  = NewColor(  0, 117,  44, 255);
-  static final Pointer<Color> SKYBLUE    = NewColor(102, 191, 255, 255);
-  static final Pointer<Color> BLUE       = NewColor(  0, 121, 241, 255);
-  static final Pointer<Color> DARKBLUE   = NewColor(  0,  82, 172, 255);
-  static final Pointer<Color> VIOLET     = NewColor(135,  60, 190, 255);
-  static final Pointer<Color> DARKPURPLE = NewColor(112,  31, 126, 255);
-  static final Pointer<Color> BEIGE      = NewColor(211, 176, 131, 255);
-  static final Pointer<Color> BROWN      = NewColor(127, 106,  79, 255);
-  static final Pointer<Color> DARKBROWN  = NewColor( 76,  63,  47, 255);
-  static final Pointer<Color> WHITE      = NewColor(255, 255, 255, 255);
-  static final Pointer<Color> BLACK      = NewColor(  0,   0,   0, 255);
-  static final Pointer<Color> BLANK      = NewColor(  0,   0,   0,   0); // Transparent
-  static final Pointer<Color> RAYWHITE   = NewColor(245, 245, 245, 255);
-
-  static List<NativeResource> _allocs = [];
-
-  static Pointer<Color> NewColor(int r, int g, int b, int a)
-  {
-    NativeResource<Color> placeholder = Color._create(r, g, b, a); 
-    _allocs.add(placeholder);
-
-    return placeholder.pointer;
-  }
-
-  @override
-  void dispose() {
-    for(NativeResource pointer in _allocs)
-    {
-      pointer.dispose();
-    }
-  }
-}
-*/
 // Rectangle, 4 components
 final class _Rectangle extends Struct
 {
@@ -184,7 +136,7 @@ typedef _RenderTexture2D = _RenderTexture;
 
 // NPatchInfo, n-patch layout info
 // ToDO: Implement constructor functions as native of the class
-final class NPatchInfo extends Struct
+final class _NPatchInfo extends Struct
 {
   external _Rectangle source;  // Texture source rectangle
   @Int32() external int left;          // Left border offset
@@ -195,7 +147,7 @@ final class NPatchInfo extends Struct
 }
 
 // GlyphInfo, font characters glyphs info
-final class GlyphInfo extends Struct
+final class _GlyphInfo extends Struct
 {
   @Int32() external int value;         // Character value (Unicode)
   @Int32() external int offsetX;       // Character offset X when drawing
@@ -212,7 +164,7 @@ final class Font extends Struct
   @Int32() external int glyphPadding;  // Padding around the glyph characters
   external _Texture texture;   // Texture atlas containing the glyphs
   external _Rectangle recs;    // Rectangles in texture for the glyphs. It's a pointer by default on Raylib
-  external GlyphInfo glyphs;  // Glyphs info data. It's a pointer by default on Raylib
+  external _GlyphInfo glyphs;  // Glyphs info data. It's a pointer by default on Raylib
 }
 
 // Camera, defines position/orientation in 3d space
@@ -237,7 +189,7 @@ final class _Camera2D extends Struct
 }
 
 // Mesh, vertex data and vao/vbo
-final class Mesh extends Struct
+final class _Mesh extends Struct
 {
   @Int32() external int vertexCount;   // Number of vertices stored in arrays
   @Int32() external int triagleCoung;  // Number of triangles stored (indexed or not)
@@ -279,7 +231,7 @@ final class MaterialMap extends Struct
 }
 
 // Material, includes shader and maps
-final class Material extends Struct
+final class _Material extends Struct
 {
   external Shader shader;              // Material shader
   external Pointer<MaterialMap> maps;  // Material maps array (MAX_MATERIAL_MAPS)
@@ -308,8 +260,8 @@ final class Model extends Struct
 
   @Int32() external int meshCount;     // Number of meshes
   @Int32() external int materialCount; // Number of materials
-  external Pointer<Mesh> meshes;       // Meshes array
-  external Pointer<Material> materials;// Materials array
+  external Pointer<_Mesh> meshes;       // Meshes array
+  external Pointer<_Material> materials;// Materials array
   external Pointer<Int32> meshMaterial;// Mesh material number
 
   // Animation data
@@ -443,9 +395,11 @@ final class AutomationEventList extends Struct
 //----------------------------------------------------------------------------------
 // Enumerators Definition
 //----------------------------------------------------------------------------------
-// System/Window config flags
-// NOTE: Every bit registers one state (use it with bit masks)
-// By default all flags are set to 0
+/// System/Window config flags
+/// 
+/// NOTE: Every bit registers one state (use it with bit masks)
+/// 
+/// By default all flags are set to 0
 abstract class ConfigFlags
 {
   static const int FLAG_VSYNC_HINT         = 0x00000040;   // Set to try enabling V-Sync on GPU
@@ -466,8 +420,8 @@ abstract class ConfigFlags
   static const int FLAG_INTERLACED_HINT    = 0x00010000;   // Set to try enabling interlaced video format (for V3D)
 }
 
-// Trace log level
-// NOTE: Organized by priority level
+/// Trace log level
+/// NOTE: Organized by priority level
 enum TraceLogLevel
 {
   LOG_ALL,            // Display all logs
@@ -480,8 +434,9 @@ enum TraceLogLevel
   LOG_NONE            // Disable logging
 }
 
-// Keyboard keys (US keyboard layout)
-// NOTE: Use GetKeyPressed() to allow redefining required keys for alternative layouts
+/// Keyboard keys (US keyboard layout)
+/// 
+/// NOTE: Use GetKeyPressed() to allow redefining required keys for alternative layouts
 abstract class KeyboardKey
 {
   static const int KEY_NULL            = 0;        // Key: NULL, used for no key pressed
@@ -600,142 +555,142 @@ abstract class KeyboardKey
   static const int KEY_VOLUME_DOWN     = 25;       // Key: Android volume down button
 }
 
-// Add backwards compatibility support for deprecated names
-final int MOUSE_LEFT_BUTTON = MouseButton.MOUSE_BUTTON_LEFT.index;
-final int MOUSE_RIGHT_BUTTON = MouseButton.MOUSE_BUTTON_RIGHT.index;
-final int MOUSE_MIDDLE_BUTTON = MouseButton.MOUSE_BUTTON_MIDDLE.index;
+/// Add backwards compatibility support for deprecated names
+final int MOUSE_LEFT_BUTTON = MouseButton.LEFT.index;
+final int MOUSE_RIGHT_BUTTON = MouseButton.RIGHT.index;
+final int MOUSE_MIDDLE_BUTTON = MouseButton.MIDDLE.index;
 
-// Mouse buttons
+/// Mouse buttons
 enum MouseButton {
-  MOUSE_BUTTON_LEFT,                 // Mouse button left
-  MOUSE_BUTTON_RIGHT,                // Mouse button right
-  MOUSE_BUTTON_MIDDLE,               // Mouse button middle (pressed wheel)
-  MOUSE_BUTTON_SIDE,                 // Mouse button side (advanced mouse device)
-  MOUSE_BUTTON_EXTRA,                // Mouse button extra (advanced mouse device)
-  MOUSE_BUTTON_FORWARD,              // Mouse button forward (advanced mouse device)
-  MOUSE_BUTTON_BACK,                 // Mouse button back (advanced mouse device)
+  LEFT,                 // Mouse button left
+  RIGHT,                // Mouse button right
+  MIDDLE,               // Mouse button middle (pressed wheel)
+  SIDE,                 // Mouse button side (advanced mouse device)
+  EXTRA,                // Mouse button extra (advanced mouse device)
+  FORWARD,              // Mouse button forward (advanced mouse device)
+  BACK,                 // Mouse button back (advanced mouse device)
 }
 
-// Mouse cursor
+/// Mouse cursor
 enum MouseCursor {
-  MOUSE_CURSOR_DEFAULT,              // Default pointer shape
-  MOUSE_CURSOR_ARROW,                // Arrow shape
-  MOUSE_CURSOR_IBEAM,                // Text writing cursor shape
-  MOUSE_CURSOR_CROSSHAIR,            // Cross shape
-  MOUSE_CURSOR_POINTING_HAND,        // Pointing hand cursor
-  MOUSE_CURSOR_RESIZE_EW,            // Horizontal resize/move arrow shape
-  MOUSE_CURSOR_RESIZE_NS,            // Vertical resize/move arrow shape
-  MOUSE_CURSOR_RESIZE_NWSE,          // Top-left to bottom-right diagonal resize/move arrow shape
-  MOUSE_CURSOR_RESIZE_NESW,          // The top-right to bottom-left diagonal resize/move arrow shape
-  MOUSE_CURSOR_RESIZE_ALL,           // The omnidirectional resize/move cursor shape
-  MOUSE_CURSOR_NOT_ALLOWED,          // The operation-not-allowed shape
+  DEFAULT,              // Default pointer shape
+  ARROW,                // Arrow shape
+  IBEAM,                // Text writing cursor shape
+  CROSSHAIR,            // Cross shape
+  POINTING_HAND,        // Pointing hand cursor
+  RESIZE_EW,            // Horizontal resize/move arrow shape
+  RESIZE_NS,            // Vertical resize/move arrow shape
+  RESIZE_NWSE,          // Top-left to bottom-right diagonal resize/move arrow shape
+  RESIZE_NESW,          // The top-right to bottom-left diagonal resize/move arrow shape
+  RESIZE_ALL,           // The omnidirectional resize/move cursor shape
+  NOT_ALLOWED,          // The operation-not-allowed shape
 }
 
-// Gamepad buttons
+/// Gamepad buttons
 enum GamepadButton {
-  GAMEPAD_BUTTON_UNKNOWN,            // Unknown button, just for error checking
-  GAMEPAD_BUTTON_LEFT_FACE_UP,       // Gamepad left DPAD up button
-  GAMEPAD_BUTTON_LEFT_FACE_RIGHT,    // Gamepad left DPAD right button
-  GAMEPAD_BUTTON_LEFT_FACE_DOWN,     // Gamepad left DPAD down button
-  GAMEPAD_BUTTON_LEFT_FACE_LEFT,     // Gamepad left DPAD left button
-  GAMEPAD_BUTTON_RIGHT_FACE_UP,      // Gamepad right button up (i.e. PS3: Triangle, Xbox: Y)
-  GAMEPAD_BUTTON_RIGHT_FACE_RIGHT,   // Gamepad right button right (i.e. PS3: Circle, Xbox: B)
-  GAMEPAD_BUTTON_RIGHT_FACE_DOWN,    // Gamepad right button down (i.e. PS3: Cross, Xbox: A)
-  GAMEPAD_BUTTON_RIGHT_FACE_LEFT,    // Gamepad right button left (i.e. PS3: Square, Xbox: X)
-  GAMEPAD_BUTTON_LEFT_TRIGGER_1,     // Gamepad top/back trigger left (first), it could be a trailing button
-  GAMEPAD_BUTTON_LEFT_TRIGGER_2,     // Gamepad top/back trigger left (second), it could be a trailing button
-  GAMEPAD_BUTTON_RIGHT_TRIGGER_1,    // Gamepad top/back trigger right (first), it could be a trailing button
-  GAMEPAD_BUTTON_RIGHT_TRIGGER_2,    // Gamepad top/back trigger right (second), it could be a trailing button
-  GAMEPAD_BUTTON_MIDDLE_LEFT,        // Gamepad center buttons, left one (i.e. PS3: Select)
-  GAMEPAD_BUTTON_MIDDLE,             // Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX)
-  GAMEPAD_BUTTON_MIDDLE_RIGHT,       // Gamepad center buttons, right one (i.e. PS3: Start)
-  GAMEPAD_BUTTON_LEFT_THUMB,         // Gamepad joystick pressed button left
-  GAMEPAD_BUTTON_RIGHT_THUMB         // Gamepad joystick pressed button right
+  UNKNOWN,            // Unknown button, just for error checking
+  LEFT_FACE_UP,       // Gamepad left DPAD up button
+  LEFT_FACE_RIGHT,    // Gamepad left DPAD right button
+  LEFT_FACE_DOWN,     // Gamepad left DPAD down button
+  LEFT_FACE_LEFT,     // Gamepad left DPAD left button
+  RIGHT_FACE_UP,      // Gamepad right button up (i.e. PS3: Triangle, Xbox: Y)
+  RIGHT_FACE_RIGHT,   // Gamepad right button right (i.e. PS3: Circle, Xbox: B)
+  RIGHT_FACE_DOWN,    // Gamepad right button down (i.e. PS3: Cross, Xbox: A)
+  RIGHT_FACE_LEFT,    // Gamepad right button left (i.e. PS3: Square, Xbox: X)
+  LEFT_TRIGGER_1,     // Gamepad top/back trigger left (first), it could be a trailing button
+  LEFT_TRIGGER_2,     // Gamepad top/back trigger left (second), it could be a trailing button
+  RIGHT_TRIGGER_1,    // Gamepad top/back trigger right (first), it could be a trailing button
+  RIGHT_TRIGGER_2,    // Gamepad top/back trigger right (second), it could be a trailing button
+  MIDDLE_LEFT,        // Gamepad center buttons, left one (i.e. PS3: Select)
+  MIDDLE,             // Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX)
+  MIDDLE_RIGHT,       // Gamepad center buttons, right one (i.e. PS3: Start)
+  LEFT_THUMB,         // Gamepad joystick pressed button left
+  RIGHT_THUMB         // Gamepad joystick pressed button right
 }
 
-// Gamepad axes
+/// Gamepad axes
 enum GamepadAxis {
-  GAMEPAD_AXIS_LEFT_X,               // Gamepad left stick X axis
-  GAMEPAD_AXIS_LEFT_Y,               // Gamepad left stick Y axis
-  GAMEPAD_AXIS_RIGHT_X,              // Gamepad right stick X axis
-  GAMEPAD_AXIS_RIGHT_Y,              // Gamepad right stick Y axis
-  GAMEPAD_AXIS_LEFT_TRIGGE,          // Gamepad back trigger left, pressure level: [1..-1]
-  GAMEPAD_AXIS_RIGHT_TRIGGER,        // Gamepad back trigger right, pressure level: [1..-1]
+  LEFT_X,               // Gamepad left stick X axis
+  LEFT_Y,               // Gamepad left stick Y axis
+  RIGHT_X,              // Gamepad right stick X axis
+  RIGHT_Y,              // Gamepad right stick Y axis
+  LEFT_TRIGGE,          // Gamepad back trigger left, pressure level: [1..-1]
+  RIGHT_TRIGGER,        // Gamepad back trigger right, pressure level: [1..-1]
 }
 
-// Material map index
+/// Material map index
 enum MaterialMapIndex {
-  MATERIAL_MAP_ALBEDO,            // Albedo material (same as: MATERIAL_MAP_DIFFUSE)
-  MATERIAL_MAP_METALNESS,         // Metalness material (same as: MATERIAL_MAP_SPECULAR)
-  MATERIAL_MAP_NORMAL,            // Normal material
-  MATERIAL_MAP_ROUGHNESS,         // Roughness material
-  MATERIAL_MAP_OCCLUSION,         // Ambient occlusion material
-  MATERIAL_MAP_EMISSION,          // Emission material
-  MATERIAL_MAP_HEIGHT,            // Heightmap material
-  MATERIAL_MAP_CUBEMAP,           // Cubemap material (NOTE: Uses GL_TEXTURE_CUBE_MAP)
-  MATERIAL_MAP_IRRADIANCE,        // Irradiance material (NOTE: Uses GL_TEXTURE_CUBE_MAP)
-  MATERIAL_MAP_PREFILTER,         // Prefilter material (NOTE: Uses GL_TEXTURE_CUBE_MAP)
-  MATERIAL_MAP_BRDF               // Brdf material
+  ALBEDO,            // Albedo material (same as: MATERIAL_MAP_DIFFUSE)
+  METALNESS,         // Metalness material (same as: MATERIAL_MAP_SPECULAR)
+  NORMAL,            // Normal material
+  ROUGHNESS,         // Roughness material
+  OCCLUSION,         // Ambient occlusion material
+  EMISSION,          // Emission material
+  HEIGHT,            // Heightmap material
+  CUBEMAP,           // Cubemap material (NOTE: Uses GL_TEXTURE_CUBE_MAP)
+  IRRADIANCE,        // Irradiance material (NOTE: Uses GL_TEXTURE_CUBE_MAP)
+  PREFILTER,         // Prefilter material (NOTE: Uses GL_TEXTURE_CUBE_MAP)
+  BRDF               // Brdf material
 }
 
-final int MATERIAL_MAP_DIFFUSE = MaterialMapIndex.MATERIAL_MAP_ALBEDO.index;
-final int MATERIAL_MAP_SPECULAR = MaterialMapIndex.MATERIAL_MAP_METALNESS.index;
+final int MATERIAL_MAP_DIFFUSE = MaterialMapIndex.ALBEDO.index;
+final int MATERIAL_MAP_SPECULAR = MaterialMapIndex.METALNESS.index;
 
-// Shader location index
+/// Shader location index
 enum ShaderLocationIndex {
-  SHADER_LOC_VERTEX_POSITION,     // Shader location: vertex attribute: position
-  SHADER_LOC_VERTEX_TEXCOORD01,   // Shader location: vertex attribute: texcoord01
-  SHADER_LOC_VERTEX_TEXCOORD02,   // Shader location: vertex attribute: texcoord02
-  SHADER_LOC_VERTEX_NORMAL,       // Shader location: vertex attribute: normal
-  SHADER_LOC_VERTEX_TANGENT,      // Shader location: vertex attribute: tangent
-  SHADER_LOC_VERTEX_COLOR,        // Shader location: vertex attribute: color
-  SHADER_LOC_MATRIX_MVP,          // Shader location: matrix uniform: model-view-projection
-  SHADER_LOC_MATRIX_VIEW,         // Shader location: matrix uniform: view (camera transform)
-  SHADER_LOC_MATRIX_PROJECTION,   // Shader location: matrix uniform: projection
-  SHADER_LOC_MATRIX_MODEL,        // Shader location: matrix uniform: model (transform)
-  SHADER_LOC_MATRIX_NORMAL,       // Shader location: matrix uniform: normal
-  SHADER_LOC_VECTOR_VIEW,         // Shader location: vector uniform: view
-  SHADER_LOC_COLOR_DIFFUSE,       // Shader location: vector uniform: diffuse color
-  SHADER_LOC_COLOR_SPECULAR,      // Shader location: vector uniform: specular color
-  SHADER_LOC_COLOR_AMBIENT,       // Shader location: vector uniform: ambient color
-  SHADER_LOC_MAP_ALBEDO,          // Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE)
-  SHADER_LOC_MAP_METALNESS,       // Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR)
-  SHADER_LOC_MAP_NORMAL,          // Shader location: sampler2d texture: normal
-  SHADER_LOC_MAP_ROUGHNESS,       // Shader location: sampler2d texture: roughness
-  SHADER_LOC_MAP_OCCLUSION,       // Shader location: sampler2d texture: occlusion
-  SHADER_LOC_MAP_EMISSION,        // Shader location: sampler2d texture: emission
-  SHADER_LOC_MAP_HEIGHT,          // Shader location: sampler2d texture: height
-  SHADER_LOC_MAP_CUBEMAP,         // Shader location: samplerCube texture: cubemap
-  SHADER_LOC_MAP_IRRADIANCE,      // Shader location: samplerCube texture: irradiance
-  SHADER_LOC_MAP_PREFILTER,       // Shader location: samplerCube texture: prefilter
-  SHADER_LOC_MAP_BRDF,            // Shader location: sampler2d texture: brdf
-  SHADER_LOC_VERTEX_BONEIDS,      // Shader location: vertex attribute: boneIds
-  SHADER_LOC_VERTEX_BONEWEIGHTS,  // Shader location: vertex attribute: boneWeights
-  SHADER_LOC_BONE_MATRICES,       // Shader location: array of matrices uniform: boneMatrices
-  SHADER_LOC_VERTEX_INSTANCE_TX   // Shader location: vertex attribute: instanceTransform
+  VERTEX_POSITION,     // Shader location: vertex attribute: position
+  VERTEX_TEXCOORD01,   // Shader location: vertex attribute: texcoord01
+  VERTEX_TEXCOORD02,   // Shader location: vertex attribute: texcoord02
+  VERTEX_NORMAL,       // Shader location: vertex attribute: normal
+  VERTEX_TANGENT,      // Shader location: vertex attribute: tangent
+  VERTEX_COLOR,        // Shader location: vertex attribute: color
+  MATRIX_MVP,          // Shader location: matrix uniform: model-view-projection
+  MATRIX_VIEW,         // Shader location: matrix uniform: view (camera transform)
+  MATRIX_PROJECTION,   // Shader location: matrix uniform: projection
+  MATRIX_MODEL,        // Shader location: matrix uniform: model (transform)
+  MATRIX_NORMAL,       // Shader location: matrix uniform: normal
+  VECTOR_VIEW,         // Shader location: vector uniform: view
+  COLOR_DIFFUSE,       // Shader location: vector uniform: diffuse color
+  COLOR_SPECULAR,      // Shader location: vector uniform: specular color
+  COLOR_AMBIENT,       // Shader location: vector uniform: ambient color
+  MAP_ALBEDO,          // Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE)
+  MAP_METALNESS,       // Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR)
+  MAP_NORMAL,          // Shader location: sampler2d texture: normal
+  MAP_ROUGHNESS,       // Shader location: sampler2d texture: roughness
+  MAP_OCCLUSION,       // Shader location: sampler2d texture: occlusion
+  MAP_EMISSION,        // Shader location: sampler2d texture: emission
+  MAP_HEIGHT,          // Shader location: sampler2d texture: height
+  MAP_CUBEMAP,         // Shader location: samplerCube texture: cubemap
+  MAP_IRRADIANCE,      // Shader location: samplerCube texture: irradiance
+  MAP_PREFILTER,       // Shader location: samplerCube texture: prefilter
+  MAP_BRDF,            // Shader location: sampler2d texture: brdf
+  VERTEX_BONEIDS,      // Shader location: vertex attribute: boneIds
+  VERTEX_BONEWEIGHTS,  // Shader location: vertex attribute: boneWeights
+  BONE_MATRICES,       // Shader location: array of matrices uniform: boneMatrices
+  VERTEX_INSTANCE_TX   // Shader location: vertex attribute: instanceTransform
 }
 
-final int SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.SHADER_LOC_MAP_ALBEDO.index;
-final int SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.SHADER_LOC_MAP_METALNESS.index;
+final int SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.MAP_ALBEDO.index;
+final int SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.MAP_METALNESS.index;
 
-// Shader uniform data type
+/// Shader uniform data type
 enum ShaderUniformDataType {
-  SHADER_UNIFORM_FLOAT,           // Shader uniform type: float
-  SHADER_UNIFORM_VEC2,            // Shader uniform type: vec2 (2 float)
-  SHADER_UNIFORM_VEC3,            // Shader uniform type: vec3 (3 float)
-  SHADER_UNIFORM_VEC4,            // Shader uniform type: vec4 (4 float)
-  SHADER_UNIFORM_INT,             // Shader uniform type: int
-  SHADER_UNIFORM_IVEC2,           // Shader uniform type: ivec2 (2 int)
-  SHADER_UNIFORM_IVEC3,           // Shader uniform type: ivec3 (3 int)
-  SHADER_UNIFORM_IVEC4,           // Shader uniform type: ivec4 (4 int)
-  SHADER_UNIFORM_UINT,            // Shader uniform type: unsigned int
-  SHADER_UNIFORM_UIVEC2,          // Shader uniform type: uivec2 (2 unsigned int)
-  SHADER_UNIFORM_UIVEC3,          // Shader uniform type: uivec3 (3 unsigned int)
-  SHADER_UNIFORM_UIVEC4,          // Shader uniform type: uivec4 (4 unsigned int)
-  SHADER_UNIFORM_SAMPLER2D        // Shader uniform type: sampler2d
+  FLOAT,           // Shader uniform type: float
+  VEC2,            // Shader uniform type: vec2 (2 float)
+  VEC3,            // Shader uniform type: vec3 (3 float)
+  VEC4,            // Shader uniform type: vec4 (4 float)
+  INT,             // Shader uniform type: int
+  IVEC2,           // Shader uniform type: ivec2 (2 int)
+  IVEC3,           // Shader uniform type: ivec3 (3 int)
+  IVEC4,           // Shader uniform type: ivec4 (4 int)
+  UINT,            // Shader uniform type: unsigned int
+  UIVEC2,          // Shader uniform type: uivec2 (2 unsigned int)
+  UIVEC3,          // Shader uniform type: uivec3 (3 unsigned int)
+  UIVEC4,          // Shader uniform type: uivec4 (4 unsigned int)
+  SAMPLER2D        // Shader uniform type: sampler2d
 }
 
-// Shader attribute data types
+/// Shader attribute data types
 enum ShaderAttributeDataType {
   SHADER_ATTRIB_FLOAT,            // Shader attribute type: float
   SHADER_ATTRIB_VEC2,             // Shader attribute type: vec2 (2 float)
@@ -743,38 +698,41 @@ enum ShaderAttributeDataType {
   SHADER_ATTRIB_VEC4              // Shader attribute type: vec4 (4 float)
 }
 
-// Pixel formats
-// NOTE: Support depends on OpenGL version and platform
+/// Pixel formats
+/// 
+/// NOTE: Support depends on OpenGL version and platform
 abstract class PixelFormat {
-  static const int PIXELFORMAT_UNCOMPRESSED_GRAYSCALE = 1;     // 8 bit per pixel (no alpha)
-  static const int PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA = 2;    // 8*2 bpp (2 channels)
-  static const int PIXELFORMAT_UNCOMPRESSED_R5G6B5 = 3;        // 16 bpp
-  static const int PIXELFORMAT_UNCOMPRESSED_R8G8B8 = 4;        // 24 bpp
-  static const int PIXELFORMAT_UNCOMPRESSED_R5G5B5A1 = 5;      // 16 bpp (1 bit alpha)
-  static const int PIXELFORMAT_UNCOMPRESSED_R4G4B4A4 = 6;      // 16 bpp (4 bit alpha)
-  static const int PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 = 7;      // 32 bpp
-  static const int PIXELFORMAT_UNCOMPRESSED_R32 = 8;           // 32 bpp (1 channel - float)
-  static const int PIXELFORMAT_UNCOMPRESSED_R32G32B32 = 9;     // 32*3 bpp (3 channels - float)
-  static const int PIXELFORMAT_UNCOMPRESSED_R32G32B32A32 = 10; // 32*4 bpp (4 channels - float)
-  static const int PIXELFORMAT_UNCOMPRESSED_R16 = 11;          // 16 bpp (1 channel - half float)
-  static const int PIXELFORMAT_UNCOMPRESSED_R16G16B16 = 12;    // 16*3 bpp (3 channels - half float)
-  static const int PIXELFORMAT_UNCOMPRESSED_R16G16B16A16 = 13; // 16*4 bpp (4 channels - half float)
-  static const int PIXELFORMAT_COMPRESSED_DXT1_RGB = 14;       // 4 bpp (no alpha)
-  static const int PIXELFORMAT_COMPRESSED_DXT1_RGBA = 15;      // 4 bpp (1 bit alpha)
-  static const int PIXELFORMAT_COMPRESSED_DXT3_RGBA = 16;      // 8 bpp
-  static const int PIXELFORMAT_COMPRESSED_DXT5_RGBA = 17;      // 8 bpp
-  static const int PIXELFORMAT_COMPRESSED_ETC1_RGB = 18;       // 4 bpp
-  static const int PIXELFORMAT_COMPRESSED_ETC2_RGB = 19;       // 4 bpp
-  static const int PIXELFORMAT_COMPRESSED_ETC2_EAC_RGBA = 20;  // 8 bpp
-  static const int PIXELFORMAT_COMPRESSED_PVRT_RGB = 21;       // 4 bpp
-  static const int PIXELFORMAT_COMPRESSED_PVRT_RGBA = 22;      // 4 bpp
-  static const int PIXELFORMAT_COMPRESSED_ASTC_4x4_RGBA = 23;  // 8 bpp
-  static const int PIXELFORMAT_COMPRESSED_ASTC_8x8_RGBA = 24;  // 2 bpp
+  static const int UNCOMPRESSED_GRAYSCALE = 1;     // 8 bit per pixel (no alpha)
+  static const int UNCOMPRESSED_GRAY_ALPHA = 2;    // 8*2 bpp (2 channels)
+  static const int UNCOMPRESSED_R5G6B5 = 3;        // 16 bpp
+  static const int UNCOMPRESSED_R8G8B8 = 4;        // 24 bpp
+  static const int UNCOMPRESSED_R5G5B5A1 = 5;      // 16 bpp (1 bit alpha)
+  static const int UNCOMPRESSED_R4G4B4A4 = 6;      // 16 bpp (4 bit alpha)
+  static const int UNCOMPRESSED_R8G8B8A8 = 7;      // 32 bpp
+  static const int UNCOMPRESSED_R32 = 8;           // 32 bpp (1 channel - float)
+  static const int UNCOMPRESSED_R32G32B32 = 9;     // 32*3 bpp (3 channels - float)
+  static const int UNCOMPRESSED_R32G32B32A32 = 10; // 32*4 bpp (4 channels - float)
+  static const int UNCOMPRESSED_R16 = 11;          // 16 bpp (1 channel - half float)
+  static const int UNCOMPRESSED_R16G16B16 = 12;    // 16*3 bpp (3 channels - half float)
+  static const int UNCOMPRESSED_R16G16B16A16 = 13; // 16*4 bpp (4 channels - half float)
+  static const int COMPRESSED_DXT1_RGB = 14;       // 4 bpp (no alpha)
+  static const int COMPRESSED_DXT1_RGBA = 15;      // 4 bpp (1 bit alpha)
+  static const int COMPRESSED_DXT3_RGBA = 16;      // 8 bpp
+  static const int COMPRESSED_DXT5_RGBA = 17;      // 8 bpp
+  static const int COMPRESSED_ETC1_RGB = 18;       // 4 bpp
+  static const int COMPRESSED_ETC2_RGB = 19;       // 4 bpp
+  static const int COMPRESSED_ETC2_EAC_RGBA = 20;  // 8 bpp
+  static const int COMPRESSED_PVRT_RGB = 21;       // 4 bpp
+  static const int COMPRESSED_PVRT_RGBA = 22;      // 4 bpp
+  static const int COMPRESSED_ASTC_4x4_RGBA = 23;  // 8 bpp
+  static const int COMPRESSED_ASTC_8x8_RGBA = 24;  // 2 bpp
 }
 
-// Texture parameters: filter mode
-// NOTE 1: Filtering considers mipmaps if available in the texture
-// NOTE 2: Filter is accordingly set for minification and magnification
+/// Texture parameters: filter mode
+/// 
+/// NOTE 1: Filtering considers mipmaps if available in the texture
+/// 
+/// NOTE 2: Filter is accordingly set for minification and magnification
 enum TextureFilter {
   TEXTURE_FILTER_POINT,                   // No filter, just pixel approximation
   TEXTURE_FILTER_BILINEAR,                // Linear filtering
@@ -784,7 +742,7 @@ enum TextureFilter {
   TEXTURE_FILTER_ANISOTROPIC_16X,         // Anisotropic filtering 16x
 }
 
-// Texture parameters: wrap mode
+/// Texture parameters: wrap mode
 enum TextureWrap {
   TEXTURE_WRAP_REPEAT,                    // Repeats texture in tiled mode
   TEXTURE_WRAP_CLAMP,                     // Clamps texture to edge pixel in tiled mode
@@ -792,7 +750,7 @@ enum TextureWrap {
   TEXTURE_WRAP_MIRROR_CLAMP               // Mirrors and clamps to border the texture in tiled mode
 }
 
-// Cubemap layouts
+/// Cubemap layouts
 enum CubemapLayout {
   CUBEMAP_LAYOUT_AUTO_DETECT,             // Automatically detect layout type
   CUBEMAP_LAYOUT_LINE_VERTICAL,           // Layout is defined by a vertical line with faces
@@ -801,15 +759,14 @@ enum CubemapLayout {
   CUBEMAP_LAYOUT_CROSS_FOUR_BY_THREE      // Layout is defined by a 4x3 cross with cubemap faces
 }
 
-// Font type, defines generation method
+/// Font type, defines generation method
 enum FontType {
   FONT_DEFAULT,                           // Default font generation, anti-aliased
   FONT_BITMAP,                            // Bitmap font generation, no anti-aliasing
   FONT_SDF                                // SDF font generation, requires external shader
 }
 
-
-// Color blending modes (pre-defined)
+/// Color blending modes (pre-defined)
 enum BlendMode {
   BLEND_ALPHA,                    // Blend textures considering alpha (default)
   BLEND_ADDITIVE,                 // Blend textures adding colors
@@ -821,9 +778,10 @@ enum BlendMode {
   BLEND_CUSTOM_SEPARATE           // Blend textures using custom rgb/alpha separate src/dst factors (use rlSetBlendFactorsSeparate())
 }
 
-// Gesture
-// NOTE: Provided as bit-wise flags to enable only desired gestures
-abstract class  Gesture {
+/// Gesture
+/// 
+/// NOTE: Provided as bit-wise flags to enable only desired gestures
+abstract class Gesture {
   static const int GESTURE_NONE        = 0;         // No gesture
   static const int GESTURE_TAP         = 1;         // Tap gesture
   static const int GESTURE_DOUBLETAP   = 2;         // Double tap gesture
@@ -837,15 +795,27 @@ abstract class  Gesture {
   static const int GESTURE_PINCH_OUT   = 512;       // Pinch out gesture
 }
 
-// Camera system modes
+/// Camera system modes
 enum CameraMode {
-  CAMERA_CUSTOM,                  // Camera custom, controlled by user (UpdateCamera() does nothing)
-  CAMERA_FREE,                    // Camera free mode
-  CAMERA_ORBITAL,                 // Camera orbital, around target, zoom supported
-  CAMERA_FIRST_PERSON,            // Camera first person
-  CAMERA_THIRD_PERSON             // Camera third person
+  CUSTOM,                              // Camera custom, controlled by user (UpdateCamera() does nothing)
+  FREE,                                // Camera free mode
+  ORBITAL,                             // Camera orbital, around target, zoom supported
+  FIRST_PERSON,                        // Camera first person
+  THIRD_PERSON                         // Camera third person
 }
 
+/// Camera projection
+enum CameraProjection {
+  PERSPECTIVE,                        // Perspective projection
+  ORTHOGRAPHIC                        // Orthographic projection
+}
+
+// N-patch layout
+enum NPatchLayout {
+  NPATCH_NINE_PATCH,                   // Npatch layout: 3x3 tiles
+  NPATCH_THREE_PATCH_VERTICAL,         // Npatch layout: 1x3 tiles
+  NPATCH_THREE_PATCH_HORIZONTAL        // Npatch layout: 3x1 tiles
+}
 
 // Callbacks to hook some internal functions
 // WARNING: These callbacks are intended for advanced users
@@ -1241,13 +1211,13 @@ typedef _EndMode2DRay = Void Function();
 typedef _EndMode2DDart = void Function();
 final _endMode2D = _dylib.lookupFunction<_EndMode2DRay, _EndMode2DDart>('EndMode2D');
 
-// typedef _BeginMode3DRay = Void Function(_Camera3D);
-// typedef _BeginMode3DDart = void Function(_Camera3D);
-// final _beginMode3D = _dylib.lookupFunction<_BeginMode3DRay, _BeginMode3DDart>('BeginMode3D');
+typedef _BeginMode3DRay = Void Function(_Camera3D);
+typedef _BeginMode3DDart = void Function(_Camera3D);
+final _beginMode3D = _dylib.lookupFunction<_BeginMode3DRay, _BeginMode3DDart>('BeginMode3D');
 
-// typedef _EndMode3DRay = Void Function();
-// typedef _EndMode3DDart = void Function();
-// final _endMode3D = _dylib.lookupFunction<_EndMode3DRay, _EndMode3DDart>('EndMode3D');
+typedef _EndMode3DRay = Void Function();
+typedef _EndMode3DDart = void Function();
+final _endMode3D = _dylib.lookupFunction<_EndMode3DRay, _EndMode3DDart>('EndMode3D');
 
 typedef _BeginTextureModeRay = Void Function(_RenderTexture2D);
 typedef _BeginTextureModeDart = void Function(_RenderTexture2D);
@@ -1288,3 +1258,76 @@ final _endTextureMode = _dylib.lookupFunction<_EndTextureModeRay, _EndTextureMod
 // typedef _EndVrStereoModeRay = Void Function();
 // typedef _EndVrStereoModeDart = void Function();
 // final _endVrStereoMode = _dylib.lookupFunction<_EndVrStereoModeRay, _EndVrStereoModeDart>('EndVrStereoMode');
+
+//------------------------------------------------------------------------------------
+// Model 3d Loading and Drawing Functions (Module: models)
+//------------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------------
+//                                   Mesh
+//------------------------------------------------------------------------------------
+
+typedef _UploadMeshRay = Void Function(Pointer<_Mesh>, Bool);
+typedef _UploadMeshDart = void Function(Pointer<_Mesh>, bool);
+final _uploadMesh = _dylib.lookupFunction<_UploadMeshRay, _UploadMeshDart>('UploadMesh');
+
+typedef _UpdateMeshBufferRay = Void Function(_Mesh, Int32, Pointer<Void>, Int32, Int32);
+typedef _UpdateMeshBufferDart = void Function(_Mesh, int, Pointer<Void>, int, int);
+final _updateMeshBuffer = _dylib.lookupFunction<_UpdateMeshBufferRay, _UpdateMeshBufferDart>('UpdateMeshBuffer');
+
+typedef _UnloadMeshRay = Void Function(_Mesh);
+typedef _UnloadMeshDart = void Function(_Mesh);
+final _unloadMesh = _dylib.lookupFunction<_UnloadMeshRay, _UnloadMeshDart>('UnloadMesh');
+
+typedef _DrawMeshRay = Void Function(_Mesh, _Material, _Matrix);
+typedef _DrawMeshDart = void Function(_Mesh, _Material, _Matrix);
+final _drawMesh = _dylib.lookupFunction<_DrawMeshRay, _DrawMeshDart>('DrawMesh');
+
+typedef _DrawMeshInstancedRay = Void Function(_Mesh, _Material, Pointer<_Matrix>, Int32);
+typedef _DrawMeshInstancedDart = void Function(_Mesh, _Material, Pointer<_Matrix>, int);
+final _drawMeshInstanced = _dylib.lookupFunction<_DrawMeshInstancedRay, _DrawMeshInstancedDart>('DrawMeshInstanced');
+
+typedef _GetMeshBoundingBoxRay = BoundingBox Function(_Mesh);
+typedef _GetMeshBoundingBoxDart = BoundingBox Function(_Mesh);
+final _getMeshBoundingBox = _dylib.lookupFunction<_GetMeshBoundingBoxRay, _GetMeshBoundingBoxDart>('GetMeshBoundingBox');
+
+typedef _GenMeshTangentsRay = Void Function(Pointer<_Mesh>);
+typedef _GenMeshTangentsDart = void Function(Pointer<_Mesh>);
+final _genMeshTangents = _dylib.lookupFunction<_GenMeshTangentsRay, _GenMeshTangentsDart>('GenMeshTangents');
+
+typedef _ExportMeshRay = Bool Function(_Mesh, Pointer<Utf8>);
+typedef _ExportMeshDart = bool Function(_Mesh, Pointer<Utf8>);
+final _exportMesh = _dylib.lookupFunction<_ExportMeshRay, _ExportMeshDart>('ExportMesh');
+
+typedef _ExportMeshAsCodeRay = Bool Function(_Mesh, Pointer<Utf8>);
+typedef _ExportMeshAsCodeDart = bool Function(_Mesh, Pointer<Utf8>);
+final _exportMeshAsCode = _dylib.lookupFunction<_ExportMeshAsCodeRay, _ExportMeshAsCodeDart>('ExportMeshAsCode');
+
+
+//------------------------------------------------------------------------------------
+//                                   Materiaç
+//------------------------------------------------------------------------------------
+
+typedef _LoadMaterialsRay = Pointer<_Material> Function(Pointer<Utf8> fileName, Pointer<Int32> materialCount);
+typedef _LoadMaterialsDart = Pointer<_Material> Function(Pointer<Utf8> fileName, Pointer<Int32> materialCount);
+final _loadMaterials = _dylib.lookupFunction<_LoadMaterialsRay, _LoadMaterialsDart>('LoadMaterials');
+
+typedef _LoadMaterialDefaultRay = _Material Function();
+typedef _LoadMaterialDefaultDart = _Material Function();
+final _loadMaterialDefault = _dylib.lookupFunction<_LoadMaterialDefaultRay, _LoadMaterialDefaultDart>('LoadMaterialDefault');
+
+typedef _IsMaterialValidRay = Bool Function(_Material);
+typedef _IsMaterialValidDart = bool Function(_Material);
+final _isMaterialValid = _dylib.lookupFunction<_IsMaterialValidRay, _IsMaterialValidDart>('IsMaterialValid');
+
+typedef _UnloadMaterialRay = Void Function(_Material);
+typedef _UnloadMaterialDart = void Function(_Material);
+final _unloadMaterial = _dylib.lookupFunction<_UnloadMaterialRay, _UnloadMaterialDart>('UnloadMaterial');
+
+typedef _SetMaterialTextureRay = Void Function(Pointer<_Material>, Int32, _Texture2D);
+typedef _SetMaterialTextureDart = void Function(Pointer<_Material>, int, _Texture2D);
+final _setMaterialTexture = _dylib.lookupFunction<_SetMaterialTextureRay, _SetMaterialTextureDart>('SetMaterialTexture');
+
+typedef _SetModelMeshMaterialRay = Void Function(Pointer<Model>, Int32, Int32);
+typedef _SetModelMeshMaterialDart = void Function(Pointer<Model>, int, int);
+final _setModelMeshMaterial = _dylib.lookupFunction<_SetModelMeshMaterialRay, _SetModelMeshMaterialDart>('SetModelMeshMaterial');

@@ -442,7 +442,7 @@ class Vector3 implements Disposeable
     return result;
   }
 
-  Finalizer _finalizer = Finalizer<Pointer<_Vector3>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_Vector3>>((pointer) {
     malloc.free(pointer);
   });
 
@@ -1057,7 +1057,7 @@ class Vector4 implements Disposeable
            ((p.w - q.w).abs() <= (EPSILON * math.max(1.0, math.max(p.w.abs(), q.w.abs()))));
   }
 
-  Finalizer _finalizer = Finalizer<Pointer<_Vector4>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_Vector4>>((pointer) {
     malloc.free(pointer);
   });
   
@@ -2372,7 +2372,7 @@ class Matrix implements Disposeable
     }
   }
 
-  Finalizer _finalizer = Finalizer<Pointer<_Matrix>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_Matrix>>((pointer) {
     malloc.free(pointer);
   });
 
@@ -2553,6 +2553,15 @@ class Rectangle implements Disposeable
   }
 
   _Rectangle get ref => _memory!.pointer.ref;
+  double get width => _memory!.pointer.ref.width;
+  double get height => _memory!.pointer.ref.height;
+  double get x => _memory!.pointer.ref.x;
+  double get y => _memory!.pointer.ref.y;
+
+  set width(double value)  => _memory!.pointer.ref.width  = value.abs().roundToDouble();
+  set height(double value) => _memory!.pointer.ref.height = value.abs().roundToDouble();
+  set x(double value) => _memory!.pointer.ref.x = value.abs().roundToDouble();
+  set y(double value) => _memory!.pointer.ref.y = value.abs().roundToDouble();
 
   Rectangle([double x = 0.0, double y = 0.0, double width = 0.0, double height = 0.0])
   {
@@ -2640,7 +2649,7 @@ abstract class Window
   /// Restore window from being minimized/maximized
   static void Restore() => _restoreWindow();
   /// Set icon for window (single image, RGBA 32bit)
-  static void SetIcon(Image image) => _setWindowIcon(image.image);
+  static void SetIcon(Image image) => _setWindowIcon(image.ref);
   /// Set icon for window (multiple images, RGBA 32bit)
   static void SetIcons(List<Image> images)
   {
@@ -2648,7 +2657,7 @@ abstract class Window
       Pointer<_Image> ref = arena.allocate<_Image>(sizeOf<_Image>() * images.length);
 
       for(int x = 0; x < images.length; x++)
-        ref[x] = images[x].image;
+        ref[x] = images[x].ref;
 
       _setWindowIcons(ref, images.length);      
     });
@@ -2885,40 +2894,12 @@ class Image implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  int get width {
-    if (_memory == null || _memory!.isDisposed) return 0;
-
-    return _memory!.pointer.ref.width;
-  }
-
-  int get height {
-    if (_memory == null || _memory!.isDisposed) return 0;
-
-    return _memory!.pointer.ref.height;
-  }
-
-  int get format {
-    if (_memory == null || _memory!.isDisposed) return 0;
-
-    return _memory!.pointer.ref.format;
-  }
-
-  int get mipmaps {
-    if (_memory == null || _memory!.isDisposed) return 0;
-
-    return _memory!.pointer.ref.mipmaps;
-  }
-
-  _Image get image 
-  {
-    if (_memory == null) throw StateError("Null reference");
-    return _memory!.pointer.ref;
-  }
-
-  Pointer<Void> get data {
-    if (!IsValid()) return nullptr;
-    return _memory!.pointer.ref.data;
-  }
+  _Image get ref => _memory!.pointer.ref;
+  int get width => ref.width;
+  int get height => ref.height;
+  int get format => ref.format;
+  int get mipmaps => ref.mipmaps;
+  Pointer<Void> get data => ref.data;
 
   Image._Recieve(_Image image)
   {
@@ -3129,7 +3110,7 @@ class Texture2D implements Disposeable
     _setmemory(struct);
   }
 
-  _Texture2D get texture => _memory!.pointer.ref;
+  _Texture2D get ref => _memory!.pointer.ref;
 
   /// Load texture from file into GPU memory (VRAM)
   Texture2D(String fileName)
@@ -3163,16 +3144,14 @@ class Texture2D implements Disposeable
   void Update(Pointer<Void> pixels)
   {
     if (!isValid()) return;
-    _updateTexture(texture, pixels);
+    _updateTexture(ref, pixels);
   }
 
   void UpdateRect(Rectangle rect, Pointer<Void> pixels)
   {
     if (!isValid()) return;
-    _updateTextureRec(texture, rect.ref, pixels);
-  }
-
-  
+    _updateTextureRec(ref, rect.ref, pixels);
+  }  
 
   // Garbage collector setup
   static final Finalizer<Pointer<_Texture>> _finalizer = Finalizer((ptr)
@@ -3209,6 +3188,10 @@ class TextureCubemap extends Texture2D
     return TextureCubemap._internal(result);
   }
 }
+
+//------------------------------------------------------------------------------------
+//                                 RenderTexture2D
+//------------------------------------------------------------------------------------
 
 class RenderTexture2D implements Disposeable
 {
@@ -3267,6 +3250,133 @@ class RenderTexture2D implements Disposeable
 }
 
 //------------------------------------------------------------------------------------
+//                                 NPatchInfo
+//------------------------------------------------------------------------------------
+
+/// NPatchInfo, n-patch layout info
+class NPatchInfo implements Disposeable
+{
+  NativeResource<_NPatchInfo>? _memory;
+
+  // ignore: unused_element
+  void _setmemory(_NPatchInfo result)
+  {
+    if (_memory != null) dispose();
+    Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
+    pointer.ref = result;
+
+    this._memory = NativeResource<_NPatchInfo>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  _Rectangle get source => _memory!.pointer.ref.source;
+  int get bottom => _memory!.pointer.ref.bottom;
+  int get top    => _memory!.pointer.ref.top;
+  int get left   => _memory!.pointer.ref.left;
+  int get right  => _memory!.pointer.ref.right;
+  int get layout => _memory!.pointer.ref.layout;
+
+  set source(_Rectangle value) => _memory!.pointer.ref.source = value;
+  set bottom(int value) => _memory!.pointer.ref.bottom = (value > 0) ? value : 0;
+  set top(int value) => _memory!.pointer.ref.top = (value > 0) ? value : 0;
+  set left(int value) => _memory!.pointer.ref.left = (value > 0) ? value : 0;
+  set right(int value) => _memory!.pointer.ref.right = (value > 0) ? value : 0;
+  set layout(int value) => _memory!.pointer.ref.layout = (value > 0) ? value : 0;
+
+  void Set({ Rectangle? source, int? bottom, int? top, int? left, int? right, int? layout})
+  {
+    if (source != null) this.source = source.ref;
+    if (bottom != null) this.bottom = bottom;
+    if (top != null) this.top = top;
+    if (left != null) this.left = left;
+    if (right != null) this.right = right;
+    if (layout != null) this.layout = layout;
+  }
+
+  NPatchInfo({ required Rectangle source, required int bottom, required int top, required int left, required int right, required int layout })
+  {
+    Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
+    pointer.ref
+    ..source = source.ref
+    ..bottom = bottom
+    ..top    = top
+    ..left   = left
+    ..right  = right
+    ..layout = layout;
+
+    this._memory = NativeResource<_NPatchInfo>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_NPatchInfo>>((pointer) {
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                 GlyphInfo
+//------------------------------------------------------------------------------------
+
+class GlyphInfo implements Disposeable
+{
+  NativeResource<_GlyphInfo>? _memory;
+
+  // ignore: unused_element
+  void _setmemory(_GlyphInfo result)
+  {
+    Pointer<_GlyphInfo> pointer = malloc.allocate<_GlyphInfo>(sizeOf<_GlyphInfo>());
+    pointer.ref = result;
+
+    this._memory = NativeResource<_GlyphInfo>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  static final Finalizer _finalizer = Finalizer((pointer) {
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && _memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+/*
+  Font
+  Mesh
+  Shader
+  MaterialMap
+  Transform
+  BoneInfo
+  Model
+  ModelAnimation
+  Ray
+  RayCollision
+  BoundingBox
+  Wave
+  VrDeviceInfo
+  VrStereoConfig
+  FilePathList
+  AutomationEvent
+  AutomationEventList
+*/
+
+//------------------------------------------------------------------------------------
 //                                   Camera2D
 //------------------------------------------------------------------------------------
 
@@ -3313,16 +3423,37 @@ class Camera3D implements Disposeable
 {
   NativeResource<_Camera3D>? _memory;
 
-  // Camera3D({
-  //   required Vector3 offset,
-  //   required Vector3 target,
-  //   required double rotation,
-  //   required double zoom
-  // }) {
-  //   Pointer<_Camera3D> pointer = malloc.allocate<_Camera3D>(sizeOf<_Camera3D>());
-  //   pointer.ref
-  //   ..
-  // }
+  _Camera3D get ref => _memory!.pointer.ref;
+  _Vector3 get position => _memory!.pointer.ref.position;
+  _Vector3 get target => _memory!.pointer.ref.target;
+  _Vector3 get up => _memory!.pointer.ref.up;
+  double get fovy => _memory!.pointer.ref.fovy;
+  int get projection => _memory!.pointer.ref.projection;
+
+  set position(Vector3 value) => ref.position = value.ref;
+  set target(Vector3 value) => ref.target = value.ref;
+  set up(Vector3 value) => ref.up = value.ref;
+  set fovy(double value) => ref.fovy = (value > 0) ? value : 0.0;
+  set projection(int value) => ref.projection = value;
+
+  Camera3D({
+    required Vector3 pos,
+    required Vector3 target,
+    required Vector3 up,
+    required double fovy,
+    required int projection
+  }) {
+    Pointer<_Camera3D> pointer = malloc.allocate<_Camera3D>(sizeOf<_Camera3D>());
+    pointer.ref
+    ..position = pos.ref
+    ..target = target.ref
+    ..up = up.ref
+    ..fovy = fovy
+    ..projection = projection;
+
+    this._memory = NativeResource<_Camera3D>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_Camera3D>>((pointer) {
     malloc.free(pointer);
@@ -3336,6 +3467,188 @@ class Camera3D implements Disposeable
       _finalizer.detach(this);
       _memory!.dispose();
     }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   Mesh
+//------------------------------------------------------------------------------------
+
+class Mesh implements Disposeable
+{
+  NativeResource<_Mesh>? _memory;
+
+  void _setmemory(_Mesh result)
+  {
+    Pointer<_Mesh> pointer = malloc.allocate<_Mesh>(sizeOf<_Mesh>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  _Mesh get ref => _memory!.pointer.ref;
+  int get vertexCount => ref.vertexCount;
+  int get triangleCount => ref.triagleCoung;
+
+  // Vertex attributes data
+  Pointer<Float> get vertices => ref.vertices;
+  Pointer<Float> get texcoords => ref.texcoords;
+  Pointer<Float> get texcoords2 => ref.texcoords2;
+  Pointer<Float> get normals => ref.normals;
+  Pointer<Float> get tangents => ref.tangents;
+  Pointer<Uint8> get colors => ref.colors;
+  Pointer<Uint16> get indices => ref.indices;
+
+  // Animation vertex data
+  Pointer<Float> get animVertices => ref.animVertices;
+  Pointer<Float> get animNormals => ref.animNormals;
+  Pointer<Uint8> get boneIds => ref.boneIds;
+  Pointer<Float> get boneWeights => ref.boneWeights;
+  Pointer<_Matrix> get boneMatrices => ref.boneMatrices;
+  int get boneCount => ref.boneCount;
+
+  int get vaoID => ref.vaoID;
+  Pointer<Int32> get vboId => ref.vboId;
+
+  /// Upload mesh vertex data in GPU and provide VAO/VBO ids
+  static void Upload({required Mesh mesh, required bool dynamic}) => _uploadMesh(mesh._memory!.pointer, dynamic);
+
+  /// Unload mesh data from CPU and GPU
+  void Unload() => dispose();
+
+  /// Update mesh vertex data in GPU for a specific buffer index
+  static void UpdateBuffer({
+    required Mesh mesh, required int index,
+    required Pointer<Void> data, required int dataSize,
+    required int offset
+  }) {
+    _updateMeshBuffer(mesh.ref, index, data, dataSize, offset);
+  }
+
+  /// Draw a 3d mesh with material and transform
+  static void Draw(Mesh mesh, Material material, Matrix transform) => _drawMesh(mesh.ref, material.ref, transform.ref);
+
+  /// Draw multiple mesh instances with material and different transforms
+  static void DrawInstanced({ required Mesh mesh, required Material material, required List<Matrix> transforms})
+  {
+    using ((Arena arena)
+    {
+      Pointer<_Matrix> transformsArray = arena.allocate<_Matrix>(sizeOf<_Matrix>() * transforms.length);
+      for (int x = 0; x < transforms.length; x++)
+        (transformsArray + x).ref = transforms[x].ref;
+
+      _drawMeshInstanced(mesh.ref, material.ref, transformsArray, transforms.length);
+    });
+  }
+
+  //TODO: GetMeshBoundingBox
+
+  static final Finalizer _finalizer = Finalizer((pointer) {
+    _unloadMesh(pointer.ref);
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && !_memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _unloadMesh(_memory!.pointer.ref);
+      _memory!.dispose();      
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   Material
+//------------------------------------------------------------------------------------
+
+class Material implements Disposeable
+{
+  NativeResource<_Material>? _memory;
+  final int _length;
+  int get length => _length;
+
+  _Material get ref => _memory!.pointer.ref;
+
+  // ------------------------------Memory management------------------------------
+
+  // ignore: unused_element
+  void _setmemory(_Material result)
+  {
+    if (_memory != null) dispose();
+    Pointer<_Material> pointer = malloc.allocate<_Material>(sizeOf<_Material>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource(pointer);
+  }
+
+  Material._internal(Pointer<_Material> pointer,{ int length = 1, bool owner = true }) : _length = length
+  {
+    if (_memory != null) dispose();
+
+    _finalizer.attach(this, pointer, detach: this);
+    if (owner)
+      _memory = NativeResource(pointer, IsOwner: owner);
+  }
+
+  // --------------------------Constructors--------------------------------------
+
+  /// Load materials from model file
+  static Material LoadMaterials(String fileName)
+  {
+    return using ((Arena arena)
+    {
+      Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
+      Pointer<Int32> materialCount = arena.allocate<Int32>(sizeOf<Int32>());
+
+      Pointer<_Material> array = _loadMaterials(cfileName, materialCount);
+
+      return Material._internal(array, length: materialCount.value);
+    });
+  }
+
+  /// Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)
+  Material.Default() : _length = 1
+  {
+    _Material result = _loadMaterialDefault();
+    _setmemory(result);
+  }
+  // -----------------------------Utilities--------------------------------------
+
+  /// Check if a material is valid (shader assigned, map textures loaded in GPU)
+  bool IsValid() => _isMaterialValid(this.ref);
+
+  /// Unload material from GPU memory (VRAM)
+  void Unload() => dispose();
+
+  /// Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...)
+  void SetTexture({ required int mapType, required Texture2D texture })
+  {
+    _setMaterialTexture(_memory!.pointer, mapType, texture.ref);
+  }
+
+  // -----------------------------Overrides--------------------------------------
+
+  Material operator [](int index)
+  {
+    if (index < 0 || index >= _length) throw RangeError(index);
+    return Material._internal(_memory!.pointer + index, owner: false);
+  }
+
+  static Finalizer _finalizer = Finalizer<Pointer<_Material>>((pointer) {
+    _unloadMaterial(pointer.ref);
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    _finalizer.detach(this);
+    _unloadMaterial(_memory!.pointer.ref);
+    _memory!.dispose();
   }
 }
 
@@ -3364,30 +3677,52 @@ abstract class Draw
   static void Begin2D(Camera2D camera) => _beginMode2D(camera.camera);
   /// Ends 2D mode with custom camera
   static void End2D() => _endMode2D();
-  /// Update screen by calling `Begin2D()` `renderLogic()` and `End2D()` while also clearing the background
+  /// Update screen by calling `Begin2D()` `renderLogic()` and `End2D()` while also clearing the backgroundbackground
+  /// 
+  /// Use this on the main loop to work with Hot Reload
   static void RenderFrame2D({
     required void Function() renderLogic,
     required Camera2D camera,
-    required Color color
+    required Color background
   }) {
     Begin2D(camera);
-    ClearBackground(color);
+    ClearBackground(background);
     renderLogic();
     End2D();
+  }
+
+  /// Begin 3D mode with custom camera (3D)
+  static void Begin3D(Camera3D camera) => _beginMode3D(camera.ref);
+  /// Ends 3D mode and returns to default 2D orthographic mode
+  static void End3D() => _endMode3D();
+  /// Update screen by calling `Begin3D()` `renderLogic()` and `End3D()` while also clearing the background
+  /// 
+  /// Use this on the main loop to work with Hot Reload
+  static void RenderFrame3D({
+    required void Function() renderLogic,
+    required Camera3D camera,
+    required Color background
+  }) {
+    Begin3D(camera);
+    ClearBackground(background);
+    renderLogic();
+    End3D();
   }
 
   /// Begin drawing to render texture
   static void BeginTextureMode(RenderTexture2D render) => _beginTextureMode(render.ref);
   /// Ends drawing to render texture
   static void EndTextureMode() => _endTextureMode();
-  /// Update screen by calling `BeginTextureMode()` `renderLogic()` and `EndTextureMode()` while also clearing the background
-  static void RenderTextureFrame({
+  /// Update screen by calling `BeginTextureMode()` `renderLogic()` and `EndTextureMode()` while also clearing the backgroundbackground
+  /// 
+  /// Use this on the main loop to work with Hot Reload
+  static void RenderOnTexture({
     required void Function() renderLogic,
     required RenderTexture2D render,
-    required Color color
+    required Color background
   }) {
     BeginTextureMode(render);
-    ClearBackground(color);
+    ClearBackground(background);
     renderLogic();
     EndTextureMode();
   }
