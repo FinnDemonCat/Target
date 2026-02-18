@@ -296,7 +296,7 @@ final class RayCollision extends Struct
 }
 
 // BoundingBox
-final class BoundingBox extends Struct
+final class _BoundingBox extends Struct
 {
   external _Vector3 min;                // Minimum vertex box-corner
   external _Vector3 max;                // Maximum vertex box-corner
@@ -1047,6 +1047,21 @@ typedef _DisableEventWaitingRay = Void Function();
 typedef _DisableEventWaitingDart = void Function();
 final _disableEventWaiting = _dylib.lookupFunction<_DisableEventWaitingRay, _DisableEventWaitingDart>('DisableEventWaiting');
 
+typedef _TakeScreenshotRay = Void Function(Pointer<Utf8>);
+typedef _TakeScreenshotDart = void Function(Pointer<Utf8>);
+final _takeScreenshot = _dylib.lookupFunction<_TakeScreenshotRay, _TakeScreenshotDart>('TakeScreenshot');
+
+typedef _SetConfigFlagsRay = Void Function(Uint32);
+typedef _SetConfigFlagsDart = void Function(int);
+final _setConfigFlags = _dylib.lookupFunction<_SetConfigFlagsRay, _SetConfigFlagsDart>('SetConfigFlags');
+
+//TODO: Open URL
+/*
+typedef _OpenURLRay = Void Function(Pointer<Utf8>);
+typedef _OpenURLDart = void Function(Pointer<Utf8>);
+final _openURL = _dylib.lookupFunction<_OpenURLRay, _OpenURLDart>('OpenURL');
+*/
+
 //------------------------------------------------------------------------------------
 //                                   Cursor
 //------------------------------------------------------------------------------------
@@ -1074,6 +1089,215 @@ final _disableCursor = _dylib.lookupFunction<_DisableCursorRay, _DisableCursorDa
 typedef _IsCursorOnScreenRay = Bool Function();
 typedef _IsCursorOnScreenDart = bool Function();
 final _isCursorOnScreen = _dylib.lookupFunction<_IsCursorOnScreenRay, _IsCursorOnScreenDart>('IsCursorOnScreen');
+
+//------------------------------------------------------------------------------------
+//                                   Keyboard
+//------------------------------------------------------------------------------------
+
+typedef _IsKeyPressedRay = Bool Function(Int32);
+typedef _IsKeyPressedDart = bool Function(int);
+final _isKeyPressed = _dylib.lookupFunction<_IsKeyPressedRay, _IsKeyPressedDart>('IsKeyPressed');
+
+typedef _IsKeyPressedRepeatRay = Bool Function(Int32);
+typedef _IsKeyPressedRepeatDart = bool Function(int);
+final _isKeyPressedRepeat = _dylib.lookupFunction<_IsKeyPressedRepeatRay, _IsKeyPressedRepeatDart>('IsKeyPressedRepeat');
+
+typedef _IsKeyDownRay = Bool Function(Int32);
+typedef _IsKeyDownDart = bool Function(int);
+final _isKeyDown = _dylib.lookupFunction<_IsKeyDownRay, _IsKeyDownDart>('IsKeyDown');
+
+typedef _IsKeyReleasedRay = Bool Function(Int32);
+typedef _IsKeyReleasedDart = bool Function(int);
+final _isKeyReleased = _dylib.lookupFunction<_IsKeyReleasedRay, _IsKeyReleasedDart>('IsKeyReleased');
+
+typedef _IsKeyUpRay = Bool Function(Int32);
+typedef _IsKeyUpDart = bool Function(int);
+final _isKeyUp = _dylib.lookupFunction<_IsKeyUpRay, _IsKeyUpDart>('IsKeyUp');
+
+typedef _GetKeyPressedRay = Int32 Function();
+typedef _GetKeyPressedDart = int Function();
+final _getKeyPressed = _dylib.lookupFunction<_GetKeyPressedRay, _GetKeyPressedDart>('GetKeyPressed');
+
+typedef _GetCharPressedRay = Int32 Function();
+typedef _GetCharPressedDart = int Function();
+final _getCharPressed = _dylib.lookupFunction<_GetCharPressedRay, _GetCharPressedDart>('GetCharPressed');
+
+typedef _GetKeyNameRay = Pointer<Utf8> Function(); 
+typedef _GetKeyNameDart = Pointer<Utf8> Function();
+final _getKeyName = _dylib.lookupFunction<_GetKeyNameRay, _GetKeyNameDart>('GetKeyName');
+
+typedef _SetExitKeyRay = Void Function(Int32);
+typedef _SetExitKeyDart = void Function(int);
+final _setExitKey = _dylib.lookupFunction<_SetExitKeyRay, _SetExitKeyDart>('SetExitKey');
+
+//------------------------------------------------------------------------------------
+//                                   Mouse
+//------------------------------------------------------------------------------------
+
+typedef _IsMouseButtonPressedRay = Bool Function(Int32);
+typedef _IsMouseButtonPressedDart = bool Function(int);
+final _isMouseButtonPressed = _dylib.lookupFunction<_IsMouseButtonPressedRay, _IsMouseButtonPressedDart>('IsMouseButtonPressed');
+
+typedef _IsMouseButtonDownRay = Bool Function(Int32);
+typedef _IsMouseButtonDownDart = bool Function(int);
+final _isMouseButtonDown = _dylib.lookupFunction<_IsMouseButtonDownRay, _IsMouseButtonDownDart>('IsMouseButtonDown');
+
+typedef _IsMouseButtonReleasedRay = Bool Function(Int32);
+typedef _IsMouseButtonReleasedDart = bool Function(int);
+final _isMouseButtonReleased = _dylib.lookupFunction<_IsMouseButtonReleasedRay, _IsMouseButtonReleasedDart>('IsMouseButtonReleased');
+
+typedef _IsMouseButtonUpRay = Bool Function(Int32);
+typedef _IsMouseButtonUpDart = bool Function(int);
+final _isMouseButtonUp = _dylib.lookupFunction<_IsMouseButtonUpRay, _IsMouseButtonUpDart>('IsMouseButtonUp');
+
+typedef _GetMouseXRay = Int32 Function();
+typedef _GetMouseXDart = int Function();
+final _getMouseX = _dylib.lookupFunction<_GetMouseXRay, _GetMouseXDart>('GetMouseX');
+
+typedef _GetMouseYRay = Int32 Function();
+typedef _GetMouseYDart = int Function();
+final _getMouseY = _dylib.lookupFunction<_GetMouseYRay, _GetMouseYDart>('GetMouseY');
+
+typedef _GetMousePositionRay = _Vector2 Function();
+typedef _GetMousePositionDart = _Vector2 Function();
+final _getMousePosition = _dylib.lookupFunction<_GetMousePositionRay, _GetMousePositionDart>('GetMousePosition');
+
+typedef _GetMouseDeltaRay = _Vector2 Function();
+typedef _GetMouseDeltaDart = _Vector2 Function();
+final _getMouseDelta = _dylib.lookupFunction<_GetMouseDeltaRay, _GetMouseDeltaDart>('GetMouseDelta');
+
+typedef _SetMousePositionRay = Void Function(Int32, Int32);
+typedef _SetMousePositionDart = void Function(int, int);
+final _setMousePosition = _dylib.lookupFunction<_SetMousePositionRay, _SetMousePositionDart>('SetMousePosition');
+
+typedef _SetMouseOffsetRay = Void Function(Int32, Int32);
+typedef _SetMouseOffsetDart = void Function(int, int);
+final _setMouseOffset = _dylib.lookupFunction<_SetMouseOffsetRay, _SetMouseOffsetDart>('SetMouseOffset');
+
+typedef _SetMouseScaleRay = Void Function(Float, Float);
+typedef _SetMouseScaleDart = void Function(double, double);
+final _setMouseScale = _dylib.lookupFunction<_SetMouseScaleRay, _SetMouseScaleDart>('SetMouseScale');
+
+typedef _GetMouseWheelMoveRay = Float Function();
+typedef _GetMouseWheelMoveDart = double Function();
+final _getMouseWheelMove = _dylib.lookupFunction<_GetMouseWheelMoveRay, _GetMouseWheelMoveDart>('GetMouseWheelMove');
+
+typedef _GetMouseWheelMoveVRay = _Vector2 Function();
+typedef _GetMouseWheelMoveVDart = _Vector2 Function();
+final _getMouseWheelMoveV = _dylib.lookupFunction<_GetMouseWheelMoveVRay, _GetMouseWheelMoveVDart>('GetMouseWheelMoveV');
+
+typedef _SetMouseCursorRay = Void Function(Int32);
+typedef _SetMouseCursorDart = void Function(int);
+final _setMouseCursor = _dylib.lookupFunction<_SetMouseCursorRay, _SetMouseCursorDart>('SetMouseCursor');
+
+//------------------------------------------------------------------------------------
+//                                   Touch
+//------------------------------------------------------------------------------------
+
+typedef _GetTouchXRay = Int32 Function();
+typedef _GetTouchXDart = int Function();
+final _getTouchX = _dylib.lookupFunction<_GetTouchXRay, _GetTouchXDart>('GetTouchX');
+
+typedef _GetTouchYRay = Int32 Function();
+typedef _GetTouchYDart = int Function();
+final _getTouchY = _dylib.lookupFunction<_GetTouchYRay, _GetTouchYDart>('GetTouchY');
+
+typedef _GetTouchPositionRay = _Vector2 Function(Int32);
+typedef _GetTouchPositionDart = _Vector2 Function(int);
+final _getTouchPosition = _dylib.lookupFunction<_GetTouchPositionRay, _GetTouchPositionDart>('GetTouchPosition');
+
+typedef _GetTouchPointIdRay = Int32 Function(Int32);
+typedef _GetTouchPointIdDart = int Function(int);
+final _getTouchPointId = _dylib.lookupFunction<_GetTouchPointIdRay, _GetTouchPointIdDart>('GetTouchPointId');
+
+typedef _GetTouchPointCountRay = Int32 Function();
+typedef _GetTouchPointCountDart = int Function();
+final _getTouchPointCount = _dylib.lookupFunction<_GetTouchPointCountRay, _GetTouchPointCountDart>('GetTouchPointCount');
+
+//------------------------------------------------------------------------------------
+//                                   Gesture
+//------------------------------------------------------------------------------------
+
+typedef _SetGesturesEnabledRay = Void Function(Uint32);
+typedef _SetGesturesEnabledDart = void Function(int);
+final _setGesturesEnabled = _dylib.lookupFunction<_SetGesturesEnabledRay, _SetGesturesEnabledDart>('SetGesturesEnabled');
+
+typedef _IsGestureDetectedRay = Bool Function(Uint32);
+typedef _IsGestureDetectedDart = bool Function(int);
+final _isGestureDetected = _dylib.lookupFunction<_IsGestureDetectedRay, _IsGestureDetectedDart>('IsGestureDetected');
+
+typedef _GetGestureDetectedRay = Int32 Function();
+typedef _GetGestureDetectedDart = int Function();
+final _getGestureDetected = _dylib.lookupFunction<_GetGestureDetectedRay, _GetGestureDetectedDart>('GetGestureDetected');
+
+typedef _GetGestureHoldDurationRay = Float Function();
+typedef _GetGestureHoldDurationDart = double Function();
+final _getGestureHoldDuration = _dylib.lookupFunction<_GetGestureHoldDurationRay, _GetGestureHoldDurationDart>('GetGestureHoldDuration');
+
+typedef _GetGestureDragVectorRay = _Vector2 Function();
+typedef _GetGestureDragVectorDart = _Vector2 Function();
+final _getGestureDragVector = _dylib.lookupFunction<_GetGestureDragVectorRay, _GetGestureDragVectorDart>('GetGestureDragVector');
+
+typedef _GetGestureDragAngleRay = Float Function();
+typedef _GetGestureDragAngleDart = double Function();
+final _getGestureDragAngle = _dylib.lookupFunction<_GetGestureDragAngleRay, _GetGestureDragAngleDart>('GetGestureDragAngle');
+
+typedef _GetGesturePinchVectorRay = _Vector2 Function();
+typedef _GetGesturePinchVectorDart = _Vector2 Function();
+final _getGesturePinchVector = _dylib.lookupFunction<_GetGesturePinchVectorRay, _GetGesturePinchVectorDart>('GetGesturePinchVector');
+
+typedef _GetGesturePinchAngleRay = Float Function();
+typedef _GetGesturePinchAngleDart = double Function();
+final _getGesturePinchAngle = _dylib.lookupFunction<_GetGesturePinchAngleRay, _GetGesturePinchAngleDart>('GetGesturePinchAngle');
+
+//------------------------------------------------------------------------------------
+//                                   Gamepad
+//------------------------------------------------------------------------------------
+
+typedef _IsGamepadAvailableRay = Bool Function(Int32);
+typedef _IsGamepadAvailableDart = bool Function(int);
+final _isGamepadAvailable = _dylib.lookupFunction<_IsGamepadAvailableRay, _IsGamepadAvailableDart>('IsGamepadAvailable');
+
+typedef _GetGamepadNameRay = Pointer<Utf8> Function(Int32);
+typedef _GetGamepadNameDart = Pointer<Utf8> Function(int);
+final _getGamepadName = _dylib.lookupFunction<_GetGamepadNameRay, _GetGamepadNameDart>('GetGamepadName');
+
+typedef _IsGamepadButtonPressedRay = Bool Function(Int32, Int32);
+typedef _IsGamepadButtonPressedDart = bool Function(int, int);
+final _isGamepadButtonPressed = _dylib.lookupFunction<_IsGamepadButtonPressedRay, _IsGamepadButtonPressedDart>('IsGamepadButtonPressed');
+
+typedef _IsGamepadButtonDownRay = Bool Function(Int32, Int32);
+typedef _IsGamepadButtonDownDart = bool Function(int, int);
+final _isGamepadButtonDown = _dylib.lookupFunction<_IsGamepadButtonDownRay, _IsGamepadButtonDownDart>('IsGamepadButtonDown');
+
+typedef _IsGamepadButtonReleasedRay = Bool Function(Int32, Int32);
+typedef _IsGamepadButtonReleasedDart = bool Function(int, int);
+final _isGamepadButtonReleased = _dylib.lookupFunction<_IsGamepadButtonReleasedRay, _IsGamepadButtonReleasedDart>('IsGamepadButtonReleased');
+
+typedef _IsGamepadButtonUpRay = Bool Function(Int32, Int32);
+typedef _IsGamepadButtonUpDart = bool Function(int, int);
+final _isGamepadButtonUp = _dylib.lookupFunction<_IsGamepadButtonUpRay, _IsGamepadButtonUpDart>('IsGamepadButtonUp');
+
+typedef _GetGamepadButtonPressedRay = Int32 Function();
+typedef _GetGamepadButtonPressedDart = int Function();
+final _getGamepadButtonPressed = _dylib.lookupFunction<_GetGamepadButtonPressedRay, _GetGamepadButtonPressedDart>('GetGamepadButtonPressed');
+
+typedef _GetGamepadAxisCountRay = Int32 Function(Int32);
+typedef _GetGamepadAxisCountDart = int Function(int);
+final _getGamepadAxisCount = _dylib.lookupFunction<_GetGamepadAxisCountRay, _GetGamepadAxisCountDart>('GetGamepadAxisCount');
+
+typedef _GetGamepadAxisMovementRay = Float Function(Int32, Int32);
+typedef _GetGamepadAxisMovementDart = double Function(int, int);
+final _getGamepadAxisMovement = _dylib.lookupFunction<_GetGamepadAxisMovementRay, _GetGamepadAxisMovementDart>('GetGamepadAxisMovement');
+
+typedef _SetGamepadMappingsRay = Int32 Function(Pointer<Utf8>);
+typedef _SetGamepadMappingsDart = int Function(Pointer<Utf8>);
+final _setGamepadMappings = _dylib.lookupFunction<_SetGamepadMappingsRay, _SetGamepadMappingsDart>('SetGamepadMappings');
+
+typedef _SetGamepadVibrationRay = Void Function(Int32, Float, Float, Float);
+typedef _SetGamepadVibrationDart = void Function(int, double, double, double);
+final _setGamepadVibration = _dylib.lookupFunction<_SetGamepadVibrationRay, _SetGamepadVibrationDart>('SetGamepadVibration');
+
 
 //------------------------------------------------------------------------------------
 //                                   Frame
@@ -1227,6 +1451,32 @@ typedef _EndTextureModeRay = Void Function();
 typedef _EndTextureModeDart = void Function();
 final _endTextureMode = _dylib.lookupFunction<_EndTextureModeRay, _EndTextureModeDart>('EndTextureMode');
 
+typedef _DrawTextureRay = Void Function(_Texture2D, Int32, Int32, _Color);
+typedef _DrawTextureDart = void Function(_Texture2D, int, int, _Color);
+final _drawTexture = _dylib.lookupFunction<_DrawTextureRay, _DrawTextureDart>('DrawTexture');
+
+typedef _DrawTextureVRay = Void Function(_Texture2D, _Vector2, _Color);
+typedef _DrawTextureVDart = void Function(_Texture2D, _Vector2, _Color);
+final _drawTextureV = _dylib.lookupFunction<_DrawTextureVRay, _DrawTextureVDart>('DrawTextureV');
+
+typedef _DrawTextureExRay = Void Function(_Texture2D, _Vector2, Float, Float, _Color);
+typedef _DrawTextureExDart = void Function(_Texture2D, _Vector2, double, double, _Color);
+final _drawTextureEx = _dylib.lookupFunction<_DrawTextureExRay, _DrawTextureExDart>('DrawTextureEx');
+
+typedef _DrawTextureRecRay = Void Function(_Texture2D, _Rectangle, _Vector2, _Color);
+typedef _DrawTextureRecDart = void Function(_Texture2D, _Rectangle, _Vector2, _Color);
+final _drawTextureRec = _dylib.lookupFunction<_DrawTextureRecRay, _DrawTextureRecDart>('DrawTextureRec');
+
+typedef _DrawTextureProRay = Void Function(_Texture2D, _Rectangle, _Rectangle, _Vector2, Float, _Color);
+typedef _DrawTextureProDart = void Function(_Texture2D, _Rectangle, _Rectangle, _Vector2, double, _Color);
+final _drawTexturePro = _dylib.lookupFunction<_DrawTextureProRay, _DrawTextureProDart>('DrawTexturePro');
+
+typedef _DrawTextureNPatchRay = Void Function(_Texture2D, _NPatchInfo, _Rectangle, _Vector2, Float, _Color);
+typedef _DrawTextureNPatchDart = void Function(_Texture2D, _NPatchInfo, _Rectangle, _Vector2, double, _Color);
+final _drawTextureNPatch = _dylib.lookupFunction<_DrawTextureNPatchRay, _DrawTextureNPatchDart>('DrawTextureNPatch');
+
+//TODO: Implement Shader Shadow Class
+
 // typedef _BeginShaderModeRay = Void Function(Shader);
 // typedef _BeginShaderModeDart = void Function(Shader);
 // final _beginShaderMode = _dylib.lookupFunction<_BeginShaderModeRay, _BeginShaderModeDart>('BeginShaderMode');
@@ -1287,8 +1537,8 @@ typedef _DrawMeshInstancedRay = Void Function(_Mesh, _Material, Pointer<_Matrix>
 typedef _DrawMeshInstancedDart = void Function(_Mesh, _Material, Pointer<_Matrix>, int);
 final _drawMeshInstanced = _dylib.lookupFunction<_DrawMeshInstancedRay, _DrawMeshInstancedDart>('DrawMeshInstanced');
 
-typedef _GetMeshBoundingBoxRay = BoundingBox Function(_Mesh);
-typedef _GetMeshBoundingBoxDart = BoundingBox Function(_Mesh);
+typedef _GetMeshBoundingBoxRay = _BoundingBox Function(_Mesh);
+typedef _GetMeshBoundingBoxDart = _BoundingBox Function(_Mesh);
 final _getMeshBoundingBox = _dylib.lookupFunction<_GetMeshBoundingBoxRay, _GetMeshBoundingBoxDart>('GetMeshBoundingBox');
 
 typedef _GenMeshTangentsRay = Void Function(Pointer<_Mesh>);
@@ -1303,9 +1553,53 @@ typedef _ExportMeshAsCodeRay = Bool Function(_Mesh, Pointer<Utf8>);
 typedef _ExportMeshAsCodeDart = bool Function(_Mesh, Pointer<Utf8>);
 final _exportMeshAsCode = _dylib.lookupFunction<_ExportMeshAsCodeRay, _ExportMeshAsCodeDart>('ExportMeshAsCode');
 
+typedef _GenMeshPolyRay = _Mesh Function(Int32, Float);
+typedef _GenMeshPolyDart = _Mesh Function(int, double);
+final _genMeshPoly = _dylib.lookupFunction<_GenMeshPolyRay, _GenMeshPolyDart>('GenMeshPoly');
+
+typedef _GenMeshPlaneRay = _Mesh Function(Float, Float, Int32, Int32);
+typedef _GenMeshPlaneDart = _Mesh Function(double, double, int, int);
+final _genMeshPlane = _dylib.lookupFunction<_GenMeshPlaneRay, _GenMeshPlaneDart>('GenMeshPlane');
+
+typedef _GenMeshCubeRay = _Mesh Function(Float, Float, Float);
+typedef _GenMeshCubeDart = _Mesh Function(double, double, double);
+final _genMeshCube = _dylib.lookupFunction<_GenMeshCubeRay, _GenMeshCubeDart>('GenMeshCube');
+
+typedef _GenMeshSphereRay = _Mesh Function(Float, Int32, Int32);
+typedef _GenMeshSphereDart = _Mesh Function(double, int, int);
+final _genMeshSphere = _dylib.lookupFunction<_GenMeshSphereRay, _GenMeshSphereDart>('GenMeshSphere');
+
+typedef _GenMeshHemiSphereRay = _Mesh Function(Float, Int32, Int32);
+typedef _GenMeshHemiSphereDart = _Mesh Function(double, int, int);
+final _genMeshHemiSphere = _dylib.lookupFunction<_GenMeshHemiSphereRay, _GenMeshHemiSphereDart>('GenMeshHemiSphere');
+
+typedef _GenMeshCylinderRay = _Mesh Function(Float, Float, Int32);
+typedef _GenMeshCylinderDart = _Mesh Function(double, double, int);
+final _genMeshCylinder = _dylib.lookupFunction<_GenMeshCylinderRay, _GenMeshCylinderDart>('GenMeshCylinder');
+
+typedef _GenMeshConeRay = _Mesh Function(Float, Float, Int32);
+typedef _GenMeshConeDart = _Mesh Function(double, double, int);
+final _genMeshCone = _dylib.lookupFunction<_GenMeshConeRay, _GenMeshConeDart>('GenMeshCone');
+
+typedef _GenMeshTorusRay = _Mesh Function(Float, Float, Int32, Int32);
+typedef _GenMeshTorusDart = _Mesh Function(double, double, int, int);
+final _genMeshTorus = _dylib.lookupFunction<_GenMeshTorusRay, _GenMeshTorusDart>('GenMeshTorus');
+
+typedef _GenMeshKnotRay = _Mesh Function(Float, Float, Int32, Int32);
+typedef _GenMeshKnotDart = _Mesh Function(double, double, int, int);
+final _genMeshKnot = _dylib.lookupFunction<_GenMeshKnotRay, _GenMeshKnotDart>('GenMeshKnot');
+
+typedef _GenMeshHeightmapRay = _Mesh Function(_Image, _Vector3);
+typedef _GenMeshHeightmapDart = _Mesh Function(_Image, _Vector3);
+final _genMeshHeightmap = _dylib.lookupFunction<_GenMeshHeightmapRay, _GenMeshHeightmapDart>('GenMeshHeightmap');
+
+typedef _GenMeshCubicmapRay = _Mesh Function(_Image, _Vector3);
+typedef _GenMeshCubicmapDart = _Mesh Function(_Image, _Vector3);
+final _genMeshCubicmap = _dylib.lookupFunction<_GenMeshCubicmapRay, _GenMeshCubicmapDart>('GenMeshCubicmap');
+
 
 //------------------------------------------------------------------------------------
-//                                   Materiaç
+//                                   Material
 //------------------------------------------------------------------------------------
 
 typedef _LoadMaterialsRay = Pointer<_Material> Function(Pointer<Utf8> fileName, Pointer<Int32> materialCount);
@@ -1328,6 +1622,9 @@ typedef _SetMaterialTextureRay = Void Function(Pointer<_Material>, Int32, _Textu
 typedef _SetMaterialTextureDart = void Function(Pointer<_Material>, int, _Texture2D);
 final _setMaterialTexture = _dylib.lookupFunction<_SetMaterialTextureRay, _SetMaterialTextureDart>('SetMaterialTexture');
 
-typedef _SetModelMeshMaterialRay = Void Function(Pointer<Model>, Int32, Int32);
-typedef _SetModelMeshMaterialDart = void Function(Pointer<Model>, int, int);
-final _setModelMeshMaterial = _dylib.lookupFunction<_SetModelMeshMaterialRay, _SetModelMeshMaterialDart>('SetModelMeshMaterial');
+//TODO: implement Model Shadow Class
+
+// typedef _SetModelMeshMaterialRay = Void Function(Pointer<Model>, Int32, Int32);
+// typedef _SetModelMeshMaterialDart = void Function(Pointer<Model>, int, int);
+// final _setModelMeshMaterial = _dylib.lookupFunction<_SetModelMeshMaterialRay, _SetModelMeshMaterialDart>('SetModelMeshMaterial');
+

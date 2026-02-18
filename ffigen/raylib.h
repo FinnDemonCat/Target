@@ -1073,10 +1073,10 @@ RLAPI Matrix GetCameraMatrix(Camera camera);                            // Get c
 RLAPI Matrix GetCameraMatrix2D(Camera2D camera);                        // Get camera 2d transform matrix
 
 // Timing-related functions
-RLAPI void SetTargetFPS(int fps);                       // Set target FPS (maximum)
-RLAPI float GetFrameTime(void);                         // Get time in seconds for last frame drawn (delta time)
-RLAPI double GetTime(void);                             // Get elapsed time in seconds since InitWindow()
-RLAPI int GetFPS(void);                                 // Get current FPS
+// RLAPI void SetTargetFPS(int fps);                       // Set target FPS (maximum)
+// RLAPI float GetFrameTime(void);                         // Get time in seconds for last frame drawn (delta time)
+// RLAPI double GetTime(void);                             // Get elapsed time in seconds since InitWindow()
+// RLAPI int GetFPS(void);                                 // Get current FPS
 
 // Custom frame control functions
 // NOTE: Those functions are intended for advanced users that want full control over the frame processing
@@ -1093,8 +1093,8 @@ RLAPI int *LoadRandomSequence(unsigned int count, int min, int max); // Load ran
 RLAPI void UnloadRandomSequence(int *sequence);         // Unload random values sequence
 
 // Misc. functions
-RLAPI void TakeScreenshot(const char *fileName);                // Takes a screenshot of current screen (filename extension defines format)
-RLAPI void SetConfigFlags(unsigned int flags);                  // Setup init configuration flags (view FLAGS)
+// RLAPI void TakeScreenshot(const char *fileName);                // Takes a screenshot of current screen (filename extension defines format)
+// RLAPI void SetConfigFlags(unsigned int flags);                  // Setup init configuration flags (view FLAGS)
 RLAPI void OpenURL(const char *url);                            // Open URL with default system browser (if available)
 
 // Logging system
@@ -1179,63 +1179,63 @@ RLAPI void PlayAutomationEvent(AutomationEvent event);            // Play a reco
 //------------------------------------------------------------------------------------
 
 // Input-related functions: keyboard
-RLAPI bool IsKeyPressed(int key);                             // Check if a key has been pressed once
-RLAPI bool IsKeyPressedRepeat(int key);                       // Check if a key has been pressed again
-RLAPI bool IsKeyDown(int key);                                // Check if a key is being pressed
-RLAPI bool IsKeyReleased(int key);                            // Check if a key has been released once
-RLAPI bool IsKeyUp(int key);                                  // Check if a key is NOT being pressed
-RLAPI int GetKeyPressed(void);                                // Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty
-RLAPI int GetCharPressed(void);                               // Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty
-RLAPI const char *GetKeyName(int key);                        // Get name of a QWERTY key on the current keyboard layout (eg returns string 'q' for KEY_A on an AZERTY keyboard)
-RLAPI void SetExitKey(int key);                               // Set a custom key to exit program (default is ESC)
+// RLAPI bool IsKeyPressed(int key);                             // Check if a key has been pressed once
+// RLAPI bool IsKeyPressedRepeat(int key);                       // Check if a key has been pressed again
+// RLAPI bool IsKeyDown(int key);                                // Check if a key is being pressed
+// RLAPI bool IsKeyReleased(int key);                            // Check if a key has been released once
+// RLAPI bool IsKeyUp(int key);                                  // Check if a key is NOT being pressed
+// RLAPI int GetKeyPressed(void);                                // Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty
+// RLAPI int GetCharPressed(void);                               // Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty
+// RLAPI const char *GetKeyName(int key);                        // Get name of a QWERTY key on the current keyboard layout (eg returns string 'q' for KEY_A on an AZERTY keyboard)
+// RLAPI void SetExitKey(int key);                               // Set a custom key to exit program (default is ESC)
 
 // Input-related functions: gamepads
-RLAPI bool IsGamepadAvailable(int gamepad);                   // Check if a gamepad is available
-RLAPI const char *GetGamepadName(int gamepad);                // Get gamepad internal name id
-RLAPI bool IsGamepadButtonPressed(int gamepad, int button);   // Check if a gamepad button has been pressed once
-RLAPI bool IsGamepadButtonDown(int gamepad, int button);      // Check if a gamepad button is being pressed
-RLAPI bool IsGamepadButtonReleased(int gamepad, int button);  // Check if a gamepad button has been released once
-RLAPI bool IsGamepadButtonUp(int gamepad, int button);        // Check if a gamepad button is NOT being pressed
-RLAPI int GetGamepadButtonPressed(void);                      // Get the last gamepad button pressed
-RLAPI int GetGamepadAxisCount(int gamepad);                   // Get axis count for a gamepad
-RLAPI float GetGamepadAxisMovement(int gamepad, int axis);    // Get movement value for a gamepad axis
-RLAPI int SetGamepadMappings(const char *mappings);           // Set internal gamepad mappings (SDL_GameControllerDB)
-RLAPI void SetGamepadVibration(int gamepad, float leftMotor, float rightMotor, float duration); // Set gamepad vibration for both motors (duration in seconds)
+// RLAPI bool IsGamepadAvailable(int gamepad);                   // Check if a gamepad is available
+// RLAPI const char *GetGamepadName(int gamepad);                // Get gamepad internal name id
+// RLAPI bool IsGamepadButtonPressed(int gamepad, int button);   // Check if a gamepad button has been pressed once
+// RLAPI bool IsGamepadButtonDown(int gamepad, int button);      // Check if a gamepad button is being pressed
+// RLAPI bool IsGamepadButtonReleased(int gamepad, int button);  // Check if a gamepad button has been released once
+// RLAPI bool IsGamepadButtonUp(int gamepad, int button);        // Check if a gamepad button is NOT being pressed
+// RLAPI int GetGamepadButtonPressed(void);                      // Get the last gamepad button pressed
+// RLAPI int GetGamepadAxisCount(int gamepad);                   // Get axis count for a gamepad
+// RLAPI float GetGamepadAxisMovement(int gamepad, int axis);    // Get movement value for a gamepad axis
+// RLAPI int SetGamepadMappings(const char *mappings);           // Set internal gamepad mappings (SDL_GameControllerDB)
+// RLAPI void SetGamepadVibration(int gamepad, float leftMotor, float rightMotor, float duration); // Set gamepad vibration for both motors (duration in seconds)
 
 // Input-related functions: mouse
-RLAPI bool IsMouseButtonPressed(int button);                  // Check if a mouse button has been pressed once
-RLAPI bool IsMouseButtonDown(int button);                     // Check if a mouse button is being pressed
-RLAPI bool IsMouseButtonReleased(int button);                 // Check if a mouse button has been released once
-RLAPI bool IsMouseButtonUp(int button);                       // Check if a mouse button is NOT being pressed
-RLAPI int GetMouseX(void);                                    // Get mouse position X
-RLAPI int GetMouseY(void);                                    // Get mouse position Y
-RLAPI Vector2 GetMousePosition(void);                         // Get mouse position XY
-RLAPI Vector2 GetMouseDelta(void);                            // Get mouse delta between frames
-RLAPI void SetMousePosition(int x, int y);                    // Set mouse position XY
-RLAPI void SetMouseOffset(int offsetX, int offsetY);          // Set mouse offset
-RLAPI void SetMouseScale(float scaleX, float scaleY);         // Set mouse scaling
-RLAPI float GetMouseWheelMove(void);                          // Get mouse wheel movement for X or Y, whichever is larger
-RLAPI Vector2 GetMouseWheelMoveV(void);                       // Get mouse wheel movement for both X and Y
-RLAPI void SetMouseCursor(int cursor);                        // Set mouse cursor
+// RLAPI bool IsMouseButtonPressed(int button);                  // Check if a mouse button has been pressed once
+// RLAPI bool IsMouseButtonDown(int button);                     // Check if a mouse button is being pressed
+// RLAPI bool IsMouseButtonReleased(int button);                 // Check if a mouse button has been released once
+// RLAPI bool IsMouseButtonUp(int button);                       // Check if a mouse button is NOT being pressed
+// RLAPI int GetMouseX(void);                                    // Get mouse position X
+// RLAPI int GetMouseY(void);                                    // Get mouse position Y
+// RLAPI Vector2 GetMousePosition(void);                         // Get mouse position XY
+// RLAPI Vector2 GetMouseDelta(void);                            // Get mouse delta between frames
+// RLAPI void SetMousePosition(int x, int y);                    // Set mouse position XY
+// RLAPI void SetMouseOffset(int offsetX, int offsetY);          // Set mouse offset
+// RLAPI void SetMouseScale(float scaleX, float scaleY);         // Set mouse scaling
+// RLAPI float GetMouseWheelMove(void);                          // Get mouse wheel movement for X or Y, whichever is larger
+// RLAPI Vector2 GetMouseWheelMoveV(void);                       // Get mouse wheel movement for both X and Y
+// RLAPI void SetMouseCursor(int cursor);                        // Set mouse cursor
 
 // Input-related functions: touch
-RLAPI int GetTouchX(void);                                    // Get touch position X for touch point 0 (relative to screen size)
-RLAPI int GetTouchY(void);                                    // Get touch position Y for touch point 0 (relative to screen size)
-RLAPI Vector2 GetTouchPosition(int index);                    // Get touch position XY for a touch point index (relative to screen size)
-RLAPI int GetTouchPointId(int index);                         // Get touch point identifier for given index
-RLAPI int GetTouchPointCount(void);                           // Get number of touch points
+// RLAPI int GetTouchX(void);                                    // Get touch position X for touch point 0 (relative to screen size)
+// RLAPI int GetTouchY(void);                                    // Get touch position Y for touch point 0 (relative to screen size)
+// RLAPI Vector2 GetTouchPosition(int index);                    // Get touch position XY for a touch point index (relative to screen size)
+// RLAPI int GetTouchPointId(int index);                         // Get touch point identifier for given index
+// RLAPI int GetTouchPointCount(void);                           // Get number of touch points
 
 //------------------------------------------------------------------------------------
 // Gestures and Touch Handling Functions (Module: rgestures)
 //------------------------------------------------------------------------------------
-RLAPI void SetGesturesEnabled(unsigned int flags);            // Enable a set of gestures using flags
-RLAPI bool IsGestureDetected(unsigned int gesture);           // Check if a gesture have been detected
-RLAPI int GetGestureDetected(void);                           // Get latest detected gesture
-RLAPI float GetGestureHoldDuration(void);                     // Get gesture hold time in seconds
-RLAPI Vector2 GetGestureDragVector(void);                     // Get gesture drag vector
-RLAPI float GetGestureDragAngle(void);                        // Get gesture drag angle
-RLAPI Vector2 GetGesturePinchVector(void);                    // Get gesture pinch delta
-RLAPI float GetGesturePinchAngle(void);                       // Get gesture pinch angle
+// RLAPI void SetGesturesEnabled(unsigned int flags);            // Enable a set of gestures using flags
+// RLAPI bool IsGestureDetected(unsigned int gesture);           // Check if a gesture have been detected
+// RLAPI int GetGestureDetected(void);                           // Get latest detected gesture
+// RLAPI float GetGestureHoldDuration(void);                     // Get gesture hold time in seconds
+// RLAPI Vector2 GetGestureDragVector(void);                     // Get gesture drag vector
+// RLAPI float GetGestureDragAngle(void);                        // Get gesture drag angle
+// RLAPI Vector2 GetGesturePinchVector(void);                    // Get gesture pinch delta
+// RLAPI float GetGesturePinchAngle(void);                       // Get gesture pinch angle
 
 //------------------------------------------------------------------------------------
 // Camera System Functions (Module: rcamera)
@@ -1439,12 +1439,12 @@ RLAPI void SetTextureFilter(Texture2D texture, int filter);                     
 RLAPI void SetTextureWrap(Texture2D texture, int wrap);                                                  // Set texture wrapping mode
 
 // Texture drawing functions
-RLAPI void DrawTexture(Texture2D texture, int posX, int posY, Color tint);                               // Draw a Texture2D
-RLAPI void DrawTextureV(Texture2D texture, Vector2 position, Color tint);                                // Draw a Texture2D with position defined as Vector2
-RLAPI void DrawTextureEx(Texture2D texture, Vector2 position, float rotation, float scale, Color tint);  // Draw a Texture2D with extended parameters
-RLAPI void DrawTextureRec(Texture2D texture, Rectangle source, Vector2 position, Color tint);            // Draw a part of a texture defined by a rectangle
-RLAPI void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint); // Draw a part of a texture defined by a rectangle with 'pro' parameters
-RLAPI void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest, Vector2 origin, float rotation, Color tint); // Draws a texture (or part of it) that stretches or shrinks nicely
+// RLAPI void DrawTexture(Texture2D texture, int posX, int posY, Color tint);                               // Draw a Texture2D
+// RLAPI void DrawTextureV(Texture2D texture, Vector2 position, Color tint);                                // Draw a Texture2D with position defined as Vector2
+// RLAPI void DrawTextureEx(Texture2D texture, Vector2 position, float rotation, float scale, Color tint);  // Draw a Texture2D with extended parameters
+// RLAPI void DrawTextureRec(Texture2D texture, Rectangle source, Vector2 position, Color tint);            // Draw a part of a texture defined by a rectangle
+// RLAPI void DrawTexturePro(Texture2D texture, Rectangle source, Rectangle dest, Vector2 origin, float rotation, Color tint); // Draw a part of a texture defined by a rectangle with 'pro' parameters
+// RLAPI void DrawTextureNPatch(Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest, Vector2 origin, float rotation, Color tint); // Draws a texture (or part of it) that stretches or shrinks nicely
 
 // Color/pixel related functions
 RLAPI bool ColorIsEqual(Color col1, Color col2);                            // Check if two colors are equal
@@ -1592,23 +1592,23 @@ RLAPI void DrawBillboardPro(Camera camera, Texture2D texture, Rectangle source, 
 // RLAPI void UnloadMesh(Mesh mesh);                                                           // Unload mesh data from CPU and GPU
 // RLAPI void DrawMesh(Mesh mesh, Material material, Matrix transform);                        // Draw a 3d mesh with material and transform
 // RLAPI void DrawMeshInstanced(Mesh mesh, Material material, const Matrix *transforms, int instances); // Draw multiple mesh instances with material and different transforms
-RLAPI BoundingBox GetMeshBoundingBox(Mesh mesh);                                            // Compute mesh bounding box limits
-RLAPI void GenMeshTangents(Mesh *mesh);                                                     // Compute mesh tangents
-RLAPI bool ExportMesh(Mesh mesh, const char *fileName);                                     // Export mesh data to file, returns true on success
-RLAPI bool ExportMeshAsCode(Mesh mesh, const char *fileName);                               // Export mesh as code file (.h) defining multiple arrays of vertex attributes
+// RLAPI BoundingBox GetMeshBoundingBox(Mesh mesh);                                            // Compute mesh bounding box limits
+// RLAPI void GenMeshTangents(Mesh *mesh);                                                     // Compute mesh tangents
+// RLAPI bool ExportMesh(Mesh mesh, const char *fileName);                                     // Export mesh data to file, returns true on success
+// RLAPI bool ExportMeshAsCode(Mesh mesh, const char *fileName);                               // Export mesh as code file (.h) defining multiple arrays of vertex attributes
 
 // Mesh generation functions
-RLAPI Mesh GenMeshPoly(int sides, float radius);                                            // Generate polygonal mesh
-RLAPI Mesh GenMeshPlane(float width, float length, int resX, int resZ);                     // Generate plane mesh (with subdivisions)
-RLAPI Mesh GenMeshCube(float width, float height, float length);                            // Generate cuboid mesh
-RLAPI Mesh GenMeshSphere(float radius, int rings, int slices);                              // Generate sphere mesh (standard sphere)
-RLAPI Mesh GenMeshHemiSphere(float radius, int rings, int slices);                          // Generate half-sphere mesh (no bottom cap)
-RLAPI Mesh GenMeshCylinder(float radius, float height, int slices);                         // Generate cylinder mesh
-RLAPI Mesh GenMeshCone(float radius, float height, int slices);                             // Generate cone/pyramid mesh
-RLAPI Mesh GenMeshTorus(float radius, float size, int radSeg, int sides);                   // Generate torus mesh
-RLAPI Mesh GenMeshKnot(float radius, float size, int radSeg, int sides);                    // Generate trefoil knot mesh
-RLAPI Mesh GenMeshHeightmap(Image heightmap, Vector3 size);                                 // Generate heightmap mesh from image data
-RLAPI Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize);                               // Generate cubes-based map mesh from image data
+// RLAPI Mesh GenMeshPoly(int sides, float radius);                                            // Generate polygonal mesh
+// RLAPI Mesh GenMeshPlane(float width, float length, int resX, int resZ);                     // Generate plane mesh (with subdivisions)
+// RLAPI Mesh GenMeshCube(float width, float height, float length);                            // Generate cuboid mesh
+// RLAPI Mesh GenMeshSphere(float radius, int rings, int slices);                              // Generate sphere mesh (standard sphere)
+// RLAPI Mesh GenMeshHemiSphere(float radius, int rings, int slices);                          // Generate half-sphere mesh (no bottom cap)
+// RLAPI Mesh GenMeshCylinder(float radius, float height, int slices);                         // Generate cylinder mesh
+// RLAPI Mesh GenMeshCone(float radius, float height, int slices);                             // Generate cone/pyramid mesh
+// RLAPI Mesh GenMeshTorus(float radius, float size, int radSeg, int sides);                   // Generate torus mesh
+// RLAPI Mesh GenMeshKnot(float radius, float size, int radSeg, int sides);                    // Generate trefoil knot mesh
+// RLAPI Mesh GenMeshHeightmap(Image heightmap, Vector3 size);                                 // Generate heightmap mesh from image data
+// RLAPI Mesh GenMeshCubicmap(Image cubicmap, Vector3 cubeSize);                               // Generate cubes-based map mesh from image data
 
 // Material loading/unloading functions
 // RLAPI Material *LoadMaterials(const char *fileName, int *materialCount);                    // Load materials from model file

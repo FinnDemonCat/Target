@@ -29,7 +29,7 @@ class Vector2 implements Disposeable
   set x (double value) { _memory!.pointer.ref.x = value; }
   set y (double value) { _memory!.pointer.ref.y = value; }
 
-  _Vector2 get vector => _memory!.pointer.ref;
+  _Vector2 get ref => _memory!.pointer.ref;
 
   /// Set `x` and `y`  at once
   void Set(double x, double y) { this.x = x; this.y = y; }
@@ -45,6 +45,11 @@ class Vector2 implements Disposeable
 
     _memory = NativeResource<_Vector2>(pointer);
     _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Vector2._internal(_Vector2 result)
+  {
+    _setmemory(result);
   }
 
   /// Vector with components value 0.0f
@@ -2634,6 +2639,22 @@ abstract class Window
   /// 
   /// The parameter `flag` expects a ConfigFlags value
   static void SetState(int flag) => _setWindowState(flag);
+
+  /// Setup init configuration flags (view FLAGS)
+  /// 
+  /// The parameter `flag` expects a ConfigFlags value
+  static void SetFlags(int flag) => _setConfigFlags(flag);
+
+  /// Takes a screenshot of current screen (filename extension defines format)
+  static void TakeScreenshoot(String fileName)
+  {
+    using ((Arena arena) {
+      Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
+
+      _takeScreenshot(cfileName);
+    });
+  }
+
   /// Clear window configuration state flags
   /// 
   /// The parameter `flag` expects a ConfigFlags value
@@ -2753,10 +2774,12 @@ abstract class Window
   static void EnableEventWaiting() => _enableEventWaiting();
   /// Disable waiting for events on EndDrawing(), automatic events polling
   static void DisabelEventWaiting() => _disableEventWaiting();
+  /// Set a custom key to exit program (default is ESC)
+  static void SetExitKey(int key) => _setExitKey(key);
 }
 
 //------------------------------------------------------------------------------------
-//                                   Cursor
+//                            Input handling functions
 //------------------------------------------------------------------------------------
 
 abstract class Cursor
@@ -2773,6 +2796,135 @@ abstract class Cursor
   static void Disable() => _disableCursor();
   /// Check if cursor is on the screen
   static bool IsOnScreen() => _isCursorOnScreen();
+  /// Set mouse cursor
+  static void Set(int cursor) => _setMouseCursor(cursor);
+}
+
+abstract class Gestures
+{
+  /// Enable a set of gestures using flags
+  static void SetEnabled(int flags) => _setGesturesEnabled(flags);
+  /// Check if a gesture have been detected
+  static void IsDetected(int gesture) => _isGestureDetected(gesture);
+  /// Get latest detected gesture
+  static int GetDetected() => _getGestureDetected();
+  /// Get gesture hold time in seconds
+  static double GetHoldDuration() => _getGestureHoldDuration();
+  /// Get gesture drag vector
+  static Vector2 GetDragVector() => Vector2._internal(_getGestureDragVector());
+  /// Get gesture drag angle
+  static double GetDragAngle() => _getGestureDragAngle().toDouble();
+  /// Get gesture pinch delta
+  static Vector2 GetPinchVector() => Vector2._internal(_getGesturePinchVector());
+  /// Get gesture pinch angle
+  static double GetPinchAngle() => _getGesturePinchAngle().toDouble();
+}
+
+//------------------------------------------------------------------------------------
+//                            Input trigger functions
+//------------------------------------------------------------------------------------
+
+/// Keyboard related functions
+abstract class Key
+{
+  /// Check if a key has been pressed once
+  static bool IsPressed(int key) => _isKeyPressed(key);
+  /// Check if a key has been pressed again
+  static bool IsPressedRepeat(int key) => _isKeyPressedRepeat(key);
+  /// Check if a key is being pressed
+  static bool IsDown(int key) => _isKeyDown(key);
+  /// Check if a key is NOT being pressed
+  static bool IsUp(int key) => _isKeyUp(key);
+  /// Check if a key has been released once
+  static bool IsReleased(int key) => _isKeyReleased(key);
+  /// Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty
+  static int Get() => _getKeyPressed();
+  /// Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty
+  static String GetChar() => _getCharPressed().toString();
+  /// Get name of a QWERTY key on the current keyboard layout (eg returns string 'q' for KEY_A on an AZERTY keyboard)
+  static String GetName() => _getKeyName().toDartString();
+}
+
+/// Mouse related functions
+abstract class Mouse
+{ 
+  /// Check if a mouse button has been pressed once
+  static bool IsButtonDown(int button) => _isMouseButtonDown(button);
+  /// Check if a mouse button is NOT being pressed
+  static bool IsButtonUp(int button) => _isMouseButtonUp(button);
+  /// Check if a mouse button has been pressed once
+  static bool IsPressed(int button) => _isMouseButtonPressed(button);
+  /// Check if a mouse button has been released once
+  static bool IsReleased(int button) => _isMouseButtonReleased(button);
+  // Get mouse position X
+  static int GetX() => _getMouseX();
+  /// Get mouse position Y
+  static int GetY() => _getMouseY();
+  /// Get mouse position XY
+  static Vector2 GetPosition() => Vector2._internal(_getMousePosition());
+  /// Get mouse delta between frames
+  static Vector2 GetPositionDelta() => Vector2._internal(_getMouseDelta());
+  /// Set mouse position XY
+  static void SetPosition(int x, int y) => _setMousePosition(x, y);
+  /// Set mouse offset
+  static void SetOffset(int offsetX, int offsetY) => _setMouseOffset(offsetX, offsetY);
+  /// Set mouse scaling
+  static void SetScale(double scaleX, double scaleY) => _setMouseScale(scaleX, scaleY);
+  /// Get mouse wheel movement for X or Y, whichever is larger
+  static double GetWheelMove() => _getMouseWheelMove().toDouble();
+  /// Get mouse wheel movement for both X and Y
+  static Vector2 GetWheelMoveV() => Vector2._internal(_getMouseWheelMoveV());
+}
+
+/// Gamepad related functions
+abstract class Gamepad
+{
+  /// Check if a gamepad is available
+  static bool IsAvaiable(int gamepad) => _isGamepadAvailable(gamepad);
+  /// Get gamepad internal name id
+  static String GetName(int gamepad) => _getGamepadName(gamepad).toDartString();
+  /// Check if a gamepad button is being pressed
+  static bool IsButtonDown(int gamepad, int button) => _isGamepadButtonDown(gamepad, button);
+  /// Check if a gamepad button is NOT being pressed
+  static bool IsButtonUp(int gamepad, int button) => _isGamepadButtonUp(gamepad, button);
+  /// Check if a gamepad button has been pressed once
+  static bool IsButtonPressed(int gamepad, int button) => _isGamepadButtonPressed(gamepad, button);
+  /// Check if a gamepad button is being pressed
+  static bool IsButtonReleased(int gamepad, int button) => _isGamepadButtonReleased(gamepad, button);
+  /// Get axis count for a gamepad
+  static int GetAxisCount(int gamepad) => _getGamepadAxisCount(gamepad);
+  /// Get movement value for a gamepad axis
+  static double GetAxisMovement(int gamepad, int axis) => _getGamepadAxisMovement(gamepad, axis);
+  /// Set internal gamepad mappings (SDL_GameControllerDB)
+  static int SetMappins(String mappings)
+  {
+    return using ((Arena arena) {
+      Pointer<Utf8> cmappings = mappings.toNativeUtf8(allocator: arena);
+
+      return _setGamepadMappings(cmappings);
+    });
+  }
+  /// Set gamepad vibration for both motors (duration in seconds)
+  static void SetVibration(int gamepad,{ required double leftMotor, required double rightMotor, required double duration })
+  {
+    _setGamepadVibration(gamepad, leftMotor, rightMotor, duration);
+  }
+}
+
+/// Touch related functions
+abstract class Touch
+{
+  // I could probably setup some type of initializer which gets the points count
+  /// Get touch position X for touch point 0 (relative to screen size)
+  static int GetX() => _getTouchX();
+  /// Get touch position Y for touch point 0 (relative to screen size)
+  static int GetY() => _getTouchY();
+  /// Get touch position XY for a touch point index (relative to screen size)
+  static Vector2 GetPosition(int index) => Vector2._internal(_getTouchPosition(index));
+  /// Get touch point identifier for given index
+  static int GetPointId(int index) => _getTouchPointId(index);
+  /// Get number of touch points
+  static int GetPointCount() => _getTouchPointCount();
 }
 
 //------------------------------------------------------------------------------------
@@ -2810,7 +2962,7 @@ class Color implements Disposeable
     _memory = NativeResource(pointer);
   }
 
-  _Color get color => _memory!.pointer.ref;
+  _Color get ref => _memory!.pointer.ref;
 
   static final Color LIGHTGRAY  = Color(200, 200, 200, 255);
   static final Color GRAY       = Color(130, 130, 130, 255);
@@ -3104,6 +3256,8 @@ class Texture2D implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
 	}
 
+  //--------------------------------Constructors----------------------------------------
+
   // Used for TextureCubeMap constructor
   Texture2D._internal(_Texture struct)
   {
@@ -3134,6 +3288,8 @@ class Texture2D implements Disposeable
     _setmemory(result);
   }
 
+  //---------------------------------Utilities-----------------------------------------
+
   /// Check if a texture is valid (loaded in GPU)
   bool isValid()
   {
@@ -3141,17 +3297,68 @@ class Texture2D implements Disposeable
     return _isTextureValid(_memory!.pointer.ref);
   }
 
+  /// Update GPU texture with new data (pixels should be able to fill texture)
   void Update(Pointer<Void> pixels)
   {
     if (!isValid()) return;
     _updateTexture(ref, pixels);
   }
 
+  /// Update GPU texture rectangle with new data (pixels and rec should fit in texture)
   void UpdateRect(Rectangle rect, Pointer<Void> pixels)
   {
     if (!isValid()) return;
     _updateTextureRec(ref, rect.ref, pixels);
-  }  
+  }
+
+  /// Draw a Texture2D
+  static Draw(Texture2D texture,{ int posX = 0, int posY = 0, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    _drawTexture(texture.ref, posX, posY, tint.ref);
+  }
+  /// Draw a Texture2D with position defined as Vector2
+  static DrawV(Texture2D texture,{ required Vector2 position, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    _drawTextureV(texture.ref, position.ref, tint.ref);
+  }
+
+  /// Draw a Texture2D with extended parameters
+  static DrawEx(Texture2D texture,{ Vector2? position, double rotation = 0.0, double scale = 1.0, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    position ??= Vector2.Zero();
+    _drawTextureEx(texture.ref, position.ref, rotation, scale, tint.ref);
+  }
+
+  /// Draw a part of a texture defined by a rectangle
+  static DrawRec(Texture2D texture, Rectangle source,{ Vector2? position, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    position ??= Vector2.Zero();
+    _drawTextureRec(texture.ref, source.ref, position.ref, tint.ref);
+  }
+
+  /// Draw a part of a texture defined by a rectangle with 'pro' parameters
+  static DrawPro(Texture2D texture, Rectangle source, Rectangle dest,{ Vector2? origin, double rotation = 0.0, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    origin ??= Vector2.Zero();
+    _drawTexturePro(texture.ref, source.ref, dest.ref, origin.ref, rotation, tint.ref);
+  }
+
+  /// Draws a texture (or part of it) that stretches or shrinks nicely
+  static DrawNPatch(
+    Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
+    { Vector2? origin, double rotation = 0.0, Color? tint }
+  ) {
+    tint ??= Color.WHITE;
+    origin ??= Vector2.Zero();
+    _drawTextureNPatch(texture.ref, nPatchInfo.ref, dest.ref, origin.ref, rotation, tint.ref);
+  }
+
+  //--------------------------------Deconstructors--------------------------------------
 
   // Garbage collector setup
   static final Finalizer<Pointer<_Texture>> _finalizer = Finalizer((ptr)
@@ -3269,19 +3476,20 @@ class NPatchInfo implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  _Rectangle get source => _memory!.pointer.ref.source;
-  int get bottom => _memory!.pointer.ref.bottom;
-  int get top    => _memory!.pointer.ref.top;
-  int get left   => _memory!.pointer.ref.left;
-  int get right  => _memory!.pointer.ref.right;
-  int get layout => _memory!.pointer.ref.layout;
+  _NPatchInfo get ref => _memory!.pointer.ref;
+  _Rectangle get source => ref.source;
+  int get bottom => ref.bottom;
+  int get top    => ref.top;
+  int get left   => ref.left;
+  int get right  => ref.right;
+  int get layout => ref.layout;
 
-  set source(_Rectangle value) => _memory!.pointer.ref.source = value;
-  set bottom(int value) => _memory!.pointer.ref.bottom = (value > 0) ? value : 0;
-  set top(int value) => _memory!.pointer.ref.top = (value > 0) ? value : 0;
-  set left(int value) => _memory!.pointer.ref.left = (value > 0) ? value : 0;
-  set right(int value) => _memory!.pointer.ref.right = (value > 0) ? value : 0;
-  set layout(int value) => _memory!.pointer.ref.layout = (value > 0) ? value : 0;
+  set source(_Rectangle value) => ref.source = value;
+  set bottom(int value) => ref.bottom = (value > 0) ? value : 0;
+  set top(int value) => ref.top = (value > 0) ? value : 0;
+  set left(int value) => ref.left = (value > 0) ? value : 0;
+  set right(int value) => ref.right = (value > 0) ? value : 0;
+  set layout(int value) => ref.layout = (value > 0) ? value : 0;
 
   void Set({ Rectangle? source, int? bottom, int? top, int? left, int? right, int? layout})
   {
@@ -3367,7 +3575,6 @@ class GlyphInfo implements Disposeable
   ModelAnimation
   Ray
   RayCollision
-  BoundingBox
   Wave
   VrDeviceInfo
   VrStereoConfig
@@ -3394,8 +3601,8 @@ class Camera2D implements Disposeable
   }) {
     Pointer<_Camera2D> pointer = malloc.allocate<_Camera2D>(sizeOf<_Camera2D>());
     pointer.ref
-    ..offset = offset.vector
-    ..target = target.vector
+    ..offset = offset.ref
+    ..target = target.ref
     ..rotation = rotation
     ..zoom = zoom;
 
@@ -3471,6 +3678,42 @@ class Camera3D implements Disposeable
 }
 
 //------------------------------------------------------------------------------------
+//                                 BoundingBox
+//------------------------------------------------------------------------------------
+
+class BoundingBox implements Disposeable
+{
+  NativeResource<_BoundingBox>? _memory;
+
+  _BoundingBox get ref => _memory!.pointer.ref;
+  _Vector3 get min => ref.min;
+  _Vector3 get max => ref.max;
+
+  BoundingBox.Wrap(_BoundingBox result)
+  {
+    Pointer<_BoundingBox> pointer = malloc.allocate<_BoundingBox>(sizeOf<_BoundingBox>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource(pointer);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_BoundingBox>>((pointer) {
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && _memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
 //                                   Mesh
 //------------------------------------------------------------------------------------
 
@@ -3478,6 +3721,7 @@ class Mesh implements Disposeable
 {
   NativeResource<_Mesh>? _memory;
 
+  // ignore: unused_element
   void _setmemory(_Mesh result)
   {
     Pointer<_Mesh> pointer = malloc.allocate<_Mesh>(sizeOf<_Mesh>());
@@ -3486,6 +3730,8 @@ class Mesh implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
+  //--------------------------------------Getters---------------------------------------
+  
   _Mesh get ref => _memory!.pointer.ref;
   int get vertexCount => ref.vertexCount;
   int get triangleCount => ref.triagleCoung;
@@ -3509,6 +3755,89 @@ class Mesh implements Disposeable
 
   int get vaoID => ref.vaoID;
   Pointer<Int32> get vboId => ref.vboId;
+
+  //----------------------------------Constructors--------------------------------------
+
+  /// Generate polygonal mesh
+  Mesh.Poly(int sides, double radius)
+  {
+    _Mesh result = _genMeshPoly(sides, radius);
+    _setmemory(result);
+  }
+
+  /// Generate plane mesh (with subdivisions)
+  Mesh.Plane(double width, double length, int resX, int resZ)
+  {
+    _Mesh result = _genMeshPlane(width, length, resX, resZ);
+    _setmemory(result);
+  }
+
+  /// Generate cuboid mesh
+  Mesh.Cube(double width, double height, double length)
+  {
+    _Mesh result = _genMeshCube(width, height, length);
+    _setmemory(result);
+  }
+
+  /// Generate sphere mesh (standard sphere)
+  Mesh.Sphere(double radius, int rings, int slices)
+  {
+    _Mesh result = _genMeshSphere(radius, rings, slices);
+    _setmemory(result);
+  }
+
+  /// Generate half-sphere mesh (no bottom cap)
+  Mesh.Hemisphere(double radius, int rings, int slices)
+  {
+    _Mesh result = _genMeshHemiSphere(radius, rings, slices);
+    _setmemory(result);
+  }
+
+  /// Generate cylinder mesh
+  Mesh.Cylinder(double radius, double height, int slices)
+  {
+    _Mesh result = _genMeshCylinder(radius, height, slices);
+    _setmemory(result);
+  }
+
+  /// Generate cone/pyramid mesh
+  Mesh.Cone(double radius, double height, int slices)
+  {
+    _Mesh result = _genMeshCone(radius, height, slices);
+    _setmemory(result);
+  }
+
+  /// Generate torus mesh
+  /// 
+  /// AKA Donut
+  Mesh.Torus(double radius, double size, int radSeg, int sides)
+  {
+    _Mesh result = _genMeshTorus(radius, size, radSeg, sides);
+    _setmemory(result);
+  }
+
+  /// Generate torus mesh
+  Mesh.Knot(double radius, double size, int radSeg, int sides)
+  {
+    _Mesh result = _genMeshKnot(radius, size, radSeg, sides);
+    _setmemory(result);
+  }
+
+  /// Generate heightmap mesh from image data
+  Mesh.Heightmap(Image heightMap, Vector3 size)
+  {
+    _Mesh result = _genMeshHeightmap(heightMap.ref, size.ref);
+    _setmemory(result);
+  }
+
+  /// Generate cubes-based map mesh from image data
+  Mesh.CubicMap(Image cubicMap, Vector3 cubeSize)
+  {
+    _Mesh result = _genMeshCubicmap(cubicMap.ref, cubeSize.ref);
+    _setmemory(result);
+  }
+
+  //----------------------------------Utilities-----------------------------------------
 
   /// Upload mesh vertex data in GPU and provide VAO/VBO ids
   static void Upload({required Mesh mesh, required bool dynamic}) => _uploadMesh(mesh._memory!.pointer, dynamic);
@@ -3541,8 +3870,38 @@ class Mesh implements Disposeable
     });
   }
 
-  //TODO: GetMeshBoundingBox
+  /// Compute mesh bounding box limits
+  BoundingBox GetBoundingBox()
+  {
+    _BoundingBox result = _getMeshBoundingBox(this.ref);
+    return BoundingBox.Wrap(result);
+  }
 
+  /// Compute mesh tangents
+  void GenTangents() =>_genMeshTangents(this._memory!.pointer);
+
+  /// Export mesh data to file, returns true on success
+  bool Export(String fileName)
+  {
+    return using((Arena arena) {
+      Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
+
+      return _exportMesh(this.ref, cFileName);
+    });
+  }
+
+  /// Export mesh as code file (.h) defining multiple arrays of vertex attributes
+  bool ExportAsCode(String fileName)
+  {
+    return using((Arena arena) {
+      Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
+
+      return _exportMeshAsCode(this.ref, cFileName);
+    });
+  }
+
+  //---------------------------------Degenerators--------------------------------------
+  
   static final Finalizer _finalizer = Finalizer((pointer) {
     _unloadMesh(pointer.ref);
     malloc.free(pointer);
@@ -3589,9 +3948,9 @@ class Material implements Disposeable
   {
     if (_memory != null) dispose();
 
-    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource(pointer, IsOwner: owner);
     if (owner)
-      _memory = NativeResource(pointer, IsOwner: owner);
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   // --------------------------Constructors--------------------------------------
@@ -3659,7 +4018,7 @@ class Material implements Disposeable
 abstract class Draw
 {
   /// Set background color (framebuffer clear color)
-  static void ClearBackground(Color color) => _clearBackground(color.color);
+  static void ClearBackground(Color color) => _clearBackground(color.ref);
   /// Setup canvas (framebuffer) to start drawing
   static void Begin() => _beginDrawing();
   /// End canvas drawing and swap buffers (double buffering)
