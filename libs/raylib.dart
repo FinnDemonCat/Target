@@ -2889,6 +2889,8 @@ abstract class Gamepad
   static bool IsButtonUp(int gamepad, int button) => _isGamepadButtonUp(gamepad, button);
   /// Check if a gamepad button has been pressed once
   static bool IsButtonPressed(int gamepad, int button) => _isGamepadButtonPressed(gamepad, button);
+  /// Get the last gamepad button pressed
+  static int GetButtonPressed() => _getGamepadButtonPressed();
   /// Check if a gamepad button is being pressed
   static bool IsButtonReleased(int gamepad, int button) => _isGamepadButtonReleased(gamepad, button);
   /// Get axis count for a gamepad
@@ -3566,10 +3568,8 @@ class GlyphInfo implements Disposeable
 
 /*
   Font
-  Mesh
   Shader
   MaterialMap
-  Transform
   BoneInfo
   Model
   ModelAnimation
@@ -3720,6 +3720,8 @@ class BoundingBox implements Disposeable
 class Mesh implements Disposeable
 {
   NativeResource<_Mesh>? _memory;
+  final int _length;
+  int get length => _length;
 
   // ignore: unused_element
   void _setmemory(_Mesh result)
@@ -3727,7 +3729,16 @@ class Mesh implements Disposeable
     Pointer<_Mesh> pointer = malloc.allocate<_Mesh>(sizeOf<_Mesh>());
     pointer.ref = result;
 
+    _memory = NativeResource<_Mesh>(pointer);
     _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Mesh._internal(Pointer<_Mesh> pointer,{ bool owner = false, int length = 1 }) : _length = length
+  {
+    _memory = NativeResource<_Mesh>(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   //--------------------------------------Getters---------------------------------------
@@ -3759,49 +3770,49 @@ class Mesh implements Disposeable
   //----------------------------------Constructors--------------------------------------
 
   /// Generate polygonal mesh
-  Mesh.Poly(int sides, double radius)
+  Mesh.Poly(int sides, double radius) : _length = 1
   {
     _Mesh result = _genMeshPoly(sides, radius);
     _setmemory(result);
   }
 
   /// Generate plane mesh (with subdivisions)
-  Mesh.Plane(double width, double length, int resX, int resZ)
+  Mesh.Plane(double width, double length, int resX, int resZ) : _length = 1
   {
     _Mesh result = _genMeshPlane(width, length, resX, resZ);
     _setmemory(result);
   }
 
   /// Generate cuboid mesh
-  Mesh.Cube(double width, double height, double length)
+  Mesh.Cube(double width, double height, double length) : _length = 1
   {
     _Mesh result = _genMeshCube(width, height, length);
     _setmemory(result);
   }
 
   /// Generate sphere mesh (standard sphere)
-  Mesh.Sphere(double radius, int rings, int slices)
+  Mesh.Sphere(double radius, int rings, int slices) : _length = 1
   {
     _Mesh result = _genMeshSphere(radius, rings, slices);
     _setmemory(result);
   }
 
   /// Generate half-sphere mesh (no bottom cap)
-  Mesh.Hemisphere(double radius, int rings, int slices)
+  Mesh.Hemisphere(double radius, int rings, int slices) : _length = 1
   {
     _Mesh result = _genMeshHemiSphere(radius, rings, slices);
     _setmemory(result);
   }
 
   /// Generate cylinder mesh
-  Mesh.Cylinder(double radius, double height, int slices)
+  Mesh.Cylinder(double radius, double height, int slices) : _length = 1
   {
     _Mesh result = _genMeshCylinder(radius, height, slices);
     _setmemory(result);
   }
 
   /// Generate cone/pyramid mesh
-  Mesh.Cone(double radius, double height, int slices)
+  Mesh.Cone(double radius, double height, int slices) : _length = 1
   {
     _Mesh result = _genMeshCone(radius, height, slices);
     _setmemory(result);
@@ -3810,28 +3821,28 @@ class Mesh implements Disposeable
   /// Generate torus mesh
   /// 
   /// AKA Donut
-  Mesh.Torus(double radius, double size, int radSeg, int sides)
+  Mesh.Torus(double radius, double size, int radSeg, int sides) : _length = 1
   {
     _Mesh result = _genMeshTorus(radius, size, radSeg, sides);
     _setmemory(result);
   }
 
   /// Generate torus mesh
-  Mesh.Knot(double radius, double size, int radSeg, int sides)
+  Mesh.Knot(double radius, double size, int radSeg, int sides) : _length = 1
   {
     _Mesh result = _genMeshKnot(radius, size, radSeg, sides);
     _setmemory(result);
   }
 
   /// Generate heightmap mesh from image data
-  Mesh.Heightmap(Image heightMap, Vector3 size)
+  Mesh.Heightmap(Image heightMap, Vector3 size) : _length = 1
   {
     _Mesh result = _genMeshHeightmap(heightMap.ref, size.ref);
     _setmemory(result);
   }
 
   /// Generate cubes-based map mesh from image data
-  Mesh.CubicMap(Image cubicMap, Vector3 cubeSize)
+  Mesh.CubicMap(Image cubicMap, Vector3 cubeSize) : _length = 1
   {
     _Mesh result = _genMeshCubicmap(cubicMap.ref, cubeSize.ref);
     _setmemory(result);
@@ -3898,6 +3909,13 @@ class Mesh implements Disposeable
 
       return _exportMeshAsCode(this.ref, cFileName);
     });
+  }
+  //---------------------------------Operator------------------------------------------
+
+  Mesh operator [](int index)
+  {
+    if (index < 0 || index >= _length) throw RangeError(index);
+    return Mesh._internal(_memory!.pointer + index, owner: false);
   }
 
   //---------------------------------Degenerators--------------------------------------
@@ -4008,6 +4026,197 @@ class Material implements Disposeable
     _finalizer.detach(this);
     _unloadMaterial(_memory!.pointer.ref);
     _memory!.dispose();
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   Transform
+//------------------------------------------------------------------------------------
+
+class Transform implements Disposeable
+{
+  NativeResource<_Transform>? _memory;
+
+  final int _length;
+  int get length => _length;
+
+  // ignore: unused_element
+  void _setmemory(_Transform result)
+  {
+    Pointer<_Transform> pointer = malloc.allocate<_Transform>(sizeOf<_Transform>());
+    pointer.ref = result;
+
+    _memory = NativeResource<_Transform>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Transform._internal(Pointer<_Transform> pointer,{ int length = 1, bool owner = true }) : _length = length
+  {
+    if (_memory != null) dispose();
+    _memory = NativeResource<_Transform>(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Transform(Vector3 translation, Quaternion rotation, Vector3 scale) : _length = 1
+  {
+    Pointer<_Transform> pointer = malloc.allocate<_Transform>(sizeOf<_Transform>());
+    pointer.ref
+    ..translation = translation.ref
+    ..rotation = rotation.ref
+    ..scale = scale.ref;
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource<_Transform>(pointer);
+  }
+
+  Transform operator [](int index)
+  {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Transform._internal(_memory!.pointer + index, owner: false);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Transform>>((pointer) {
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && _memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+
+//------------------------------------------------------------------------------------
+//                                   BoneInfo
+//------------------------------------------------------------------------------------
+
+class BoneInfo implements Disposeable
+{
+  NativeResource<_BoneInfo>? _memory;
+  final int _length;
+  int get length => _length;
+
+  BoneInfo._internal(Pointer<_BoneInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
+  {
+    if (_memory != null) dispose();
+    _memory = NativeResource<_BoneInfo>(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  BoneInfo operator [](int index)
+  {
+    if (index < 0 || index >= _length) throw RangeError(index);
+    return BoneInfo._internal(_memory!.pointer + index, owner: false);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_BoneInfo>>((pointer) {
+    malloc.free(pointer);
+  });
+  
+  @override
+  void dispose()
+  {
+    if (_memory != null && _memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _memory!.dispose();
+    }
+  }
+}
+//------------------------------------------------------------------------------------
+//                                   Model
+//------------------------------------------------------------------------------------
+/// Model, meshes, materials and animation data
+/// 
+/// Access to internal arrays is provided via [meshes] and [materials] views, 
+/// allowing for intuitive list-style indexing.
+///
+/// ### Example:
+/// ```dart
+/// // Accessing the first mesh's vertex data
+/// var vertexCount = model.meshes[0].vertexCount;
+/// 
+/// // Modifying a material property
+/// model.materials[0].maps[MAP_DIFFUSE].color = Color.RED;
+/// ```
+/// 
+/// ### Direct Pointer Access:
+/// If you need to interface with external C libraries or custom shaders, 
+/// use the `.ptr` property on [meshes], [materials], or the [Model] itself 
+/// to get the underlying memory address.
+class Model implements Disposeable
+{
+  NativeResource<_Model>? _memory;
+
+  _Model get ref => _memory!.pointer.ref;
+  Pointer<Int32> get meshMaterial => ref.meshMaterial;
+
+  late final Mesh meshes;
+  late final Material materials;
+  late final BoneInfo bones;
+  late final Transform bindPose;
+
+  void _setmemory(_Model result)
+  {
+    Pointer<_Model> pointer = malloc.allocate<_Model>(sizeOf<_Model>());
+    pointer.ref = result;
+
+    _memory = NativeResource<_Model>(pointer);
+
+    meshes    = Mesh._internal(pointer.ref.meshes, length: pointer.ref.meshCount);
+    materials = Material._internal(pointer.ref.materials, length: pointer.ref.materialCount);
+    bones     = BoneInfo._internal(pointer.ref.bones, length: pointer.ref.boneCount);
+    bindPose  = Transform._internal(pointer.ref.bindPose, length: pointer.ref.boneCount);
+
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  /// Load model from files (meshes and materials)
+  Model(String fileName)
+  {
+    using ((Arena arena) {
+      Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
+
+      _Model result = _loadModel(cfileName);
+      _setmemory(result);
+    });
+  }
+
+  /// Load model from generated mesh (default material)
+  Model.FromMesh(Mesh mesh)
+  {
+    _Model result = _loadModelFromMesh(mesh.ref);
+    _setmemory(result);
+  }
+
+  /// Compute model bounding box limits (considers all meshes)
+  BoundingBox GetBoundingBox() => BoundingBox.Wrap(_getModelBoundingBox(ref));
+  /// Check if a model is valid (loaded in GPU, VAO/VBOs)
+  bool IsValid() => _isModelValid(ref);
+  /// Unload model (including meshes) from memory (RAM and/or VRAM)
+  void Unload() => dispose();
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Model>>((pointer) {
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && _memory!.isDisposed)
+    {
+      _finalizer.detach(this);
+      _unloadModel(_memory!.pointer.ref);
+      _memory!.dispose();
+    }
   }
 }
 

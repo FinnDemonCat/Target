@@ -239,7 +239,7 @@ final class _Material extends Struct
 }
 
 // Transform, vertex transformation data
-final class Transform extends Struct
+final class _Transform extends Struct
 {
   external _Vector3 translation;        // Translation
   external _Quaternion rotation;        // Rotation
@@ -247,14 +247,14 @@ final class Transform extends Struct
 }
 
 // Bone, skeletal animation bone
-final class BoneInfo extends Struct
+final class _BoneInfo extends Struct
 {
   @Array(32) external Array<Uint8> name;// Bone name
   @Int32() external int parent;        // Bone parent
 }
 
 // Model, meshes, materials and animation data
-final class Model extends Struct
+final class _Model extends Struct
 {
   external _Matrix transform;           // Local transform matrix
 
@@ -266,8 +266,8 @@ final class Model extends Struct
 
   // Animation data
   @Int32() external int boneCount;     // Number of bones
-  external Pointer<BoneInfo> bones;    // Bones information (skeleton)
-  external Pointer<Transform> bindPose;// Bones base transformation (pose)
+  external Pointer<_BoneInfo> bones;    // Bones information (skeleton)
+  external Pointer<_Transform> bindPose;// Bones base transformation (pose)
 }
 
 // ModelAnimation
@@ -275,8 +275,8 @@ final class ModelAnimation extends Struct
 {
   @Int32() external int boneCount;     // Number of bones
   @Int32() external int frameCount;    // Number of animation frames
-  external Pointer<BoneInfo> bones;    // Bones information (skeleton)
-  external Pointer<Pointer<Transform>> framePoses; // Poses array by frame
+  external Pointer<_BoneInfo> bones;    // Bones information (skeleton)
+  external Pointer<Pointer<_Transform>> framePoses; // Poses array by frame
   @Array(32) external Array<Uint8> name; // Animation name
 }
 
@@ -1622,7 +1622,26 @@ typedef _SetMaterialTextureRay = Void Function(Pointer<_Material>, Int32, _Textu
 typedef _SetMaterialTextureDart = void Function(Pointer<_Material>, int, _Texture2D);
 final _setMaterialTexture = _dylib.lookupFunction<_SetMaterialTextureRay, _SetMaterialTextureDart>('SetMaterialTexture');
 
-//TODO: implement Model Shadow Class
+typedef _LoadModelRay = _Model Function(Pointer<Utf8>);
+typedef _LoadModelDart = _Model Function(Pointer<Utf8>);
+final _loadModel = _dylib.lookupFunction<_LoadModelRay, _LoadModelDart>('LoadModel');
+
+typedef _LoadModelFromMeshRay = _Model Function(_Mesh);
+typedef _LoadModelFromMeshDart = _Model Function(_Mesh);
+final _loadModelFromMesh = _dylib.lookupFunction<_LoadModelFromMeshRay, _LoadModelFromMeshDart>('LoadModelFromMesh');
+
+typedef _IsModelValidRay = Bool Function(_Model);
+typedef _IsModelValidDart = bool Function(_Model);
+final _isModelValid = _dylib.lookupFunction<_IsModelValidRay, _IsModelValidDart>('IsModelValid');
+
+typedef _UnloadModelRay = Void Function(_Model);
+typedef _UnloadModelDart = void Function(_Model);
+final _unloadModel = _dylib.lookupFunction<_UnloadModelRay, _UnloadModelDart>('UnloadModel');
+
+typedef _GetModelBoundingBoxRay = _BoundingBox Function(_Model);
+typedef _GetModelBoundingBoxDart = _BoundingBox Function(_Model);
+final _getModelBoundingBox = _dylib.lookupFunction<_GetModelBoundingBoxRay, _GetModelBoundingBoxDart>('GetModelBoundingBox');
+
 
 // typedef _SetModelMeshMaterialRay = Void Function(Pointer<Model>, Int32, Int32);
 // typedef _SetModelMeshMaterialDart = void Function(Pointer<Model>, int, int);
