@@ -2547,19 +2547,8 @@ extension MatrixMath on Matrix
 class Rectangle implements Disposeable
 {
   NativeResource<_Rectangle>? _memory;
-
-  // ignore: unused_element
-  void _setMemory(_Rectangle result)
-  {
-    if (_memory != null) _memory!.dispose();
-
-    Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
-    pointer.ref = result;
-
-
-    _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeResource<_Rectangle>(pointer);
-  }
+  final int _length;
+  int get length => _length;
 
   _Rectangle get ref => _memory!.pointer.ref;
   double get width => _memory!.pointer.ref.width;
@@ -2572,7 +2561,29 @@ class Rectangle implements Disposeable
   set x(double value) => _memory!.pointer.ref.x = value.abs().roundToDouble();
   set y(double value) => _memory!.pointer.ref.y = value.abs().roundToDouble();
 
-  Rectangle([double x = 0.0, double y = 0.0, double width = 0.0, double height = 0.0])
+  // ignore: unused_element
+  void _setMemory(_Rectangle result)
+  {
+    if (_memory != null) _memory!.dispose();
+
+    Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource<_Rectangle>(pointer);
+  }
+
+  // ignore: unused_element
+  Rectangle._internal(Pointer<_Rectangle> pointer,{ bool owner = true, int length = 1 }) : _length = length
+  {
+    if (_memory != null) dispose();
+
+    _memory = NativeResource<_Rectangle>(pointer, IsOwner: owner);
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Rectangle([double x = 0.0, double y = 0.0, double width = 0.0, double height = 0.0]) : _length = 1
   {
     Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
     pointer.ref
@@ -2583,6 +2594,12 @@ class Rectangle implements Disposeable
 
     _finalizer.attach(this, pointer, detach: this);
     _memory = NativeResource<_Rectangle>(pointer);
+  }
+
+  Rectangle operator [](int index)
+  {
+    if (index < 0 || index >= _length) throw RangeError(index);
+    return Rectangle._internal(_memory!.pointer + index, owner: false);
   }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_Rectangle>>((pointer)
@@ -2773,7 +2790,7 @@ abstract class Window
   /// Get clipboard text content
   static String GetClipboardText() => _getClipboardText().toDartString();
   /// Get clipboard image content
-  static Image GetClipboardImage() => Image._Recieve(_getClipboardImage());
+  static Image GetClipboardImage() => Image._internal(_getClipboardImage());
   /// Enable waiting for events on EndDrawing(), no automatic event polling
   static void EnableEventWaiting() => _enableEventWaiting();
   /// Disable waiting for events on EndDrawing(), automatic events polling
@@ -2995,7 +3012,7 @@ class Color implements Disposeable
   static final Color BLANK      = Color(  0,   0,   0); // Transparent
   static final Color RAYWHITE   = Color(245, 245, 245);
 
-  Color(int r, int g, int b,{ int a = 0 })
+  Color(int r, int g, int b,{ int a = 255 })
   {
     Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
     pointer.ref
@@ -3128,17 +3145,15 @@ class Image implements Disposeable
   }
 
   _Image get ref => _memory!.pointer.ref;
+  Pointer<Void> get data => ref.data;
   int get width => ref.width;
   int get height => ref.height;
   int get format => ref.format;
   int get mipmaps => ref.mipmaps;
-  Pointer<Void> get data => ref.data;
 
-  Image._Recieve(_Image image)
-  {
-    _setMemory(image);
-  }
+  Image._internal(_Image result) { _setMemory(result); }
 
+  //------------------------------Constructors------------------------------------------
   /// Load image from file into CPU memory (RAM)
   Image(String path)
   {
@@ -3232,6 +3247,82 @@ class Image implements Disposeable
     _setMemory(result);
   }
 
+//---------------------------------Generators-----------------------------------------
+/// Generate image: plain color
+static Image FromColor(int width, int height, Color color)
+{
+  _Image result = _genImageColor(width, height, color.ref);
+  return Image._internal(result);
+}
+
+/// Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
+static Image GradientLinear(
+  int width, int height,
+ {required int direction, required Color start, required Color end}
+) {
+  _Image result = _genImageGradientLinear(width, height, direction, start.ref, end.ref);
+  return Image._internal(result);
+}
+
+/// Generate image: radial gradient
+static Image GradientRadial(
+  int width, int height,
+ {required double density, required Color inner, required Color outer}
+) {
+  _Image result = _genImageGradientRadial(width, height, density, inner.ref, outer.ref);
+  return Image._internal(result);
+}
+
+/// Generate image: square gradient
+static Image GradientSquare(
+  int width, int height,
+ {required double density, required Color inner, required Color outer}
+) {
+  _Image result = _genImageGradientSquare(width, height, density, inner.ref, outer.ref);
+  return Image._internal(result);
+}
+
+/// Generate image: checked
+static Image Checked(
+  int width, int height,
+ {required int checksX, required int checksY, required Color col1, required Color col2}
+) {
+  _Image result = _genImageChecked(width, height, checksX, checksY, col1.ref, col2.ref);
+  return Image._internal(result);
+}
+
+/// Generate image: white noise
+static Image WhiteNoise(int width, int height,{ required double factor })
+{
+  _Image result = _genImageWhiteNoise(width, height, factor);
+  return Image._internal(result);
+}
+
+/// Generate image: perlin noise
+static Image PerlinNoise(int width, int height,{ required int offsetX, required int offsetY, required double scale })
+{
+  _Image result = _genImagePerlinNoise(width, height, offsetX, offsetY, scale);
+  return Image._internal(result);
+}
+
+/// Generate image: cellular algorithm, bigger tileSize means bigger cells
+static Image Cellular(int width, int height, int tileSize)
+{
+  _Image result = _genImageCellular(width, height, tileSize);
+  return Image._internal(result);
+}
+
+static Image Text(int width, int height, String text)
+{
+  return using ((Arena arena) {
+    Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
+
+    _Image result = _genImageText(width, height, ctext);
+    return Image._internal(result);
+  });
+}
+//----------------------------------Utility-------------------------------------------
+
   // Check if an image is valid (data and parameters)
   bool IsValid()
   {
@@ -3290,6 +3381,8 @@ class Image implements Disposeable
     });
   }
 
+//--------------------------------Deconstructors--------------------------------------
+
   // Garbage Colector dispose reference
   static final Finalizer<Pointer<_Image>> _finalizer = Finalizer((ptr) 
   {
@@ -3337,15 +3430,17 @@ class Texture2D implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
 	}
 
+  _Texture2D get ref => _memory!.pointer.ref;
+  int get width => ref.width;
+  int get heigth => ref.heigth;
+  int get format => ref.format;
+  int get id => ref.id;
+  int get mipmaps => ref.mipmaps;
+
   //--------------------------------Constructors----------------------------------------
 
   // Used for TextureCubeMap constructor
-  Texture2D._internal(_Texture struct)
-  {
-    _setmemory(struct);
-  }
-
-  _Texture2D get ref => _memory!.pointer.ref;
+  Texture2D._internal(_Texture struct) { _setmemory(struct); }
 
   /// Load texture from file into GPU memory (VRAM)
   Texture2D(String fileName)
@@ -3370,6 +3465,12 @@ class Texture2D implements Disposeable
   }
 
   //---------------------------------Utilities-----------------------------------------
+  /// Generate GPU mipmaps for a texture
+  void GenMipmaps() => _genTextureMipmaps(_memory!.pointer);
+  /// Set texture scaling filter mode
+  void SetFilter(int filter) => _setTextureFilter(ref, filter);
+  /// Set texture wrapping mode
+  void SetWrap(int wrap) => _setTextureWrap(ref, wrap);
 
   /// Check if a texture is valid (loaded in GPU)
   bool isValid()
@@ -3640,10 +3741,21 @@ class NPatchInfo implements Disposeable
 //------------------------------------------------------------------------------------
 //                                 GlyphInfo
 //------------------------------------------------------------------------------------
-
 class GlyphInfo implements Disposeable
 {
   NativeResource<_GlyphInfo>? _memory;
+  final int _length;
+
+  int get length => length;
+
+  GlyphInfo._internal(Pointer<_GlyphInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
+  {
+    if (_memory != null) dispose();
+    _memory = NativeResource<_GlyphInfo>(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
 
   // ignore: unused_element
   void _setmemory(_GlyphInfo result)
@@ -3659,6 +3771,12 @@ class GlyphInfo implements Disposeable
     malloc.free(pointer);
   });
 
+  GlyphInfo operator [](int index)
+  {
+    if (index < 0 || index >= _length) throw RangeError(index);
+    return GlyphInfo._internal(_memory!.pointer + index, owner: false);
+  }
+
   @override
   void dispose()
   {
@@ -3670,8 +3788,141 @@ class GlyphInfo implements Disposeable
   }
 }
 
+//------------------------------------------------------------------------------------
+//                                    Font
+//------------------------------------------------------------------------------------
+
+class Font implements Disposeable
+{
+  NativeResource<_Font>? _memory;
+  _Font get ref => _memory!.pointer.ref;
+  int get baseSize => ref.baseSize;
+  int get glyphPadding => ref.glyphPadding;
+  _Texture2D get texture => ref.texture; 
+
+  late final GlyphInfo glyphs;
+  late final Rectangle recs;
+
+  void _setmemory(_Font result)
+  {
+    Pointer<_Font> pointer = malloc.allocate<_Font>(sizeOf<_Font>());
+    pointer.ref = result;
+
+    glyphs = GlyphInfo._internal(pointer.ref.glyphs, length: pointer.ref.glyphCount);
+    recs = Rectangle._internal(pointer.ref.recs, length: pointer.ref.glyphCount);
+
+    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource<_Font>(pointer);
+  }
+
+  /// Get the default Font
+  Font.Default()
+  {
+    _Font result = _getFontDefault();
+    _setmemory(result);
+  }
+
+  /// Load font from file into GPU memory (VRAM)
+  Font(String fileName)
+  {
+    using ((Arena arena) {
+      Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
+      _Font result = _loadFont(cfileName);
+
+      _setmemory(result);
+    });
+  }
+
+  /// Load font from file with extended parameters, use NULL for codepoints and 0 for codepointCount to load the default character set, font size is provided in pixels height
+  Font.LoadEx(String fileName,{ required int fontSize, required Pointer<Int32> codepoints, required int codepointCount })
+  {
+    using ((Arena arena) {
+      Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
+      _Font result = _loadFontEx(cfileName, fontSize, codepoints, codepointCount);
+
+      _setmemory(result);
+    });
+  }
+
+  Font.FromImage(Image image, Color key, int firstChar)
+  {
+    _Font result = _loadFontFromImage(image.ref, key.ref, firstChar);
+    _setmemory(result);
+  }
+
+  /// Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
+  // TODO: Pointer<Uint8> should be Uint8List
+  Font.FromMemory({
+    required String fileType, required Pointer<Uint8> fileData, required int dataSize,
+    required int fontSize, required Pointer<Int32> codepoints, required int codepointCount}
+  ) {
+    using ((Arena arena) {
+      Pointer<Utf8> cfileType = fileType.toNativeUtf8(allocator: arena);
+      _Font result = _loadFontFromMemory(cfileType, fileData, dataSize, fontSize, codepoints, codepointCount);
+
+      _setmemory(result);
+    });
+  }
+
+  GlyphInfo loadFontData(
+    {required Uint8List fileData,
+     required int fontSize,
+     List<int>? codepoints,
+     int type = 0}
+  ) {
+    return using((Arena arena) {
+      Pointer<Uint8> cfileData = arena.allocate<Uint8>(fileData.length);
+      cfileData.asTypedList(fileData.length).setAll(0, fileData);
+
+      Pointer<Int32> glyphCountPtr = arena.allocate<Int32>(sizeOf<Int32>());
+
+      Pointer<Int32> codepointsPtr = nullptr;
+      int codepointsCount = 0;
+
+      if (codepoints != null)
+      {
+        codepointsPtr = arena.allocate<Int32>(sizeOf<Int32>() * codepoints.length);
+        for (int x = 0; x < codepoints.length; x++) {
+          codepointsPtr[x] = codepoints[x];
+        }
+        codepointsCount = codepoints.length;
+      }
+
+      Pointer<_GlyphInfo> pointer = _loadFontData(
+        cfileData,
+        fileData.length,
+        fontSize,
+        codepointsPtr,
+        codepointsCount,
+        type,
+        glyphCountPtr
+      );
+      return GlyphInfo._internal(pointer, length: glyphCountPtr.value);
+    });
+  }
+
+  bool IsValid() => _isFontValid(ref);
+
+  /// Unload font from GPU memory (VRAM)
+  void Unload() => dispose();
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Font>>((pointer) {
+    _unloadFont(pointer.ref);
+    malloc.free(pointer);
+  });
+
+  @override
+  void dispose()
+  {
+    if (_memory != null && _memory!.isDisposed)
+    {
+      _unloadFont(ref);
+      _memory!.dispose();
+    }
+  }
+}
+
 /*
-  Font
   Shader
   MaterialMap
   BoneInfo
