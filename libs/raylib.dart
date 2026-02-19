@@ -340,6 +340,8 @@ class Vector3 implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
+  Vector3._recieve(_Vector3 result) { _setmemory(result); }
+
   /// Vector with components value 0.0f
   factory Vector3.Zero() => Vector3();
 
@@ -956,6 +958,8 @@ class Vector4 implements Disposeable
     _memory = NativeResource(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
+
+  Vector4._recieve(_Vector4 result) { _setmemory(result); }
 
   Vector4._internal(Pointer<_Vector4> pointer)
   {
@@ -2949,49 +2953,49 @@ abstract class Frame
 //------------------------------------------------------------------------------------
 //                                   Color
 //------------------------------------------------------------------------------------
-
 class Color implements Disposeable
 {
   NativeResource<_Color>? _memory;
 
-  // ignore: unused_element
+  // Creates a new pointer in heap and copies the value  
   _setMemory(_Color result)
   {
     Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
     pointer.ref = result;
 
     _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeResource(pointer);
+    _memory = NativeResource<_Color>(pointer);
   }
 
   _Color get ref => _memory!.pointer.ref;
+  set ref(_Color result) => _memory!.pointer.ref = result;
 
-  static final Color LIGHTGRAY  = Color(200, 200, 200, 255);
-  static final Color GRAY       = Color(130, 130, 130, 255);
-  static final Color DARKGRAY   = Color( 80,  80,  80, 255);
-  static final Color YELLOW     = Color( 53, 249,   0, 255);
-  static final Color GOLD       = Color(255, 203,   0, 255);
-  static final Color ORANGE     = Color(255, 161,   0, 255);
-  static final Color PINK       = Color(255, 109, 194, 255);
-  static final Color RED        = Color(230,  41,  55, 255);
-  static final Color MAROON     = Color(190,  33,  55, 255);
-  static final Color GREEN      = Color(  0, 228,  48, 255);
-  static final Color LIME       = Color(  0, 158,  47, 255);
-  static final Color DARKGREEN  = Color(  0, 117,  44, 255);
-  static final Color SKYBLUE    = Color(102, 191, 255, 255);
-  static final Color BLUE       = Color(  0, 121, 241, 255);
-  static final Color DARKBLUE   = Color(  0,  82, 172, 255);
-  static final Color VIOLET     = Color(135,  60, 190, 255);
-  static final Color DARKPURPLE = Color(112,  31, 126, 255);
-  static final Color BEIGE      = Color(211, 176, 131, 255);
-  static final Color BROWN      = Color(127, 106,  79, 255);
-  static final Color DARKBROWN  = Color( 76,  63,  47, 255);
-  static final Color WHITE      = Color(255, 255, 255, 255);
-  static final Color BLACK      = Color(  0,   0,   0, 255);
-  static final Color BLANK      = Color(  0,   0,   0,   0); // Transparent
-  static final Color RAYWHITE   = Color(245, 245, 245, 255);
+  static final Color LIGHTGRAY  = Color(200, 200, 200);
+  static final Color GRAY       = Color(130, 130, 130);
+  static final Color DARKGRAY   = Color( 80,  80,  80);
+  static final Color YELLOW     = Color( 53, 249,   0);
+  static final Color GOLD       = Color(255, 203,   0);
+  static final Color ORANGE     = Color(255, 161,   0);
+  static final Color PINK       = Color(255, 109, 194);
+  static final Color RED        = Color(230,  41,  55);
+  static final Color MAROON     = Color(190,  33,  55);
+  static final Color GREEN      = Color(  0, 228,  48);
+  static final Color LIME       = Color(  0, 158,  47);
+  static final Color DARKGREEN  = Color(  0, 117,  44);
+  static final Color SKYBLUE    = Color(102, 191, 255);
+  static final Color BLUE       = Color(  0, 121, 241);
+  static final Color DARKBLUE   = Color(  0,  82, 172);
+  static final Color VIOLET     = Color(135,  60, 190);
+  static final Color DARKPURPLE = Color(112,  31, 126);
+  static final Color BEIGE      = Color(211, 176, 131);
+  static final Color BROWN      = Color(127, 106,  79);
+  static final Color DARKBROWN  = Color( 76,  63,  47);
+  static final Color WHITE      = Color(255, 255, 255);
+  static final Color BLACK      = Color(  0,   0,   0);
+  static final Color BLANK      = Color(  0,   0,   0); // Transparent
+  static final Color RAYWHITE   = Color(245, 245, 245);
 
-  Color(int r, int g, int b, int a)
+  Color(int r, int g, int b,{ int a = 0 })
   {
     Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
     pointer.ref
@@ -3003,7 +3007,82 @@ class Color implements Disposeable
     _memory = NativeResource<_Color>(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
+  /// Get Color from normalized values [0..1]
+  Color.FromNormalized(Vector4 normalized)
+  {
+    _Color result = _colorFromNormalized(normalized.ref);
+    _setMemory(result);
+  }
+  /// Get a Color from HSV values, hue [0..360], saturation/value [0..1]
+  Color.FromHSV(double hue, double saturation, double value)
+  {
+    _Color result = _colorFromHSV(hue, saturation, value);
+    _setMemory(result);
+  }
+  /// Get Color structure from hexadecimal value
+  Color.FromHex(int hex)
+  {
+    _Color result = _getColor(hex);
+    _setMemory(result);
+  }
+  /// Get Color from a source pixel pointer of certain format
+  Color.FromPointer(Pointer<Void> srcPtr, int format)
+  {
+    _Color result = _getPixelColor(srcPtr, format);
+    _setMemory(result);
+  }
+  /// Set color formatted into destination pixel pointer
+  static void SetPixelColor(Pointer<Void> dstPtr, Color color, int format) => _setPixelColor(dstPtr, color.ref, format);
+  /// Get pixel data size in bytes for certain format
+  static int GetPixelDataSize(int width, int height, int format) => _getPixelDataSize(width, height, format);
   
+  /// Check if two colors are equal
+  static bool IsEqual(Color col1, Color col2) => _colorIsEqual(col1.ref, col2.ref);
+  /// Get color with alpha applied, alpha goes from 0.0f to 1.0f
+  void Fade(double alpha) => _fade(ref, alpha);
+  /// Get hexadecimal value for a Color (0xRRGGBBAA)
+  int ToInt() => _colorToInt(ref);
+  /// Get Color normalized as float [0..1]
+  Vector4 Normalize() => Vector4._recieve(_colorNormalize(ref));
+  /// Get HSV values for a Color, hue [0..360], saturation/value [0..1]
+  Vector3 ToHSV() => Vector3._recieve(_colorToHSV(ref));
+  /// Get color multiplied with another color
+  void Tint(Color color, Color tint)
+  {
+    _Color result = _colorTint(color.ref, tint.ref);
+    ref = result;
+  }
+  /// Get color with brightness correction, brightness factor goes from -1.0f to 1.0f (New Instance)
+  void Brightness(double factor)
+  {
+    _Color result = _colorBrightness(ref, factor);
+    ref = result;
+  }
+  /// Get color with contrast correction, contrast values between -1.0f and 1.0f
+  void Contrast(double contrast)
+  {
+    _Color result = _colorContrast(ref, contrast);
+    ref = result;
+  }
+  /// Get color with alpha applied, alpha goes from 0.0f to 1.0f
+  void Alpha(double alpha)
+  {
+    _Color result = _colorAlpha(ref, alpha);
+    ref = result;
+  }
+  /// Get src alpha-blended into dst color with tint
+  void AlphaBlend(Color src, Color tint)
+  {
+    _Color result = _colorAlphaBlend(ref, src.ref, tint.ref);
+    ref = result;
+  }
+  /// Get color lerp interpolation between two colors, factor [0.0f..1.0f]
+  void Lerp(Color color2, double factor)
+  {
+    _Color result = _colorLerp(ref, color2.ref, factor);
+    ref = result;
+  }
+
   static final Finalizer _finalizer = Finalizer<Pointer<_Color>>((pointer)
   {
     if (pointer.address != 0)
@@ -3314,20 +3393,20 @@ class Texture2D implements Disposeable
   }
 
   /// Draw a Texture2D
-  static Draw(Texture2D texture,{ int posX = 0, int posY = 0, Color? tint })
+  static void Draw(Texture2D texture,{ int posX = 0, int posY = 0, Color? tint })
   {
     tint ??= Color.WHITE;
     _drawTexture(texture.ref, posX, posY, tint.ref);
   }
   /// Draw a Texture2D with position defined as Vector2
-  static DrawV(Texture2D texture,{ required Vector2 position, Color? tint })
+  static void DrawV(Texture2D texture,{ required Vector2 position, Color? tint })
   {
     tint ??= Color.WHITE;
     _drawTextureV(texture.ref, position.ref, tint.ref);
   }
 
   /// Draw a Texture2D with extended parameters
-  static DrawEx(Texture2D texture,{ Vector2? position, double rotation = 0.0, double scale = 1.0, Color? tint })
+  static void DrawEx(Texture2D texture,{ Vector2? position, double rotation = 0.0, double scale = 1.0, Color? tint })
   {
     tint ??= Color.WHITE;
     position ??= Vector2.Zero();
@@ -3335,7 +3414,7 @@ class Texture2D implements Disposeable
   }
 
   /// Draw a part of a texture defined by a rectangle
-  static DrawRec(Texture2D texture, Rectangle source,{ Vector2? position, Color? tint })
+  static void DrawRec(Texture2D texture, Rectangle source,{ Vector2? position, Color? tint })
   {
     tint ??= Color.WHITE;
     position ??= Vector2.Zero();
@@ -3343,7 +3422,7 @@ class Texture2D implements Disposeable
   }
 
   /// Draw a part of a texture defined by a rectangle with 'pro' parameters
-  static DrawPro(Texture2D texture, Rectangle source, Rectangle dest,{ Vector2? origin, double rotation = 0.0, Color? tint })
+  static void DrawPro(Texture2D texture, Rectangle source, Rectangle dest,{ Vector2? origin, double rotation = 0.0, Color? tint })
   {
     tint ??= Color.WHITE;
     origin ??= Vector2.Zero();
@@ -3351,13 +3430,38 @@ class Texture2D implements Disposeable
   }
 
   /// Draws a texture (or part of it) that stretches or shrinks nicely
-  static DrawNPatch(
+  static void DrawNPatch(
     Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
     { Vector2? origin, double rotation = 0.0, Color? tint }
   ) {
     tint ??= Color.WHITE;
     origin ??= Vector2.Zero();
     _drawTextureNPatch(texture.ref, nPatchInfo.ref, dest.ref, origin.ref, rotation, tint.ref);
+  }
+
+  /// Draw a billboard texture
+  static void DrawBillboard(Texture2D texture, Vector3 position, {required Camera camera, double scale = 0.0, Color? tint})
+  {
+    tint ??= Color.WHITE;
+    _drawBillboard(camera.ref, texture.ref, position.ref, scale, tint.ref);
+  }
+
+  /// Draw a billboard texture defined by source
+  static void DrawBillboardRec(Texture2D texture, Vector3 position, Rectangle source,{ required Camera camera, Vector2? size, Color? tint})
+  {
+    size ??= Vector2.One();
+    tint ??= Color.WHITE;
+    _drawBillboardRec(camera.ref, texture.ref, source.ref, position.ref, size.ref, tint.ref);
+  }
+
+  /// Draw a billboard texture defined by source and rotation
+  static void DrawBillboardPro(
+    Texture2D texture, Rectangle source, Vector3 position,
+   { required Camera camera, required Vector3 up, Vector2? size, Vector2? origin, double rotation = 0.0, Color? tint}) {
+    size ??= Vector2.One();
+    origin ??= Vector2.One();
+    tint ??= Color.WHITE;
+    _drawBillboardPro(camera.ref, texture.ref, source.ref, position.ref, up.ref, size.ref, origin.ref, rotation, tint.ref);
   }
 
   //--------------------------------Deconstructors--------------------------------------
@@ -3677,6 +3781,8 @@ class Camera3D implements Disposeable
   }
 }
 
+typedef Camera = Camera3D;
+
 //------------------------------------------------------------------------------------
 //                                 BoundingBox
 //------------------------------------------------------------------------------------
@@ -3689,7 +3795,7 @@ class BoundingBox implements Disposeable
   _Vector3 get min => ref.min;
   _Vector3 get max => ref.max;
 
-  BoundingBox.Wrap(_BoundingBox result)
+  BoundingBox._internal(_BoundingBox result)
   {
     Pointer<_BoundingBox> pointer = malloc.allocate<_BoundingBox>(sizeOf<_BoundingBox>());
     pointer.ref = result;
@@ -3885,7 +3991,7 @@ class Mesh implements Disposeable
   BoundingBox GetBoundingBox()
   {
     _BoundingBox result = _getMeshBoundingBox(this.ref);
-    return BoundingBox.Wrap(result);
+    return BoundingBox._internal(result);
   }
 
   /// Compute mesh tangents
@@ -4163,6 +4269,7 @@ class Model implements Disposeable
   late final Material materials;
   late final BoneInfo bones;
   late final Transform bindPose;
+  late final BoundingBox bounds = _GetBoundingBox();
 
   void _setmemory(_Model result)
   {
@@ -4178,7 +4285,7 @@ class Model implements Disposeable
 
     _finalizer.attach(this, pointer, detach: this);
   }
-
+//----------------------------------Constructors-------------------------------------
   /// Load model from files (meshes and materials)
   Model(String fileName)
   {
@@ -4198,9 +4305,66 @@ class Model implements Disposeable
   }
 
   /// Compute model bounding box limits (considers all meshes)
-  BoundingBox GetBoundingBox() => BoundingBox.Wrap(_getModelBoundingBox(ref));
+  BoundingBox _GetBoundingBox() => BoundingBox._internal(_getModelBoundingBox(ref));
   /// Check if a model is valid (loaded in GPU, VAO/VBOs)
   bool IsValid() => _isModelValid(ref);
+  /// Draw a model (with texture if set)
+  static void Draw(Model model, Vector3 position,{ double scale = 0.0, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    _drawModel(model.ref, position.ref, scale, tint.ref);
+  }
+
+  /// Draw a model with extended parameters
+  static void DrawEx(
+    Model model, Vector3 position, Vector3 rotationAxis, double rotationAngle,
+   {Vector3? scale, Color? tint}
+  ) {
+    scale ??= Vector3.One();
+    tint ??= Color.WHITE;
+    _drawModelEx(model.ref, position.ref, rotationAxis.ref, rotationAngle, scale.ref, tint.ref);
+  }
+
+  /// Draw a model wires (with texture if set)
+  static void DrawWires(
+    Model model, Vector3 position,
+   {double scale = 0.0, Color? tint}
+  ) {
+    tint ??= Color.WHITE;
+    _drawModelWires(model.ref, position.ref, scale, tint.ref);
+  }
+
+  /// Draw a model wires (with texture if set) with extended parameters
+  static void DrawWiresEx(
+    Model model, Vector3 position, Vector3 rotationAxis, double rotationAngle,
+   {Vector3? scale, Color? tint}
+  ) {
+    scale ??= Vector3.One();
+    tint ??= Color.WHITE;
+    _drawModelWiresEx(model.ref, position.ref, rotationAxis.ref, rotationAngle, scale.ref, tint.ref);
+  }
+
+  /// Draw a model as points
+  static void DrawPoints(Model model, Vector3 position,{ double scale = 0.0, Color? tint })
+  {
+    tint ??= Color.WHITE;
+    _drawModelPoints(model.ref, position.ref, scale, tint.ref);
+  }
+
+  /// Draw a model as points with extended parameters
+  static void DrawPointsEx(
+    Model model, Vector3 position, Vector3 rotationAxis, double rotationAngle,
+   {Vector3? scale, Color? tint}
+  ) {
+    scale ??= Vector3.One();
+    tint ??= Color.WHITE;
+    _drawModelPointsEx(model.ref, position.ref, rotationAxis.ref, rotationAngle, scale.ref, tint.ref);
+  }
+
+  /// Draw bounding box (wires)
+  static void DrawBoundingBox({required Model model, required Color color}) => _drawBoundingBox(model.bounds.ref, color.ref);
+
+  //-----------------------------Memory Management--------------------------------------
   /// Unload model (including meshes) from memory (RAM and/or VRAM)
   void Unload() => dispose();
 

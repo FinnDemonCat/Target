@@ -177,7 +177,7 @@ final class _Camera3D extends Struct
   @Int32() external int projection;    // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
 }
 
-typedef Camera = Camera3D;             // Camera type fallback, defaults to Camera3D
+typedef _Camera = _Camera3D;             // Camera type fallback, defaults to Camera3D
 
 // Camera2D, defines position/orientation in 2d space
 final class _Camera2D extends Struct
@@ -402,22 +402,22 @@ final class AutomationEventList extends Struct
 /// By default all flags are set to 0
 abstract class ConfigFlags
 {
-  static const int FLAG_VSYNC_HINT         = 0x00000040;   // Set to try enabling V-Sync on GPU
-  static const int FLAG_FULLSCREEN_MODE    = 0x00000002;   // Set to run program in fullscreen
-  static const int FLAG_WINDOW_RESIZABLE   = 0x00000004;   // Set to allow resizable window
-  static const int FLAG_WINDOW_UNDECORATED = 0x00000008;   // Set to disable window decoration (frame and buttons)
-  static const int FLAG_WINDOW_HIDDEN      = 0x00000080;   // Set to hide window
-  static const int FLAG_WINDOW_MINIMIZED   = 0x00000200;   // Set to minimize window (iconify)
-  static const int FLAG_WINDOW_MAXIMIZED   = 0x00000400;   // Set to maximize window (expanded to monitor)
-  static const int FLAG_WINDOW_UNFOCUSED   = 0x00000800;   // Set to window non focused
-  static const int FLAG_WINDOW_TOPMOST     = 0x00001000;   // Set to window always on top
-  static const int FLAG_WINDOW_ALWAYS_RUN  = 0x00000100;   // Set to allow windows running while minimized
-  static const int FLAG_WINDOW_TRANSPARENT = 0x00000010;   // Set to allow transparent framebuffer
-  static const int FLAG_WINDOW_HIGHDPI     = 0x00002000;   // Set to support HighDPI
-  static const int FLAG_WINDOW_MOUSE_PASSTHROUGH = 0x00004000; // Set to support mouse passthrough only supported when FLAG_WINDOW_UNDECORATED
-  static const int FLAG_BORDERLESS_WINDOWED_MODE = 0x00008000; // Set to run program in borderless windowed mode
-  static const int FLAG_MSAA_4X_HINT       = 0x00000020;   // Set to try enabling MSAA 4X
-  static const int FLAG_INTERLACED_HINT    = 0x00010000;   // Set to try enabling interlaced video format (for V3D)
+  static const int VSYNC_HINT         = 0x00000040;   // Set to try enabling V-Sync on GPU
+  static const int FULLSCREEN_MODE    = 0x00000002;   // Set to run program in fullscreen
+  static const int WINDOW_RESIZABLE   = 0x00000004;   // Set to allow resizable window
+  static const int WINDOW_UNDECORATED = 0x00000008;   // Set to disable window decoration (frame and buttons)
+  static const int WINDOW_HIDDEN      = 0x00000080;   // Set to hide window
+  static const int WINDOW_MINIMIZED   = 0x00000200;   // Set to minimize window (iconify)
+  static const int WINDOW_MAXIMIZED   = 0x00000400;   // Set to maximize window (expanded to monitor)
+  static const int WINDOW_UNFOCUSED   = 0x00000800;   // Set to window non focused
+  static const int WINDOW_TOPMOST     = 0x00001000;   // Set to window always on top
+  static const int WINDOW_ALWAYS_RUN  = 0x00000100;   // Set to allow windows running while minimized
+  static const int WINDOW_TRANSPARENT = 0x00000010;   // Set to allow transparent framebuffer
+  static const int WINDOW_HIGHDPI     = 0x00002000;   // Set to support HighDPI
+  static const int WINDOW_MOUSE_PASSTHROUGH = 0x00004000; // Set to support mouse passthrough only supported when FLAG_WINDOW_UNDECORATED
+  static const int BORDERLESS_WINDOWED_MODE = 0x00008000; // Set to run program in borderless windowed mode
+  static const int MSAA_4X_HINT       = 0x00000020;   // Set to try enabling MSAA 4X
+  static const int INTERLACED_HINT    = 0x00010000;   // Set to try enabling interlaced video format (for V3D)
 }
 
 /// Trace log level
@@ -1399,6 +1399,10 @@ typedef _UnloadTextureRay = Void Function(_Texture2D);
 typedef _UnloadTextureDart = void Function(_Texture2D);
 final _unloadTexture = _dylib.lookupFunction<_UnloadTextureRay, _UnloadTextureDart>('UnloadTexture');
 
+//------------------------------------------------------------------------------------
+//                                RenderTexture
+//------------------------------------------------------------------------------------
+
 typedef _IsRenderTextureValidRay = Bool Function(_RenderTexture2D);
 typedef _IsRenderTextureValidDart = bool Function(_RenderTexture2D);
 final _isRenderTextureValid = _dylib.lookupFunction<_IsRenderTextureValidRay, _IsRenderTextureValidDart>('IsRenderTextureValid');
@@ -1407,6 +1411,10 @@ typedef _UnloadRenderTextureRay = Void Function(_RenderTexture2D);
 typedef _UnloadRenderTextureDart = void Function(_RenderTexture2D);
 final _unloadRenderTexture = _dylib.lookupFunction<_UnloadRenderTextureRay, _UnloadRenderTextureDart>('UnloadRenderTexture');
 
+//------------------------------------------------------------------------------------
+//                                   Texture
+//------------------------------------------------------------------------------------
+
 typedef _UpdateTextureRay = Void Function(_Texture2D, Pointer<Void>);
 typedef _UpdateTextureDart = void Function(_Texture2D, Pointer<Void>);
 final _updateTexture = _dylib.lookupFunction<_UpdateTextureRay, _UpdateTextureDart>('UpdateTexture');
@@ -1414,6 +1422,34 @@ final _updateTexture = _dylib.lookupFunction<_UpdateTextureRay, _UpdateTextureDa
 typedef _UpdateTextureRecRay = Void Function(_Texture2D, _Rectangle, Pointer<Void>);
 typedef _UpdateTextureRecDart = void Function(_Texture2D, _Rectangle, Pointer<Void>);
 final _updateTextureRec = _dylib.lookupFunction<_UpdateTextureRecRay, _UpdateTextureRecDart>('UpdateTextureRec');
+
+typedef _DrawTextureRay = Void Function(_Texture2D, Int32, Int32, _Color);
+typedef _DrawTextureDart = void Function(_Texture2D, int, int, _Color);
+final _drawTexture = _dylib.lookupFunction<_DrawTextureRay, _DrawTextureDart>('DrawTexture');
+
+typedef _DrawTextureVRay = Void Function(_Texture2D, _Vector2, _Color);
+typedef _DrawTextureVDart = void Function(_Texture2D, _Vector2, _Color);
+final _drawTextureV = _dylib.lookupFunction<_DrawTextureVRay, _DrawTextureVDart>('DrawTextureV');
+
+typedef _DrawTextureExRay = Void Function(_Texture2D, _Vector2, Float, Float, _Color);
+typedef _DrawTextureExDart = void Function(_Texture2D, _Vector2, double, double, _Color);
+final _drawTextureEx = _dylib.lookupFunction<_DrawTextureExRay, _DrawTextureExDart>('DrawTextureEx');
+
+typedef _DrawTextureRecRay = Void Function(_Texture2D, _Rectangle, _Vector2, _Color);
+typedef _DrawTextureRecDart = void Function(_Texture2D, _Rectangle, _Vector2, _Color);
+final _drawTextureRec = _dylib.lookupFunction<_DrawTextureRecRay, _DrawTextureRecDart>('DrawTextureRec');
+
+typedef _DrawTextureProRay = Void Function(_Texture2D, _Rectangle, _Rectangle, _Vector2, Float, _Color);
+typedef _DrawTextureProDart = void Function(_Texture2D, _Rectangle, _Rectangle, _Vector2, double, _Color);
+final _drawTexturePro = _dylib.lookupFunction<_DrawTextureProRay, _DrawTextureProDart>('DrawTexturePro');
+
+typedef _DrawTextureNPatchRay = Void Function(_Texture2D, _NPatchInfo, _Rectangle, _Vector2, Float, _Color);
+typedef _DrawTextureNPatchDart = void Function(_Texture2D, _NPatchInfo, _Rectangle, _Vector2, double, _Color);
+final _drawTextureNPatch = _dylib.lookupFunction<_DrawTextureNPatchRay, _DrawTextureNPatchDart>('DrawTextureNPatch');
+
+//------------------------------------------------------------------------------------
+//                                   Window
+//------------------------------------------------------------------------------------
 
 typedef _ClearBackgroundRay = Void Function(_Color);
 typedef _ClearBackgroundDart = void Function(_Color);
@@ -1451,29 +1487,77 @@ typedef _EndTextureModeRay = Void Function();
 typedef _EndTextureModeDart = void Function();
 final _endTextureMode = _dylib.lookupFunction<_EndTextureModeRay, _EndTextureModeDart>('EndTextureMode');
 
-typedef _DrawTextureRay = Void Function(_Texture2D, Int32, Int32, _Color);
-typedef _DrawTextureDart = void Function(_Texture2D, int, int, _Color);
-final _drawTexture = _dylib.lookupFunction<_DrawTextureRay, _DrawTextureDart>('DrawTexture');
+//------------------------------------------------------------------------------------
+//                                   Color
+//------------------------------------------------------------------------------------
 
-typedef _DrawTextureVRay = Void Function(_Texture2D, _Vector2, _Color);
-typedef _DrawTextureVDart = void Function(_Texture2D, _Vector2, _Color);
-final _drawTextureV = _dylib.lookupFunction<_DrawTextureVRay, _DrawTextureVDart>('DrawTextureV');
+typedef _ColorIsEqualRay = Bool Function(_Color, _Color);
+typedef _ColorIsEqualDart = bool Function(_Color, _Color);
+final _colorIsEqual = _dylib.lookupFunction<_ColorIsEqualRay, _ColorIsEqualDart>('ColorIsEqual');
 
-typedef _DrawTextureExRay = Void Function(_Texture2D, _Vector2, Float, Float, _Color);
-typedef _DrawTextureExDart = void Function(_Texture2D, _Vector2, double, double, _Color);
-final _drawTextureEx = _dylib.lookupFunction<_DrawTextureExRay, _DrawTextureExDart>('DrawTextureEx');
+typedef _FadeRay = _Color Function(_Color, Float);
+typedef _FadeDart = _Color Function(_Color, double);
+final _fade = _dylib.lookupFunction<_FadeRay, _FadeDart>('Fade');
 
-typedef _DrawTextureRecRay = Void Function(_Texture2D, _Rectangle, _Vector2, _Color);
-typedef _DrawTextureRecDart = void Function(_Texture2D, _Rectangle, _Vector2, _Color);
-final _drawTextureRec = _dylib.lookupFunction<_DrawTextureRecRay, _DrawTextureRecDart>('DrawTextureRec');
+typedef _ColorToIntRay = Int32 Function(_Color);
+typedef _ColorToIntDart = int Function(_Color);
+final _colorToInt = _dylib.lookupFunction<_ColorToIntRay, _ColorToIntDart>('ColorToInt');
 
-typedef _DrawTextureProRay = Void Function(_Texture2D, _Rectangle, _Rectangle, _Vector2, Float, _Color);
-typedef _DrawTextureProDart = void Function(_Texture2D, _Rectangle, _Rectangle, _Vector2, double, _Color);
-final _drawTexturePro = _dylib.lookupFunction<_DrawTextureProRay, _DrawTextureProDart>('DrawTexturePro');
+typedef _ColorNormalizeRay = _Vector4 Function(_Color);
+typedef _ColorNormalizeDart = _Vector4 Function(_Color);
+final _colorNormalize = _dylib.lookupFunction<_ColorNormalizeRay, _ColorNormalizeDart>('ColorNormalize');
 
-typedef _DrawTextureNPatchRay = Void Function(_Texture2D, _NPatchInfo, _Rectangle, _Vector2, Float, _Color);
-typedef _DrawTextureNPatchDart = void Function(_Texture2D, _NPatchInfo, _Rectangle, _Vector2, double, _Color);
-final _drawTextureNPatch = _dylib.lookupFunction<_DrawTextureNPatchRay, _DrawTextureNPatchDart>('DrawTextureNPatch');
+typedef _ColorFromNormalizedRay = _Color Function(_Vector4);
+typedef _ColorFromNormalizedDart = _Color Function(_Vector4);
+final _colorFromNormalized = _dylib.lookupFunction<_ColorFromNormalizedRay, _ColorFromNormalizedDart>('ColorFromNormalized');
+
+typedef _ColorToHSVRay = _Vector3 Function(_Color);
+typedef _ColorToHSVDart = _Vector3 Function(_Color);
+final _colorToHSV = _dylib.lookupFunction<_ColorToHSVRay, _ColorToHSVDart>('ColorToHSV');
+
+typedef _ColorFromHSVRay = _Color Function(Float, Float, Float);
+typedef _ColorFromHSVDart = _Color Function(double, double, double);
+final _colorFromHSV = _dylib.lookupFunction<_ColorFromHSVRay, _ColorFromHSVDart>('ColorFromHSV');
+
+typedef _ColorTintRay = _Color Function(_Color, _Color);
+typedef _ColorTintDart = _Color Function(_Color, _Color);
+final _colorTint = _dylib.lookupFunction<_ColorTintRay, _ColorTintDart>('ColorTint');
+
+typedef _ColorBrightnessRay = _Color Function(_Color, Float);
+typedef _ColorBrightnessDart = _Color Function(_Color, double);
+final _colorBrightness = _dylib.lookupFunction<_ColorBrightnessRay, _ColorBrightnessDart>('ColorBrightness');
+
+typedef _ColorContrastRay = _Color Function(_Color, Float);
+typedef _ColorContrastDart = _Color Function(_Color, double);
+final _colorContrast = _dylib.lookupFunction<_ColorContrastRay, _ColorContrastDart>('ColorContrast');
+
+typedef _ColorAlphaRay = _Color Function(_Color, Float);
+typedef _ColorAlphaDart = _Color Function(_Color, double);
+final _colorAlpha = _dylib.lookupFunction<_ColorAlphaRay, _ColorAlphaDart>('ColorAlpha');
+
+typedef _ColorAlphaBlendRay = _Color Function(_Color, _Color, _Color);
+typedef _ColorAlphaBlendDart = _Color Function(_Color, _Color, _Color);
+final _colorAlphaBlend = _dylib.lookupFunction<_ColorAlphaBlendRay, _ColorAlphaBlendDart>('ColorAlphaBlend');
+
+typedef _ColorLerpRay = _Color Function(_Color, _Color, Float);
+typedef _ColorLerpDart = _Color Function(_Color, _Color, double);
+final _colorLerp = _dylib.lookupFunction<_ColorLerpRay, _ColorLerpDart>('ColorLerp');
+
+typedef _GetColorRay = _Color Function(Uint32);
+typedef _GetColorDart = _Color Function(int);
+final _getColor = _dylib.lookupFunction<_GetColorRay, _GetColorDart>('GetColor');
+
+typedef _GetPixelColorRay = _Color Function(Pointer<Void>, Int32);
+typedef _GetPixelColorDart = _Color Function(Pointer<Void>, int);
+final _getPixelColor = _dylib.lookupFunction<_GetPixelColorRay, _GetPixelColorDart>('GetPixelColor');
+
+typedef _SetPixelColorRay = Void Function(Pointer<Void>, _Color, Int32);
+typedef _SetPixelColorDart = void Function(Pointer<Void>, _Color, int);
+final _setPixelColor = _dylib.lookupFunction<_SetPixelColorRay, _SetPixelColorDart>('SetPixelColor');
+
+typedef _GetPixelDataSizeRay = Int32 Function(Int32, Int32, Int32);
+typedef _GetPixelDataSizeDart = int Function(int, int, int);
+final _getPixelDataSize = _dylib.lookupFunction<_GetPixelDataSizeRay, _GetPixelDataSizeDart>('GetPixelDataSize');
 
 //TODO: Implement Shader Shadow Class
 
@@ -1597,7 +1681,6 @@ typedef _GenMeshCubicmapRay = _Mesh Function(_Image, _Vector3);
 typedef _GenMeshCubicmapDart = _Mesh Function(_Image, _Vector3);
 final _genMeshCubicmap = _dylib.lookupFunction<_GenMeshCubicmapRay, _GenMeshCubicmapDart>('GenMeshCubicmap');
 
-
 //------------------------------------------------------------------------------------
 //                                   Material
 //------------------------------------------------------------------------------------
@@ -1622,6 +1705,10 @@ typedef _SetMaterialTextureRay = Void Function(Pointer<_Material>, Int32, _Textu
 typedef _SetMaterialTextureDart = void Function(Pointer<_Material>, int, _Texture2D);
 final _setMaterialTexture = _dylib.lookupFunction<_SetMaterialTextureRay, _SetMaterialTextureDart>('SetMaterialTexture');
 
+//------------------------------------------------------------------------------------
+//                                   Model
+//------------------------------------------------------------------------------------
+
 typedef _LoadModelRay = _Model Function(Pointer<Utf8>);
 typedef _LoadModelDart = _Model Function(Pointer<Utf8>);
 final _loadModel = _dylib.lookupFunction<_LoadModelRay, _LoadModelDart>('LoadModel');
@@ -1642,6 +1729,45 @@ typedef _GetModelBoundingBoxRay = _BoundingBox Function(_Model);
 typedef _GetModelBoundingBoxDart = _BoundingBox Function(_Model);
 final _getModelBoundingBox = _dylib.lookupFunction<_GetModelBoundingBoxRay, _GetModelBoundingBoxDart>('GetModelBoundingBox');
 
+typedef _DrawModelRay = Void Function(_Model, _Vector3, Float, _Color);
+typedef _DrawModelDart = void Function(_Model, _Vector3, double, _Color);
+final _drawModel = _dylib.lookupFunction<_DrawModelRay, _DrawModelDart>('DrawModel');
+
+typedef _DrawModelExRay = Void Function(_Model, _Vector3, _Vector3, Float, _Vector3, _Color);
+typedef _DrawModelExDart = void Function(_Model, _Vector3, _Vector3, double, _Vector3, _Color);
+final _drawModelEx = _dylib.lookupFunction<_DrawModelExRay, _DrawModelExDart>('DrawModelEx');
+
+typedef _DrawModelWiresRay = Void Function(_Model, _Vector3, Float, _Color);
+typedef _DrawModelWiresDart = void Function(_Model, _Vector3, double, _Color);
+final _drawModelWires = _dylib.lookupFunction<_DrawModelWiresRay, _DrawModelWiresDart>('DrawModelWires');
+
+typedef _DrawModelWiresExRay = Void Function(_Model, _Vector3, _Vector3, Float, _Vector3, _Color);
+typedef _DrawModelWiresExDart = void Function(_Model, _Vector3, _Vector3, double, _Vector3, _Color);
+final _drawModelWiresEx = _dylib.lookupFunction<_DrawModelWiresExRay, _DrawModelWiresExDart>('DrawModelWiresEx');
+
+typedef _DrawModelPointsRay = Void Function(_Model, _Vector3, Float, _Color);
+typedef _DrawModelPointsDart = void Function(_Model, _Vector3, double, _Color);
+final _drawModelPoints = _dylib.lookupFunction<_DrawModelPointsRay, _DrawModelPointsDart>('DrawModelPoints');
+
+typedef _DrawModelPointsExRay = Void Function(_Model, _Vector3, _Vector3, Float, _Vector3, _Color);
+typedef _DrawModelPointsExDart = void Function(_Model, _Vector3, _Vector3, double, _Vector3, _Color);
+final _drawModelPointsEx = _dylib.lookupFunction<_DrawModelPointsExRay, _DrawModelPointsExDart>('DrawModelPointsEx');
+
+typedef _DrawBoundingBoxRay = Void Function(_BoundingBox, _Color);
+typedef _DrawBoundingBoxDart = void Function(_BoundingBox, _Color);
+final _drawBoundingBox = _dylib.lookupFunction<_DrawBoundingBoxRay, _DrawBoundingBoxDart>('DrawBoundingBox');
+
+typedef _DrawBillboardRay = Void Function(_Camera, _Texture2D, _Vector3, Float, _Color);
+typedef _DrawBillboardDart = void Function(_Camera, _Texture2D, _Vector3, double, _Color);
+final _drawBillboard = _dylib.lookupFunction<_DrawBillboardRay, _DrawBillboardDart>('DrawBillboard');
+
+typedef _DrawBillboardRecRay = Void Function(_Camera, _Texture2D, _Rectangle, _Vector3, _Vector2, _Color);
+typedef _DrawBillboardRecDart = void Function(_Camera, _Texture2D, _Rectangle, _Vector3, _Vector2, _Color);
+final _drawBillboardRec = _dylib.lookupFunction<_DrawBillboardRecRay, _DrawBillboardRecDart>('DrawBillboardRec');
+
+typedef _DrawBillboardProRay = Void Function(_Camera, _Texture2D, _Rectangle, _Vector3, _Vector3, _Vector2, _Vector2, Float, _Color);
+typedef _DrawBillboardProDart = void Function(_Camera, _Texture2D, _Rectangle, _Vector3, _Vector3, _Vector2, _Vector2, double, _Color);
+final _drawBillboardPro = _dylib.lookupFunction<_DrawBillboardProRay, _DrawBillboardProDart>('DrawBillboardPro');
 
 // typedef _SetModelMeshMaterialRay = Void Function(Pointer<Model>, Int32, Int32);
 // typedef _SetModelMeshMaterialDart = void Function(Pointer<Model>, int, int);
