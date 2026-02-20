@@ -1527,6 +1527,118 @@ typedef _ImageColorReplaceRay = Void Function(Pointer<_Image>, _Color, _Color);
 typedef _ImageColorReplaceDart = void Function(Pointer<_Image>, _Color, _Color);
 final _imageColorReplace = _dylib.lookupFunction<_ImageColorReplaceRay, _ImageColorReplaceDart>('ImageColorReplace');
 
+typedef _LoadImageColorsRay = Pointer<_Color> Function(_Image);
+typedef _LoadImageColorsDart = Pointer<_Color> Function(_Image);
+final _loadImageColors = _dylib.lookupFunction<_LoadImageColorsRay, _LoadImageColorsDart>('LoadImageColors');
+
+typedef _LoadImagePaletteRay = Pointer<_Color> Function(_Image, Int32, Pointer<Int32>);
+typedef _LoadImagePaletteDart = Pointer<_Color> Function(_Image, int, Pointer<Int32>);
+final _loadImagePalette = _dylib.lookupFunction<_LoadImagePaletteRay, _LoadImagePaletteDart>('LoadImagePalette');
+
+typedef _UnloadImageColorsRay = Void Function(Pointer<_Color>);
+typedef _UnloadImageColorsDart = void Function(Pointer<_Color>);
+final _unloadImageColors = _dylib.lookupFunction<_UnloadImageColorsRay, _UnloadImageColorsDart>('UnloadImageColors');
+
+typedef _UnloadImagePaletteRay = Void Function(Pointer<_Color>);
+typedef _UnloadImagePaletteDart = void Function(Pointer<_Color>);
+final _unloadImagePalette = _dylib.lookupFunction<_UnloadImagePaletteRay, _UnloadImagePaletteDart>('UnloadImagePalette');
+
+typedef _GetImageAlphaBorderRay = _Rectangle Function(_Image, Float);
+typedef _GetImageAlphaBorderDart = _Rectangle Function(_Image, double);
+final _getImageAlphaBorder = _dylib.lookupFunction<_GetImageAlphaBorderRay, _GetImageAlphaBorderDart>('GetImageAlphaBorder');
+
+typedef _GetImageColorRay = _Color Function(_Image, Int32, Int32);
+typedef _GetImageColorDart = _Color Function(_Image, int, int);
+final _getImageColor = _dylib.lookupFunction<_GetImageColorRay, _GetImageColorDart>('GetImageColor');
+
+typedef _ImageClearBackgroundRay = Void Function(Pointer<_Image>, _Color);
+typedef _ImageClearBackgroundDart = void Function(Pointer<_Image>, _Color);
+final _imageClearBackground = _dylib.lookupFunction<_ImageClearBackgroundRay, _ImageClearBackgroundDart>('ImageClearBackground');
+
+typedef _ImageDrawPixelRay = Void Function(Pointer<_Image>, Int32, Int32, _Color);
+typedef _ImageDrawPixelDart = void Function(Pointer<_Image>, int, int, _Color);
+final _imageDrawPixel = _dylib.lookupFunction<_ImageDrawPixelRay, _ImageDrawPixelDart>('ImageDrawPixel');
+
+typedef _ImageDrawPixelVRay = Void Function(Pointer<_Image>, _Vector2, _Color);
+typedef _ImageDrawPixelVDart = void Function(Pointer<_Image>, _Vector2, _Color);
+final _imageDrawPixelV = _dylib.lookupFunction<_ImageDrawPixelVRay, _ImageDrawPixelVDart>('ImageDrawPixelV');
+
+typedef _ImageDrawLineRay = Void Function(Pointer<_Image>, Int32, Int32, Int32, Int32, _Color);
+typedef _ImageDrawLineDart = void Function(Pointer<_Image>, int, int, int, int, _Color);
+final _imageDrawLine = _dylib.lookupFunction<_ImageDrawLineRay, _ImageDrawLineDart>('ImageDrawLine');
+
+typedef _ImageDrawLineVRay = Void Function(Pointer<_Image>, _Vector2, _Vector2, _Color);
+typedef _ImageDrawLineVDart = void Function(Pointer<_Image>, _Vector2, _Vector2, _Color);
+final _imageDrawLineV = _dylib.lookupFunction<_ImageDrawLineVRay, _ImageDrawLineVDart>('ImageDrawLineV');
+
+typedef _ImageDrawLineExRay = Void Function(Pointer<_Image>, _Vector2, _Vector2, Int32, _Color);
+typedef _ImageDrawLineExDart = void Function(Pointer<_Image>, _Vector2, _Vector2, int, _Color);
+final _imageDrawLineEx = _dylib.lookupFunction<_ImageDrawLineExRay, _ImageDrawLineExDart>('ImageDrawLineEx');
+
+typedef _ImageDrawCircleRay = Void Function(Pointer<_Image>, Int32, Int32, Int32, _Color);
+typedef _ImageDrawCircleDart = void Function(Pointer<_Image>, int, int, int, _Color);
+final _imageDrawCircle = _dylib.lookupFunction<_ImageDrawCircleRay, _ImageDrawCircleDart>('ImageDrawCircle');
+
+typedef _ImageDrawCircleVRay = Void Function(Pointer<_Image>, _Vector2, Int32, _Color);
+typedef _ImageDrawCircleVDart = void Function(Pointer<_Image>, _Vector2, int, _Color);
+final _imageDrawCircleV = _dylib.lookupFunction<_ImageDrawCircleVRay, _ImageDrawCircleVDart>('ImageDrawCircleV');
+
+typedef _ImageDrawCircleLinesRay = Void Function(Pointer<_Image>, Int32, Int32, Int32, _Color);
+typedef _ImageDrawCircleLinesDart = void Function(Pointer<_Image>, int, int, int, _Color);
+final _imageDrawCircleLines = _dylib.lookupFunction<_ImageDrawCircleLinesRay, _ImageDrawCircleLinesDart>('ImageDrawCircleLines');
+
+typedef _ImageDrawCircleLinesVRay = Void Function(Pointer<_Image>, _Vector2, Int32, _Color);
+typedef _ImageDrawCircleLinesVDart = void Function(Pointer<_Image>, _Vector2, int, _Color);
+final _imageDrawCircleLinesV = _dylib.lookupFunction<_ImageDrawCircleLinesVRay, _ImageDrawCircleLinesVDart>('ImageDrawCircleLinesV');
+
+typedef _ImageDrawRectangleRay = Void Function(Pointer<_Image>, Int32, Int32, Int32, Int32, _Color);
+typedef _ImageDrawRectangleDart = void Function(Pointer<_Image>, int, int, int, int, _Color);
+final _imageDrawRectangle = _dylib.lookupFunction<_ImageDrawRectangleRay, _ImageDrawRectangleDart>('ImageDrawRectangle');
+
+typedef _ImageDrawRectangleVRay = Void Function(Pointer<_Image>, _Vector2, _Vector2, _Color);
+typedef _ImageDrawRectangleVDart = void Function(Pointer<_Image>, _Vector2, _Vector2, _Color);
+final _imageDrawRectangleV = _dylib.lookupFunction<_ImageDrawRectangleVRay, _ImageDrawRectangleVDart>('ImageDrawRectangleV');
+
+typedef _ImageDrawRectangleRecRay = Void Function(Pointer<_Image>, _Rectangle, _Color);
+typedef _ImageDrawRectangleRecDart = void Function(Pointer<_Image>, _Rectangle, _Color);
+final _imageDrawRectangleRec = _dylib.lookupFunction<_ImageDrawRectangleRecRay, _ImageDrawRectangleRecDart>('ImageDrawRectangleRec');
+
+typedef _ImageDrawRectangleLinesRay = Void Function(Pointer<_Image>, _Rectangle, Int32, _Color);
+typedef _ImageDrawRectangleLinesDart = void Function(Pointer<_Image>, _Rectangle, int, _Color);
+final _imageDrawRectangleLines = _dylib.lookupFunction<_ImageDrawRectangleLinesRay, _ImageDrawRectangleLinesDart>('ImageDrawRectangleLines');
+
+typedef _ImageDrawTriangleRay = Void Function(Pointer<_Image>, _Vector2, _Vector2, _Vector2, _Color);
+typedef _ImageDrawTriangleDart = void Function(Pointer<_Image>, _Vector2, _Vector2, _Vector2, _Color);
+final _imageDrawTriangle = _dylib.lookupFunction<_ImageDrawTriangleRay, _ImageDrawTriangleDart>('ImageDrawTriangle');
+
+typedef _ImageDrawTriangleExRay = Void Function(Pointer<_Image>, _Vector2, _Vector2, _Vector2, _Color, _Color, _Color);
+typedef _ImageDrawTriangleExDart = void Function(Pointer<_Image>, _Vector2, _Vector2, _Vector2, _Color, _Color, _Color);
+final _imageDrawTriangleEx = _dylib.lookupFunction<_ImageDrawTriangleExRay, _ImageDrawTriangleExDart>('ImageDrawTriangleEx');
+
+typedef _ImageDrawTriangleLinesRay = Void Function(Pointer<_Image>, _Vector2, _Vector2, _Vector2, _Color);
+typedef _ImageDrawTriangleLinesDart = void Function(Pointer<_Image>, _Vector2, _Vector2, _Vector2, _Color);
+final _imageDrawTriangleLines = _dylib.lookupFunction<_ImageDrawTriangleLinesRay, _ImageDrawTriangleLinesDart>('ImageDrawTriangleLines');
+
+typedef _ImageDrawTriangleFanRay = Void Function(Pointer<_Image>, Pointer<_Vector2>, Int32, _Color);
+typedef _ImageDrawTriangleFanDart = void Function(Pointer<_Image>, Pointer<_Vector2>, int, _Color);
+final _imageDrawTriangleFan = _dylib.lookupFunction<_ImageDrawTriangleFanRay, _ImageDrawTriangleFanDart>('ImageDrawTriangleFan');
+
+typedef _ImageDrawTriangleStripRay = Void Function(Pointer<_Image>, Pointer<_Vector2>, Int32, _Color);
+typedef _ImageDrawTriangleStripDart = void Function(Pointer<_Image>, Pointer<_Vector2>, int, _Color);
+final _imageDrawTriangleStrip = _dylib.lookupFunction<_ImageDrawTriangleStripRay, _ImageDrawTriangleStripDart>('ImageDrawTriangleStrip');
+
+typedef _ImageDrawRay = Void Function(Pointer<_Image>, _Image, _Rectangle, _Rectangle, _Color);
+typedef _ImageDrawDart = void Function(Pointer<_Image>, _Image, _Rectangle, _Rectangle, _Color);
+final _imageDraw = _dylib.lookupFunction<_ImageDrawRay, _ImageDrawDart>('ImageDraw');
+
+typedef _ImageDrawTextRay = Void Function(Pointer<_Image>, Pointer<Utf8>, Int32, Int32, Int32, _Color);
+typedef _ImageDrawTextDart = void Function(Pointer<_Image>, Pointer<Utf8>, int, int, int, _Color);
+final _imageDrawText = _dylib.lookupFunction<_ImageDrawTextRay, _ImageDrawTextDart>('ImageDrawText');
+
+typedef _ImageDrawTextExRay = Void Function(Pointer<_Image>, _Font, Pointer<Utf8>, _Vector2, Float, Float, _Color);
+typedef _ImageDrawTextExDart = void Function(Pointer<_Image>, _Font, Pointer<Utf8>, _Vector2, double, double, _Color);
+final _imageDrawTextEx = _dylib.lookupFunction<_ImageDrawTextExRay, _ImageDrawTextExDart>('ImageDrawTextEx');
+
 //------------------------------------------------------------------------------------
 //                                   Texture
 //------------------------------------------------------------------------------------
@@ -1770,6 +1882,67 @@ final _unloadFont = _dylib.lookupFunction<_UnloadFontRay, _UnloadFontDart>('Unlo
 typedef _ExportFontAsCodeRay = Bool Function(_Font, Pointer<Utf8>);
 typedef _ExportFontAsCodeDart = bool Function(_Font, Pointer<Utf8>);
 final _exportFontAsCode = _dylib.lookupFunction<_ExportFontAsCodeRay, _ExportFontAsCodeDart>('ExportFontAsCode');
+
+typedef _MeasureTextExRay = _Vector2 Function(_Font, Pointer<Utf8>, Float, Float);
+typedef _MeasureTextExDart = _Vector2 Function(_Font, Pointer<Utf8>, double, double);
+final _measureTextEx = _dylib.lookupFunction<_MeasureTextExRay, _MeasureTextExDart>('MeasureTextEx');
+
+typedef _GetGlyphIndexRay = Int32 Function(_Font, Int32);
+typedef _GetGlyphIndexDart = int Function(_Font, int);
+final _getGlyphIndex = _dylib.lookupFunction<_GetGlyphIndexRay, _GetGlyphIndexDart>('GetGlyphIndex');
+
+//------------------------------------------------------------------------------------
+//                                     Text
+//------------------------------------------------------------------------------------
+
+typedef _DrawFPSRay = Void Function(Int32, Int32);
+typedef _DrawFPSDart = void Function(int, int);
+final _drawFPS = _dylib.lookupFunction<_DrawFPSRay, _DrawFPSDart>('DrawFPS');
+
+typedef _DrawTextRay = Void Function(Pointer<Utf8>, Int32, Int32, Int32, _Color);
+typedef _DrawTextDart = void Function(Pointer<Utf8>, int, int, int, _Color);
+final _drawText = _dylib.lookupFunction<_DrawTextRay, _DrawTextDart>('DrawText');
+
+typedef _DrawTextExRay = Void Function(_Font, Pointer<Utf8>, _Vector2, Float, Float, _Color);
+typedef _DrawTextExDart = void Function(_Font, Pointer<Utf8>, _Vector2, double, double, _Color);
+final _drawTextEx = _dylib.lookupFunction<_DrawTextExRay, _DrawTextExDart>('DrawTextEx');
+
+typedef _DrawTextProRay = Void Function(_Font, Pointer<Utf8>, _Vector2, _Vector2, Float, Float, Float, _Color);
+typedef _DrawTextProDart = void Function(_Font, Pointer<Utf8>, _Vector2, _Vector2, double, double, double, _Color);
+final _drawTextPro = _dylib.lookupFunction<_DrawTextProRay, _DrawTextProDart>('DrawTextPro');
+
+typedef _DrawTextCodepointRay = Void Function(_Font, Int32, _Vector2, Float, _Color);
+typedef _DrawTextCodepointDart = void Function(_Font, int, _Vector2, double, _Color);
+final _drawTextCodepoint = _dylib.lookupFunction<_DrawTextCodepointRay, _DrawTextCodepointDart>('DrawTextCodepoint');
+
+typedef _DrawTextCodepointsRay = Void Function(_Font, Pointer<Int32>, Int32, _Vector2, Float, Float, _Color);
+typedef _DrawTextCodepointsDart = void Function(_Font, Pointer<Int32>, int, _Vector2, double, double, _Color);
+final _drawTextCodepoints = _dylib.lookupFunction<_DrawTextCodepointsRay, _DrawTextCodepointsDart>('DrawTextCodepoints');
+
+//------------------------------------------------------------------------------------
+//                                   Unicode
+//------------------------------------------------------------------------------------
+
+typedef _LoadUTF8Ray = Pointer<Utf8> Function(Pointer<Int32>, Int32);
+typedef _LoadUTF8Dart = Pointer<Utf8> Function(Pointer<Int32>, int);
+final _loadUTF8 = _dylib.lookupFunction<_LoadUTF8Ray, _LoadUTF8Dart>('LoadUTF8');
+
+typedef _UnloadUTF8Ray = Void Function(Pointer<Utf8>);
+typedef _UnloadUTF8Dart = void Function(Pointer<Utf8>);
+final _unloadUTF8 = _dylib.lookupFunction<_UnloadUTF8Ray, _UnloadUTF8Dart>('UnloadUTF8');
+
+typedef _LoadCodepointsRay = Pointer<Int32> Function(Pointer<Utf8>, Pointer<Int32>);
+typedef _LoadCodepointsDart = Pointer<Int32> Function(Pointer<Utf8>, Pointer<Int32>);
+final _loadCodepoints = _dylib.lookupFunction<_LoadCodepointsRay, _LoadCodepointsDart>('LoadCodepoints');
+
+typedef _UnloadCodepointsRay = Void Function(Pointer<Int32>);
+typedef _UnloadCodepointsDart = void Function(Pointer<Int32>);
+final _unloadCodepoints = _dylib.lookupFunction<_UnloadCodepointsRay, _UnloadCodepointsDart>('UnloadCodepoints');
+
+//RLAPI const char *CodepointToUTF8(int codepoint, int *utf8Size);
+typedef _CodepointToUTF8Ray = Pointer<Utf8> Function(Int32 codepoint, Pointer<Int32> utf8Size);
+typedef _CodepointToUTF8Dart = Pointer<Utf8> Function(int codepoint, Pointer<Int32> utf8Size);
+final _codepointToUTF8 = _dylib.lookupFunction<_CodepointToUTF8Ray, _CodepointToUTF8Dart>('CodepointToUTF8');
 
 //TODO: Implement Shader Shadow Class
 
