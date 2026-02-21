@@ -271,7 +271,7 @@ final class _Model extends Struct
 }
 
 // ModelAnimation
-final class ModelAnimation extends Struct
+final class _ModelAnimation extends Struct
 {
   @Int32() external int boneCount;     // Number of bones
   @Int32() external int frameCount;    // Number of animation frames
@@ -281,13 +281,13 @@ final class ModelAnimation extends Struct
 }
 
 // Ray, ray for raycasting
-final class Ray extends Struct
+final class _Ray extends Struct
 {
   external _Vector3 position;           // Ray position (origin)
   external _Vector3 direction;          // Ray direction (normalized)
 }
 
-final class RayCollision extends Struct
+final class _RayCollision extends Struct
 {
   @Bool() external bool hit;           // Did the ray hit something?
   @Float() external double distance;   // Distance to the nearest hit
@@ -302,6 +302,7 @@ final class _BoundingBox extends Struct
   external _Vector3 max;                // Maximum vertex box-corner
 }
 
+/*
 // Wave, audio wave data
 final class Wave extends Struct
 {
@@ -311,7 +312,7 @@ final class Wave extends Struct
   @Uint32() external int channels;     // Number of channels (1-mono, 2-stereo, ...)
   external Pointer<Void> data;         // Buffer data pointer
 }
-/* 
+
 typedef rAudioBuffer = rAudioBuffer;
 typedef rAudioProcessor = rAudioProcessor;
 
@@ -342,7 +343,7 @@ final class Music extends Struct
   @Int32() external int ctxType;       // Type of music context (audio filetype)
   external Pointer<Void> ctxData;      // Audio context data, depends on type
 }
-*/
+
 // VrDeviceInfo, Head-Mounted-Display device parameters
 final class VrDeviceInfo extends Struct
 {
@@ -368,14 +369,14 @@ final class VrStereoConfig extends Struct
   @Array(2) external Array<Float> scale;
   @Array(2) external Array<Float> scaleIn;
 }
-
+ */
 // File path list
 final class FilePathList extends Struct
 {
   @Uint32() external int count;        // Filepaths entries count
   external Pointer<Pointer<Uint8>> paths; // Filepaths entries
 }
-
+/* 
 // Automation event
 final class AutomationEvent extends Struct
 {
@@ -391,7 +392,7 @@ final class AutomationEventList extends Struct
   @Uint32() external int count;        // Events entries count
   external Pointer<AutomationEvent> events; // Events entries
 }
-
+ */
 //----------------------------------------------------------------------------------
 // Enumerators Definition
 //----------------------------------------------------------------------------------
@@ -400,7 +401,7 @@ final class AutomationEventList extends Struct
 /// NOTE: Every bit registers one state (use it with bit masks)
 /// 
 /// By default all flags are set to 0
-abstract class ConfigFlags
+abstract class WinFlags
 {
   static const int VSYNC_HINT         = 0x00000040;   // Set to try enabling V-Sync on GPU
   static const int FULLSCREEN_MODE    = 0x00000002;   // Set to run program in fullscreen
@@ -437,7 +438,7 @@ enum TraceLogLevel
 /// Keyboard keys (US keyboard layout)
 /// 
 /// NOTE: Use GetKeyPressed() to allow redefining required keys for alternative layouts
-abstract class KeyboardKey
+abstract class Keyboard
 {
   static const int KEY_NULL            = 0;        // Key: NULL, used for no key pressed
   // Alphanumeric keys
@@ -2154,7 +2155,331 @@ typedef _DrawBillboardProRay = Void Function(_Camera, _Texture2D, _Rectangle, _V
 typedef _DrawBillboardProDart = void Function(_Camera, _Texture2D, _Rectangle, _Vector3, _Vector3, _Vector2, _Vector2, double, _Color);
 final _drawBillboardPro = _dylib.lookupFunction<_DrawBillboardProRay, _DrawBillboardProDart>('DrawBillboardPro');
 
-// typedef _SetModelMeshMaterialRay = Void Function(Pointer<Model>, Int32, Int32);
-// typedef _SetModelMeshMaterialDart = void Function(Pointer<Model>, int, int);
-// final _setModelMeshMaterial = _dylib.lookupFunction<_SetModelMeshMaterialRay, _SetModelMeshMaterialDart>('SetModelMeshMaterial');
+typedef _SetModelMeshMaterialRay = Void Function(Pointer<_Model>, Int32, Int32);
+typedef _SetModelMeshMaterialDart = void Function(Pointer<_Model>, int, int);
+final _setModelMeshMaterial = _dylib.lookupFunction<_SetModelMeshMaterialRay, _SetModelMeshMaterialDart>('SetModelMeshMaterial');
 
+//------------------------------------------------------------------------------------
+//                                ModelAnimation
+//------------------------------------------------------------------------------------
+
+typedef _LoadModelAnimationsRay = Pointer<_ModelAnimation> Function(Pointer<Utf8>, Pointer<Int32>);
+typedef _LoadModelAnimationsDart = Pointer<_ModelAnimation> Function(Pointer<Utf8>, Pointer<Int32>);
+final _loadModelAnimations = _dylib.lookupFunction<_LoadModelAnimationsRay, _LoadModelAnimationsDart>('LoadModelAnimations');
+
+typedef _UpdateModelAnimationRay = Void Function(_Model, _ModelAnimation, Int32);
+typedef _UpdateModelAnimationDart = void Function(_Model, _ModelAnimation, int);
+final _updateModelAnimation = _dylib.lookupFunction<_UpdateModelAnimationRay, _UpdateModelAnimationDart>('UpdateModelAnimation');
+
+typedef _UpdateModelAnimationBonesRay = Void Function(_Model, _ModelAnimation, Int32);
+typedef _UpdateModelAnimationBonesDart = void Function(_Model, _ModelAnimation, int);
+final _updateModelAnimationBones = _dylib.lookupFunction<_UpdateModelAnimationBonesRay, _UpdateModelAnimationBonesDart>('UpdateModelAnimationBones');
+/* 
+typedef _UnloadModelAnimationRay = Void Function(_ModelAnimation);
+typedef _UnloadModelAnimationDart = void Function(_ModelAnimation);
+final _unloadModelAnimation = _dylib.lookupFunction<_UnloadModelAnimationRay, _UnloadModelAnimationDart>('UnloadModelAnimation');
+*/
+typedef _UnloadModelAnimationsRay = Void Function(Pointer<_ModelAnimation>, Int32);
+typedef _UnloadModelAnimationsDart = void Function(Pointer<_ModelAnimation>, int);
+final _unloadModelAnimations = _dylib.lookupFunction<_UnloadModelAnimationsRay, _UnloadModelAnimationsDart>('UnloadModelAnimations');
+
+typedef _IsModelAnimationValidRay = Bool Function(_Model, _ModelAnimation);
+typedef _IsModelAnimationValidDart = bool Function(_Model, _ModelAnimation);
+final _isModelAnimationValid = _dylib.lookupFunction<_IsModelAnimationValidRay, _IsModelAnimationValidDart>('IsModelAnimationValid');
+
+//------------------------------------------------------------------------------------
+//                                   Shapes3D
+//------------------------------------------------------------------------------------
+
+typedef _DrawLine3DRay = Void Function(_Vector3, _Vector3, _Color);
+typedef _DrawLine3DDart = void Function(_Vector3, _Vector3, _Color);
+final _drawLine3D = _dylib.lookupFunction<_DrawLine3DRay, _DrawLine3DDart>('DrawLine3D');
+
+typedef _DrawPoint3DRay = Void Function(_Vector3, _Color);
+typedef _DrawPoint3DDart = void Function(_Vector3, _Color);
+final _drawPoint3D = _dylib.lookupFunction<_DrawPoint3DRay, _DrawPoint3DDart>('DrawPoint3D');
+
+typedef _DrawCircle3DRay = Void Function(_Vector3, Float, _Vector3, Float, _Color);
+typedef _DrawCircle3DDart = void Function(_Vector3, double, _Vector3, double, _Color);
+final _drawCircle3D = _dylib.lookupFunction<_DrawCircle3DRay, _DrawCircle3DDart>('DrawCircle3D');
+
+typedef _DrawTriangle3DRay = Void Function(_Vector3, _Vector3, _Vector3, _Color);
+typedef _DrawTriangle3DDart = void Function(_Vector3, _Vector3, _Vector3, _Color);
+final _drawTriangle3D = _dylib.lookupFunction<_DrawTriangle3DRay, _DrawTriangle3DDart>('DrawTriangle3D');
+
+typedef _DrawTriangleStrip3DRay = Void Function(Pointer<_Vector3>, Int32, _Color);
+typedef _DrawTriangleStrip3DDart = void Function(Pointer<_Vector3>, int, _Color);
+final _drawTriangleStrip3D = _dylib.lookupFunction<_DrawTriangleStrip3DRay, _DrawTriangleStrip3DDart>('DrawTriangleStrip3D');
+
+typedef _DrawCubeRay = Void Function(_Vector3, Float, Float, Float, _Color);
+typedef _DrawCubeDart = void Function(_Vector3, double, double, double, _Color);
+final _drawCube = _dylib.lookupFunction<_DrawCubeRay, _DrawCubeDart>('DrawCube');
+
+typedef _DrawCubeVRay = Void Function(_Vector3, _Vector3, _Color);
+typedef _DrawCubeVDart = void Function(_Vector3, _Vector3, _Color);
+final _drawCubeV = _dylib.lookupFunction<_DrawCubeVRay, _DrawCubeVDart>('DrawCubeV');
+
+typedef _DrawCubeWiresRay = Void Function(_Vector3, Float, Float, Float, _Color);
+typedef _DrawCubeWiresDart = void Function(_Vector3, double, double, double, _Color);
+final _drawCubeWires = _dylib.lookupFunction<_DrawCubeWiresRay, _DrawCubeWiresDart>('DrawCubeWires');
+
+typedef _DrawCubeWiresVRay = Void Function(_Vector3, _Vector3, _Color);
+typedef _DrawCubeWiresVDart = void Function(_Vector3, _Vector3, _Color);
+final _drawCubeWiresV = _dylib.lookupFunction<_DrawCubeWiresVRay, _DrawCubeWiresVDart>('DrawCubeWiresV');
+
+typedef _DrawSphereRay = Void Function(_Vector3, Float, _Color);
+typedef _DrawSphereDart = void Function(_Vector3, double, _Color);
+final _drawSphere = _dylib.lookupFunction<_DrawSphereRay, _DrawSphereDart>('DrawSphere');
+
+typedef _DrawSphereExRay = Void Function(_Vector3, Float, Int32, Int32, _Color);
+typedef _DrawSphereExDart = void Function(_Vector3, double, int, int, _Color);
+final _drawSphereEx = _dylib.lookupFunction<_DrawSphereExRay, _DrawSphereExDart>('DrawSphereEx');
+
+typedef _DrawSphereWiresRay = Void Function(_Vector3, Float, Int32, Int32, _Color);
+typedef _DrawSphereWiresDart = void Function(_Vector3, double, int, int, _Color);
+final _drawSphereWires = _dylib.lookupFunction<_DrawSphereWiresRay, _DrawSphereWiresDart>('DrawSphereWires');
+
+typedef _DrawCylinderRay = Void Function(_Vector3, Float, Float, Float, Int32, _Color);
+typedef _DrawCylinderDart = void Function(_Vector3, double, double, double, int, _Color);
+final _drawCylinder = _dylib.lookupFunction<_DrawCylinderRay, _DrawCylinderDart>('DrawCylinder');
+
+typedef _DrawCylinderExRay = Void Function(_Vector3, _Vector3, Float, Float, Int32, _Color);
+typedef _DrawCylinderExDart = void Function(_Vector3, _Vector3, double, double, int, _Color);
+final _drawCylinderEx = _dylib.lookupFunction<_DrawCylinderExRay, _DrawCylinderExDart>('DrawCylinderEx');
+
+typedef _DrawCylinderWiresRay = Void Function(_Vector3, Float, Float, Float, Int32, _Color);
+typedef _DrawCylinderWiresDart = void Function(_Vector3, double, double, double, int, _Color);
+final _drawCylinderWires = _dylib.lookupFunction<_DrawCylinderWiresRay, _DrawCylinderWiresDart>('DrawCylinderWires');
+
+typedef _DrawCylinderWiresExRay = Void Function(_Vector3, _Vector3, Float, Float, Int32, _Color);
+typedef _DrawCylinderWiresExDart = void Function(_Vector3, _Vector3, double, double, int, _Color);
+final _drawCylinderWiresEx = _dylib.lookupFunction<_DrawCylinderWiresExRay, _DrawCylinderWiresExDart>('DrawCylinderWiresEx');
+
+typedef _DrawCapsuleRay = Void Function(_Vector3, _Vector3, Float, Int32, Int32, _Color);
+typedef _DrawCapsuleDart = void Function(_Vector3, _Vector3, double, int, int, _Color);
+final _drawCapsule = _dylib.lookupFunction<_DrawCapsuleRay, _DrawCapsuleDart>('DrawCapsule');
+
+typedef _DrawCapsuleWiresRay = Void Function(_Vector3, _Vector3, Float, Int32, Int32, _Color);
+typedef _DrawCapsuleWiresDart = void Function(_Vector3, _Vector3, double, int, int, _Color);
+final _drawCapsuleWires = _dylib.lookupFunction<_DrawCapsuleWiresRay, _DrawCapsuleWiresDart>('DrawCapsuleWires');
+
+typedef _DrawPlaneRay = Void Function(_Vector3, _Vector2, _Color);
+typedef _DrawPlaneDart = void Function(_Vector3, _Vector2, _Color);
+final _drawPlane = _dylib.lookupFunction<_DrawPlaneRay, _DrawPlaneDart>('DrawPlane');
+
+typedef _DrawRayRay = Void Function(_Ray, _Color);
+typedef _DrawRayDart = void Function(_Ray, _Color);
+final _drawRay = _dylib.lookupFunction<_DrawRayRay, _DrawRayDart>('DrawRay');
+
+typedef _DrawGridRay = Void Function(Int32, Float);
+typedef _DrawGridDart = void Function(int, double);
+final _drawGrid = _dylib.lookupFunction<_DrawGridRay, _DrawGridDart>('DrawGrid');
+
+//------------------------------------------------------------------------------------
+//                                   Shapes
+//------------------------------------------------------------------------------------
+
+typedef _DrawPixelRay = Void Function(Int32, Int32, _Color);
+typedef _DrawPixelDart = void Function(int, int, _Color);
+final _drawPixel = _dylib.lookupFunction<_DrawPixelRay, _DrawPixelDart>('DrawPixel');
+
+typedef _DrawPixelVRay = Void Function(_Vector2, _Color);
+typedef _DrawPixelVDart = void Function(_Vector2, _Color);
+final _drawPixelV = _dylib.lookupFunction<_DrawPixelVRay, _DrawPixelVDart>('DrawPixelV');
+
+typedef _DrawLineRay = Void Function(Int32, Int32, Int32, Int32, _Color);
+typedef _DrawLineDart = void Function(int, int, int, int, _Color);
+final _drawLine = _dylib.lookupFunction<_DrawLineRay, _DrawLineDart>('DrawLine');
+
+typedef _DrawLineVRay = Void Function(_Vector2, _Vector2, _Color);
+typedef _DrawLineVDart = void Function(_Vector2, _Vector2, _Color);
+final _drawLineV = _dylib.lookupFunction<_DrawLineVRay, _DrawLineVDart>('DrawLineV');
+
+typedef _DrawLineExRay = Void Function(_Vector2, _Vector2, Float, _Color);
+typedef _DrawLineExDart = void Function(_Vector2, _Vector2, double, _Color);
+final _drawLineEx = _dylib.lookupFunction<_DrawLineExRay, _DrawLineExDart>('DrawLineEx');
+
+typedef _DrawLineStripRay = Void Function(Pointer<_Vector2>, Int32, _Color);
+typedef _DrawLineStripDart = void Function(Pointer<_Vector2>, int, _Color);
+final _drawLineStrip = _dylib.lookupFunction<_DrawLineStripRay, _DrawLineStripDart>('DrawLineStrip');
+
+typedef _DrawLineBezierRay = Void Function(_Vector2, _Vector2, Float, _Color);
+typedef _DrawLineBezierDart = void Function(_Vector2, _Vector2, double, _Color);
+final _drawLineBezier = _dylib.lookupFunction<_DrawLineBezierRay, _DrawLineBezierDart>('DrawLineBezier');
+
+typedef _DrawLineDashedRay = Void Function(_Vector2, _Vector2, Int32, Int32, _Color);
+typedef _DrawLineDashedDart = void Function(_Vector2, _Vector2, int, int, _Color);
+final _drawLineDashed = _dylib.lookupFunction<_DrawLineDashedRay, _DrawLineDashedDart>('DrawLineDashed');
+
+typedef _DrawCircleRay = Void Function(Int32, Int32, Float, _Color);
+typedef _DrawCircleDart = void Function(int, int, double, _Color);
+final _drawCircle = _dylib.lookupFunction<_DrawCircleRay, _DrawCircleDart>('DrawCircle');
+
+typedef _DrawCircleSectorRay = Void Function(_Vector2, Float, Float, Float, Int32, _Color);
+typedef _DrawCircleSectorDart = void Function(_Vector2, double, double, double, int, _Color);
+final _drawCircleSector = _dylib.lookupFunction<_DrawCircleSectorRay, _DrawCircleSectorDart>('DrawCircleSector');
+
+typedef _DrawCircleSectorLinesRay = Void Function(_Vector2, Float, Float, Float, Int32, _Color);
+typedef _DrawCircleSectorLinesDart = void Function(_Vector2, double, double, double, int, _Color);
+final _drawCircleSectorLines = _dylib.lookupFunction<_DrawCircleSectorLinesRay, _DrawCircleSectorLinesDart>('DrawCircleSectorLines');
+
+typedef _DrawCircleGradientRay = Void Function(Int32, Int32, Float, _Color, _Color);
+typedef _DrawCircleGradientDart = void Function(int, int, double, _Color, _Color);
+final _drawCircleGradient = _dylib.lookupFunction<_DrawCircleGradientRay, _DrawCircleGradientDart>('DrawCircleGradient');
+
+typedef _DrawCircleVRay = Void Function(_Vector2, Float, _Color);
+typedef _DrawCircleVDart = void Function(_Vector2, double, _Color);
+final _drawCircleV = _dylib.lookupFunction<_DrawCircleVRay, _DrawCircleVDart>('DrawCircleV');
+
+typedef _DrawCircleLinesRay = Void Function(Int32, Int32, Float, _Color);
+typedef _DrawCircleLinesDart = void Function(int, int, double, _Color);
+final _drawCircleLines = _dylib.lookupFunction<_DrawCircleLinesRay, _DrawCircleLinesDart>('DrawCircleLines');
+
+typedef _DrawCircleLinesVRay = Void Function(_Vector2, Float, _Color);
+typedef _DrawCircleLinesVDart = void Function(_Vector2, double, _Color);
+final _drawCircleLinesV = _dylib.lookupFunction<_DrawCircleLinesVRay, _DrawCircleLinesVDart>('DrawCircleLinesV');
+
+typedef _DrawEllipseRay = Void Function(Int32, Int32, Float, Float, _Color);
+typedef _DrawEllipseDart = void Function(int, int, double, double, _Color);
+final _drawEllipse = _dylib.lookupFunction<_DrawEllipseRay, _DrawEllipseDart>('DrawEllipse');
+
+typedef _DrawEllipseVRay = Void Function(_Vector2, Float, Float, _Color);
+typedef _DrawEllipseVDart = void Function(_Vector2, double, double, _Color);
+final _drawEllipseV = _dylib.lookupFunction<_DrawEllipseVRay, _DrawEllipseVDart>('DrawEllipseV');
+
+typedef _DrawEllipseLinesRay = Void Function(Int32, Int32, Float, Float, _Color);
+typedef _DrawEllipseLinesDart = void Function(int, int, double, double, _Color);
+final _drawEllipseLines = _dylib.lookupFunction<_DrawEllipseLinesRay, _DrawEllipseLinesDart>('DrawEllipseLines');
+
+typedef _DrawEllipseLinesVRay = Void Function(_Vector2, Float, Float, _Color);
+typedef _DrawEllipseLinesVDart = void Function(_Vector2, double, double, _Color);
+final _drawEllipseLinesV = _dylib.lookupFunction<_DrawEllipseLinesVRay, _DrawEllipseLinesVDart>('DrawEllipseLinesV');
+
+typedef _DrawRingRay = Void Function(_Vector2, Float, Float, Float, Float, Int32, _Color);
+typedef _DrawRingDart = void Function(_Vector2, double, double, double, double, int, _Color);
+final _drawRing = _dylib.lookupFunction<_DrawRingRay, _DrawRingDart>('DrawRing');
+
+typedef _DrawRingLinesRay = Void Function(_Vector2, Float, Float, Float, Float, Int32, _Color);
+typedef _DrawRingLinesDart = void Function(_Vector2, double, double, double, double, int, _Color);
+final _drawRingLines = _dylib.lookupFunction<_DrawRingLinesRay, _DrawRingLinesDart>('DrawRingLines');
+
+typedef _DrawRectangleRay = Void Function(Int32, Int32, Int32, Int32, _Color);
+typedef _DrawRectangleDart = void Function(int, int, int, int, _Color);
+final _drawRectangle = _dylib.lookupFunction<_DrawRectangleRay, _DrawRectangleDart>('DrawRectangle');
+
+typedef _DrawRectangleVRay = Void Function(_Vector2, _Vector2, _Color);
+typedef _DrawRectangleVDart = void Function(_Vector2, _Vector2, _Color);
+final _drawRectangleV = _dylib.lookupFunction<_DrawRectangleVRay, _DrawRectangleVDart>('DrawRectangleV');
+
+typedef _DrawRectangleRecRay = Void Function(_Rectangle, _Color);
+typedef _DrawRectangleRecDart = void Function(_Rectangle, _Color);
+final _drawRectangleRec = _dylib.lookupFunction<_DrawRectangleRecRay, _DrawRectangleRecDart>('DrawRectangleRec');
+
+typedef _DrawRectangleProRay = Void Function(_Rectangle, _Vector2, Float, _Color);
+typedef _DrawRectangleProDart = void Function(_Rectangle, _Vector2, double, _Color);
+final _drawRectanglePro = _dylib.lookupFunction<_DrawRectangleProRay, _DrawRectangleProDart>('DrawRectanglePro');
+
+typedef _DrawRectangleGradientVRay = Void Function(Int32, Int32, Int32, Int32, _Color, _Color);
+typedef _DrawRectangleGradientVDart = void Function(int, int, int, int, _Color, _Color);
+final _drawRectangleGradientV = _dylib.lookupFunction<_DrawRectangleGradientVRay, _DrawRectangleGradientVDart>('DrawRectangleGradientV');
+
+typedef _DrawRectangleGradientHRay = Void Function(Int32, Int32, Int32, Int32, _Color, _Color);
+typedef _DrawRectangleGradientHDart = void Function(int, int, int, int, _Color, _Color);
+final _drawRectangleGradientH = _dylib.lookupFunction<_DrawRectangleGradientHRay, _DrawRectangleGradientHDart>('DrawRectangleGradientH');
+
+typedef _DrawRectangleGradientExRay = Void Function(_Rectangle, _Color, _Color, _Color, _Color);
+typedef _DrawRectangleGradientExDart = void Function(_Rectangle, _Color, _Color, _Color, _Color);
+final _drawRectangleGradientEx = _dylib.lookupFunction<_DrawRectangleGradientExRay, _DrawRectangleGradientExDart>('DrawRectangleGradientEx');
+
+typedef _DrawRectangleLinesRay = Void Function(Int32, Int32, Int32, Int32, _Color);
+typedef _DrawRectangleLinesDart = void Function(int, int, int, int, _Color);
+final _drawRectangleLines = _dylib.lookupFunction<_DrawRectangleLinesRay, _DrawRectangleLinesDart>('DrawRectangleLines');
+
+typedef _DrawRectangleLinesExRay = Void Function(_Rectangle, Float, _Color);
+typedef _DrawRectangleLinesExDart = void Function(_Rectangle, double, _Color);
+final _drawRectangleLinesEx = _dylib.lookupFunction<_DrawRectangleLinesExRay, _DrawRectangleLinesExDart>('DrawRectangleLinesEx');
+
+typedef _DrawRectangleRoundedRay = Void Function(_Rectangle, Float, Int32, _Color);
+typedef _DrawRectangleRoundedDart = void Function(_Rectangle, double, int, _Color);
+final _drawRectangleRounded = _dylib.lookupFunction<_DrawRectangleRoundedRay, _DrawRectangleRoundedDart>('DrawRectangleRounded');
+
+typedef _DrawRectangleRoundedLinesRay = Void Function(_Rectangle, Float, Int32, _Color);
+typedef _DrawRectangleRoundedLinesDart = void Function(_Rectangle, double, int, _Color);
+final _drawRectangleRoundedLines = _dylib.lookupFunction<_DrawRectangleRoundedLinesRay, _DrawRectangleRoundedLinesDart>('DrawRectangleRoundedLines');
+
+typedef _DrawRectangleRoundedLinesExRay = Void Function(_Rectangle, Float, Int32, Float, _Color);
+typedef _DrawRectangleRoundedLinesExDart = void Function(_Rectangle, double, int, double, _Color);
+final _drawRectangleRoundedLinesEx = _dylib.lookupFunction<_DrawRectangleRoundedLinesExRay, _DrawRectangleRoundedLinesExDart>('DrawRectangleRoundedLinesEx');
+
+typedef _DrawTriangleRay = Void Function(_Vector2, _Vector2, _Vector2, _Color);
+typedef _DrawTriangleDart = void Function(_Vector2, _Vector2, _Vector2, _Color);
+final _drawTriangle = _dylib.lookupFunction<_DrawTriangleRay, _DrawTriangleDart>('DrawTriangle');
+
+typedef _DrawTriangleLinesRay = Void Function(_Vector2, _Vector2, _Vector2, _Color);
+typedef _DrawTriangleLinesDart = void Function(_Vector2, _Vector2, _Vector2, _Color);
+final _drawTriangleLines = _dylib.lookupFunction<_DrawTriangleLinesRay, _DrawTriangleLinesDart>('DrawTriangleLines');
+
+typedef _DrawTriangleFanRay = Void Function(Pointer<_Vector2>, Int32, _Color);
+typedef _DrawTriangleFanDart = void Function(Pointer<_Vector2>, int, _Color);
+final _drawTriangleFan = _dylib.lookupFunction<_DrawTriangleFanRay, _DrawTriangleFanDart>('DrawTriangleFan');
+
+typedef _DrawTriangleStripRay = Void Function(Pointer<_Vector2>, Int32, _Color);
+typedef _DrawTriangleStripDart = void Function(Pointer<_Vector2>, int, _Color);
+final _drawTriangleStrip = _dylib.lookupFunction<_DrawTriangleStripRay, _DrawTriangleStripDart>('DrawTriangleStrip');
+
+typedef _DrawPolyRay = Void Function(_Vector2, Int32, Float, Float, _Color);
+typedef _DrawPolyDart = void Function(_Vector2, int, double, double, _Color);
+final _drawPoly = _dylib.lookupFunction<_DrawPolyRay, _DrawPolyDart>('DrawPoly');
+
+typedef _DrawPolyLinesRay = Void Function(_Vector2, Int32, Float, Float, _Color);
+typedef _DrawPolyLinesDart = void Function(_Vector2, int, double, double, _Color);
+final _drawPolyLines = _dylib.lookupFunction<_DrawPolyLinesRay, _DrawPolyLinesDart>('DrawPolyLines');
+
+typedef _DrawPolyLinesExRay = Void Function(_Vector2, Int32, Float, Float, Float, _Color);
+typedef _DrawPolyLinesExDart = void Function(_Vector2, int, double, double, double, _Color);
+final _drawPolyLinesEx = _dylib.lookupFunction<_DrawPolyLinesExRay, _DrawPolyLinesExDart>('DrawPolyLinesEx');
+
+//------------------------------------------------------------------------------------
+//                                   Splines
+//------------------------------------------------------------------------------------
+
+
+typedef _DrawSplineLinearRay = Void Function(Pointer<_Vector2>, Int32, Float, _Color);
+typedef _DrawSplineLinearDart = void Function(Pointer<_Vector2>, int, double, _Color);
+final _drawSplineLinear = _dylib.lookupFunction<_DrawSplineLinearRay, _DrawSplineLinearDart>('DrawSplineLinear');
+
+typedef _DrawSplineBasisRay = Void Function(Pointer<_Vector2>, Int32, Float, _Color);
+typedef _DrawSplineBasisDart = void Function(Pointer<_Vector2>, int, double, _Color);
+final _drawSplineBasis = _dylib.lookupFunction<_DrawSplineBasisRay, _DrawSplineBasisDart>('DrawSplineBasis');
+
+typedef _DrawSplineCatmullRomRay = Void Function(Pointer<_Vector2>, Int32, Float, _Color);
+typedef _DrawSplineCatmullRomDart = void Function(Pointer<_Vector2>, int, double, _Color);
+final _drawSplineCatmullRom = _dylib.lookupFunction<_DrawSplineCatmullRomRay, _DrawSplineCatmullRomDart>('DrawSplineCatmullRom');
+
+typedef _DrawSplineBezierQuadraticRay = Void Function(Pointer<_Vector2>, Int32, Float, _Color);
+typedef _DrawSplineBezierQuadraticDart = void Function(Pointer<_Vector2>, int, double, _Color);
+final _drawSplineBezierQuadratic = _dylib.lookupFunction<_DrawSplineBezierQuadraticRay, _DrawSplineBezierQuadraticDart>('DrawSplineBezierQuadratic');
+
+typedef _DrawSplineBezierCubicRay = Void Function(Pointer<_Vector2>, Int32, Float, _Color);
+typedef _DrawSplineBezierCubicDart = void Function(Pointer<_Vector2>, int, double, _Color);
+final _drawSplineBezierCubic = _dylib.lookupFunction<_DrawSplineBezierCubicRay, _DrawSplineBezierCubicDart>('DrawSplineBezierCubic');
+
+typedef _DrawSplineSegmentLinearRay = Void Function(_Vector2, _Vector2, Float, _Color);
+typedef _DrawSplineSegmentLinearDart = void Function(_Vector2, _Vector2, double, _Color);
+final _drawSplineSegmentLinear = _dylib.lookupFunction<_DrawSplineSegmentLinearRay, _DrawSplineSegmentLinearDart>('DrawSplineSegmentLinear');
+
+typedef _DrawSplineSegmentBasisRay = Void Function(_Vector2, _Vector2, _Vector2, _Vector2, Float, _Color);
+typedef _DrawSplineSegmentBasisDart = void Function(_Vector2, _Vector2, _Vector2, _Vector2, double, _Color);
+final _drawSplineSegmentBasis = _dylib.lookupFunction<_DrawSplineSegmentBasisRay, _DrawSplineSegmentBasisDart>('DrawSplineSegmentBasis');
+
+typedef _DrawSplineSegmentCatmullRomRay = Void Function(_Vector2, _Vector2, _Vector2, _Vector2, Float, _Color);
+typedef _DrawSplineSegmentCatmullRomDart = void Function(_Vector2, _Vector2, _Vector2, _Vector2, double, _Color);
+final _drawSplineSegmentCatmullRom = _dylib.lookupFunction<_DrawSplineSegmentCatmullRomRay, _DrawSplineSegmentCatmullRomDart>('DrawSplineSegmentCatmullRom');
+
+typedef _DrawSplineSegmentBezierQuadraticRay = Void Function(_Vector2, _Vector2, _Vector2, Float, _Color);
+typedef _DrawSplineSegmentBezierQuadraticDart = void Function(_Vector2, _Vector2, _Vector2, double, _Color);
+final _drawSplineSegmentBezierQuadratic = _dylib.lookupFunction<_DrawSplineSegmentBezierQuadraticRay, _DrawSplineSegmentBezierQuadraticDart>('DrawSplineSegmentBezierQuadratic');
+
+typedef _DrawSplineSegmentBezierCubicRay = Void Function(_Vector2, _Vector2, _Vector2, _Vector2, Float, _Color);
+typedef _DrawSplineSegmentBezierCubicDart = void Function(_Vector2, _Vector2, _Vector2, _Vector2, double, _Color);
+final _drawSplineSegmentBezierCubic = _dylib.lookupFunction<_DrawSplineSegmentBezierCubicRay, _DrawSplineSegmentBezierCubicDart>('DrawSplineSegmentBezierCubic');
