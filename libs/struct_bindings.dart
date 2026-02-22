@@ -11,20 +11,17 @@ class NativeResource<T extends NativeType> implements Disposeable {
   bool _disposed = false;
   bool IsOwner = true;
 
-  NativeResource(this.pointer, { this.IsOwner = true });
+  NativeResource(this.pointer,{ this.IsOwner = true });
 
   bool get isDisposed => _disposed;
   void MarkAsDisposed() { _disposed = true; }
 
   @override
-  void dispose()
-  {
-    if (!isDisposed && IsOwner)
-    {
+  void dispose() {
+    if (!isDisposed && IsOwner) {
       MarkAsDisposed();
       malloc.free(this.pointer);
-    }
-  }
+  }}
 }
 
 const int RAYLIB_VERSION_MAJOR = 5;
@@ -36,6 +33,28 @@ const double PI = 3.14159265358979323846;
 const double DEG2RAG = (PI/180.0);
 const double RAD2DEG = (180.0/PI);
 const double EPSILON = 0.000001;
+
+Pointer<Utf8> uint8ListToUtf8Pointer(Uint8List bytes, {Allocator allocator = malloc}) {
+  final ptr = allocator.allocate<Uint8>(bytes.length + 1);
+  final nativeList = ptr.asTypedList(bytes.length + 1);
+  
+  nativeList.setAll(0, bytes);
+  nativeList[bytes.length] = 0;
+  
+  return ptr.cast<Utf8>();
+}
+
+String FromCharArray(Array<Uint8> name, int size) {
+  List<int> array = [];
+
+  for (int x = 0; x < size; x++) {
+    int char = name[x];
+    if (char == 0) break;
+    array.add(char);
+  }
+
+  return String.fromCharCodes(array);
+}
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -216,7 +235,7 @@ final class _Mesh extends Struct
 }
 
 // Shader
-final class Shader extends Struct
+final class _Shader extends Struct
 {
   @Uint32() external int id;           // Shader program id
   external Pointer<Int32> locs;        // Shader locations array (RL_MAX_SHADER_LOCATIONS)
@@ -233,7 +252,7 @@ final class MaterialMap extends Struct
 // Material, includes shader and maps
 final class _Material extends Struct
 {
-  external Shader shader;              // Material shader
+  external _Shader shader;              // Material shader
   external Pointer<MaterialMap> maps;  // Material maps array (MAX_MATERIAL_MAPS)
   @Array(4) external Array<Float> params; // Material generic parameters (if required)
 }
@@ -301,8 +320,7 @@ final class _BoundingBox extends Struct
   external _Vector3 min;                // Minimum vertex box-corner
   external _Vector3 max;                // Maximum vertex box-corner
 }
-
-/*
+/* 
 // Wave, audio wave data
 final class Wave extends Struct
 {
@@ -343,9 +361,10 @@ final class Music extends Struct
   @Int32() external int ctxType;       // Type of music context (audio filetype)
   external Pointer<Void> ctxData;      // Audio context data, depends on type
 }
+*/
 
 // VrDeviceInfo, Head-Mounted-Display device parameters
-final class VrDeviceInfo extends Struct
+final class _VrDeviceInfo extends Struct
 {
   @Int32() external int hResolution;   // Horizontal resolution in pixels
   @Int32() external int vResolution;   // Vertical resolution in pixels
@@ -358,7 +377,7 @@ final class VrDeviceInfo extends Struct
   @Array(4) external Array<Float> chromaAbCorrection; // Chromatic aberration correction parameters
 }
 
-final class VrStereoConfig extends Struct
+final class _VrStereoConfig extends Struct
 {
   @Array(2) external Array<_Matrix> projection;
   @Array(2) external Array<_Matrix> viewOffset;
@@ -369,12 +388,12 @@ final class VrStereoConfig extends Struct
   @Array(2) external Array<Float> scale;
   @Array(2) external Array<Float> scaleIn;
 }
- */
+
 // File path list
-final class FilePathList extends Struct
+final class _FilePathList extends Struct
 {
   @Uint32() external int count;        // Filepaths entries count
-  external Pointer<Pointer<Uint8>> paths; // Filepaths entries
+  external Pointer<Pointer<Utf8>> paths; // Filepaths entries
 }
 /* 
 // Automation event
@@ -1056,12 +1075,10 @@ typedef _SetConfigFlagsRay = Void Function(Uint32);
 typedef _SetConfigFlagsDart = void Function(int);
 final _setConfigFlags = _dylib.lookupFunction<_SetConfigFlagsRay, _SetConfigFlagsDart>('SetConfigFlags');
 
-//TODO: Open URL
-/*
 typedef _OpenURLRay = Void Function(Pointer<Utf8>);
 typedef _OpenURLDart = void Function(Pointer<Utf8>);
 final _openURL = _dylib.lookupFunction<_OpenURLRay, _OpenURLDart>('OpenURL');
-*/
+
 
 //------------------------------------------------------------------------------------
 //                                   Cursor
@@ -1764,6 +1781,22 @@ typedef _EndTextureModeRay = Void Function();
 typedef _EndTextureModeDart = void Function();
 final _endTextureMode = _dylib.lookupFunction<_EndTextureModeRay, _EndTextureModeDart>('EndTextureMode');
 
+typedef _BeginVrStereoModeRay = Void Function(_VrStereoConfig);
+typedef _BeginVrStereoModeDart = void Function(_VrStereoConfig);
+final _beginVrStereoMode = _dylib.lookupFunction<_BeginVrStereoModeRay, _BeginVrStereoModeDart>('BeginVrStereoMode');
+
+typedef _EndVrStereoModeRay = Void Function();
+typedef _EndVrStereoModeDart = void Function();
+final _endVrStereoMode = _dylib.lookupFunction<_EndVrStereoModeRay, _EndVrStereoModeDart>('EndVrStereoMode');
+
+typedef _LoadVrStereoConfigRay = _VrStereoConfig Function(_VrDeviceInfo);
+typedef _LoadVrStereoConfigDart = _VrStereoConfig Function(_VrDeviceInfo);
+final _loadVrStereoConfig = _dylib.lookupFunction<_LoadVrStereoConfigRay, _LoadVrStereoConfigDart>('LoadVrStereoConfig');
+
+typedef _UnloadVrStereoConfigRay = Void Function(_VrStereoConfig);
+typedef _UnloadVrStereoConfigDart = void Function(_VrStereoConfig);
+final _unloadVrStereoConfig = _dylib.lookupFunction<_UnloadVrStereoConfigRay, _UnloadVrStereoConfigDart>('UnloadVrStereoConfig');
+
 //------------------------------------------------------------------------------------
 //                                   Color
 //------------------------------------------------------------------------------------
@@ -1945,40 +1978,38 @@ typedef _CodepointToUTF8Ray = Pointer<Utf8> Function(Int32 codepoint, Pointer<In
 typedef _CodepointToUTF8Dart = Pointer<Utf8> Function(int codepoint, Pointer<Int32> utf8Size);
 final _codepointToUTF8 = _dylib.lookupFunction<_CodepointToUTF8Ray, _CodepointToUTF8Dart>('CodepointToUTF8');
 
-//TODO: Implement Shader Shadow Class
+typedef _BeginShaderModeRay = Void Function(_Shader);
+typedef _BeginShaderModeDart = void Function(_Shader);
+final _beginShaderMode = _dylib.lookupFunction<_BeginShaderModeRay, _BeginShaderModeDart>('BeginShaderMode');
 
-// typedef _BeginShaderModeRay = Void Function(Shader);
-// typedef _BeginShaderModeDart = void Function(Shader);
-// final _beginShaderMode = _dylib.lookupFunction<_BeginShaderModeRay, _BeginShaderModeDart>('BeginShaderMode');
+typedef _EndShaderModeRay = Void Function();
+typedef _EndShaderModeDart = void Function();
+final _endShaderMode = _dylib.lookupFunction<_EndShaderModeRay, _EndShaderModeDart>('EndShaderMode');
 
-// typedef _EndShaderModeRay = Void Function();
-// typedef _EndShaderModeDart = void Function();
-// final _endShaderMode = _dylib.lookupFunction<_EndShaderModeRay, _EndShaderModeDart>('EndShaderMode');
+typedef _BeginBlendModeRay = Void Function(Int32);
+typedef _BeginBlendModeDart = void Function(int);
+final _beginBlendMode = _dylib.lookupFunction<_BeginBlendModeRay, _BeginBlendModeDart>('BeginBlendMode');
 
-// typedef _BeginBlendModeRay = Void Function(Int32);
-// typedef _BeginBlendModeDart = void Function(int);
-// final _beginBlendMode = _dylib.lookupFunction<_BeginBlendModeRay, _BeginBlendModeDart>('BeginBlendMode');
+typedef _EndBlendModeRay = Void Function();
+typedef _EndBlendModeDart = void Function();
+final _endBlendMode = _dylib.lookupFunction<_EndBlendModeRay, _EndBlendModeDart>('EndBlendMode');
 
-// typedef _EndBlendModeRay = Void Function();
-// typedef _EndBlendModeDart = void Function();
-// final _endBlendMode = _dylib.lookupFunction<_EndBlendModeRay, _EndBlendModeDart>('EndBlendMode');
+typedef _BeginScissorModeRay = Void Function(Int32, Int32, Int32, Int32);
+typedef _BeginScissorModeDart = void Function(int, int, int, int);
+final _beginScissorMode = _dylib.lookupFunction<_BeginScissorModeRay, _BeginScissorModeDart>('BeginScissorMode');
 
-// typedef _BeginScissorModeRay = Void Function(Int32, Int32, Int32, Int32);
-// typedef _BeginScissorModeDart = void Function(int, int, int, int);
-// final _beginScissorMode = _dylib.lookupFunction<_BeginScissorModeRay, _BeginScissorModeDart>('BeginScissorMode');
+typedef _EndScissorModeRay = Void Function();
+typedef _EndScissorModeDart = void Function();
+final _endScissorMode = _dylib.lookupFunction<_EndScissorModeRay, _EndScissorModeDart>('EndScissorMode');
+/* 
+typedef _BeginVrStereoModeRay = Void Function(VrStereoConfig);
+typedef _BeginVrStereoModeDart = void Function(VrStereoConfig);
+final _beginVrStereoMode = _dylib.lookupFunction<_BeginVrStereoModeRay, _BeginVrStereoModeDart>('BeginVrStereoMode');
 
-// typedef _EndScissorModeRay = Void Function();
-// typedef _EndScissorModeDart = void Function();
-// final _endScissorMode = _dylib.lookupFunction<_EndScissorModeRay, _EndScissorModeDart>('EndScissorMode');
-
-// typedef _BeginVrStereoModeRay = Void Function(VrStereoConfig);
-// typedef _BeginVrStereoModeDart = void Function(VrStereoConfig);
-// final _beginVrStereoMode = _dylib.lookupFunction<_BeginVrStereoModeRay, _BeginVrStereoModeDart>('BeginVrStereoMode');
-
-// typedef _EndVrStereoModeRay = Void Function();
-// typedef _EndVrStereoModeDart = void Function();
-// final _endVrStereoMode = _dylib.lookupFunction<_EndVrStereoModeRay, _EndVrStereoModeDart>('EndVrStereoMode');
-
+typedef _EndVrStereoModeRay = Void Function();
+typedef _EndVrStereoModeDart = void Function();
+final _endVrStereoMode = _dylib.lookupFunction<_EndVrStereoModeRay, _EndVrStereoModeDart>('EndVrStereoMode');
+*/
 //------------------------------------------------------------------------------------
 // Model 3d Loading and Drawing Functions (Module: models)
 //------------------------------------------------------------------------------------
@@ -2066,6 +2097,50 @@ final _genMeshHeightmap = _dylib.lookupFunction<_GenMeshHeightmapRay, _GenMeshHe
 typedef _GenMeshCubicmapRay = _Mesh Function(_Image, _Vector3);
 typedef _GenMeshCubicmapDart = _Mesh Function(_Image, _Vector3);
 final _genMeshCubicmap = _dylib.lookupFunction<_GenMeshCubicmapRay, _GenMeshCubicmapDart>('GenMeshCubicmap');
+
+//------------------------------------------------------------------------------------
+//                                   Shader
+//------------------------------------------------------------------------------------
+
+typedef _LoadShaderRay = _Shader Function(Pointer<Utf8>, Pointer<Utf8>);
+typedef _LoadShaderDart = _Shader Function(Pointer<Utf8>, Pointer<Utf8>);
+final _loadShader = _dylib.lookupFunction<_LoadShaderRay, _LoadShaderDart>('LoadShader');
+
+typedef _LoadShaderFromMemoryRay = _Shader Function(Pointer<Utf8>, Pointer<Utf8>);
+typedef _LoadShaderFromMemoryDart = _Shader Function(Pointer<Utf8>, Pointer<Utf8>);
+final _loadShaderFromMemory = _dylib.lookupFunction<_LoadShaderFromMemoryRay, _LoadShaderFromMemoryDart>('LoadShaderFromMemory');
+
+typedef _IsShaderValidRay = Bool Function(_Shader);
+typedef _IsShaderValidDart = bool Function(_Shader);
+final _isShaderValid = _dylib.lookupFunction<_IsShaderValidRay, _IsShaderValidDart>('IsShaderValid');
+
+typedef _GetShaderLocationRay = Int32 Function(_Shader, Pointer<Utf8>);
+typedef _GetShaderLocationDart = int Function(_Shader, Pointer<Utf8>);
+final _getShaderLocation = _dylib.lookupFunction<_GetShaderLocationRay, _GetShaderLocationDart>('GetShaderLocation');
+
+typedef _GetShaderLocationAttribRay = Int32 Function(_Shader, Pointer<Utf8>);
+typedef _GetShaderLocationAttribDart = int Function(_Shader, Pointer<Utf8>);
+final _getShaderLocationAttrib = _dylib.lookupFunction<_GetShaderLocationAttribRay, _GetShaderLocationAttribDart>('GetShaderLocationAttrib');
+
+typedef _SetShaderValueRay = Void Function(_Shader, Int32, Pointer<Void>, Int32);
+typedef _SetShaderValueDart = void Function(_Shader, int, Pointer<Void>, int);
+final _setShaderValue = _dylib.lookupFunction<_SetShaderValueRay, _SetShaderValueDart>('SetShaderValue');
+
+typedef _SetShaderValueVRay = Void Function(_Shader, Int32, Pointer<Void>, Int32, Int32);
+typedef _SetShaderValueVDart = void Function(_Shader, int, Pointer<Void>, int, int);
+final _setShaderValueV = _dylib.lookupFunction<_SetShaderValueVRay, _SetShaderValueVDart>('SetShaderValueV');
+
+typedef _SetShaderValueMatrixRay = Void Function(_Shader, Int32, _Matrix);
+typedef _SetShaderValueMatrixDart = void Function(_Shader, int, _Matrix);
+final _setShaderValueMatrix = _dylib.lookupFunction<_SetShaderValueMatrixRay, _SetShaderValueMatrixDart>('SetShaderValueMatrix');
+
+typedef _SetShaderValueTextureRay = Void Function(_Shader, Int32, _Texture2D);
+typedef _SetShaderValueTextureDart = void Function(_Shader, int, _Texture2D);
+final _setShaderValueTexture = _dylib.lookupFunction<_SetShaderValueTextureRay, _SetShaderValueTextureDart>('SetShaderValueTexture');
+
+typedef _UnloadShaderRay = Void Function(_Shader);
+typedef _UnloadShaderDart = void Function(_Shader);
+final _unloadShader = _dylib.lookupFunction<_UnloadShaderRay, _UnloadShaderDart>('UnloadShader');
 
 //------------------------------------------------------------------------------------
 //                                   Material
@@ -2186,6 +2261,42 @@ final _unloadModelAnimations = _dylib.lookupFunction<_UnloadModelAnimationsRay, 
 typedef _IsModelAnimationValidRay = Bool Function(_Model, _ModelAnimation);
 typedef _IsModelAnimationValidDart = bool Function(_Model, _ModelAnimation);
 final _isModelAnimationValid = _dylib.lookupFunction<_IsModelAnimationValidRay, _IsModelAnimationValidDart>('IsModelAnimationValid');
+
+//------------------------------------------------------------------------------------
+//                                ScreenToWorld
+//------------------------------------------------------------------------------------
+
+typedef _GetScreenToWorldRayRay = _Ray Function(_Vector2, _Camera);
+typedef _GetScreenToWorldRayDart = _Ray Function(_Vector2, _Camera);
+final _getScreenToWorldRay = _dylib.lookupFunction<_GetScreenToWorldRayRay, _GetScreenToWorldRayDart>('GetScreenToWorldRay');
+
+typedef _GetScreenToWorldRayExRay = _Ray Function(_Vector2, _Camera, Int32, Int32);
+typedef _GetScreenToWorldRayExDart = _Ray Function(_Vector2, _Camera, int, int);
+final _getScreenToWorldRayEx = _dylib.lookupFunction<_GetScreenToWorldRayExRay, _GetScreenToWorldRayExDart>('GetScreenToWorldRayEx');
+
+typedef _GetWorldToScreenRay = _Vector2 Function(_Vector3, _Camera);
+typedef _GetWorldToScreenDart = _Vector2 Function(_Vector3, _Camera);
+final _getWorldToScreen = _dylib.lookupFunction<_GetWorldToScreenRay, _GetWorldToScreenDart>('GetWorldToScreen');
+
+typedef _GetWorldToScreenExRay = _Vector2 Function(_Vector3, _Camera, Int32, Int32);
+typedef _GetWorldToScreenExDart = _Vector2 Function(_Vector3, _Camera, int, int);
+final _getWorldToScreenEx = _dylib.lookupFunction<_GetWorldToScreenExRay, _GetWorldToScreenExDart>('GetWorldToScreenEx');
+
+typedef _GetWorldToScreen2DRay = _Vector2 Function(_Vector2, _Camera2D);
+typedef _GetWorldToScreen2DDart = _Vector2 Function(_Vector2, _Camera2D);
+final _getWorldToScreen2D = _dylib.lookupFunction<_GetWorldToScreen2DRay, _GetWorldToScreen2DDart>('GetWorldToScreen2D');
+
+typedef _GetScreenToWorld2DRay = _Vector2 Function(_Vector2, _Camera2D);
+typedef _GetScreenToWorld2DDart = _Vector2 Function(_Vector2, _Camera2D);
+final _getScreenToWorld2D = _dylib.lookupFunction<_GetScreenToWorld2DRay, _GetScreenToWorld2DDart>('GetScreenToWorld2D');
+
+typedef _GetCameraMatrixRay = _Matrix Function(_Camera);
+typedef _GetCameraMatrixDart = _Matrix Function(_Camera);
+final _getCameraMatrix = _dylib.lookupFunction<_GetCameraMatrixRay, _GetCameraMatrixDart>('GetCameraMatrix');
+
+typedef _GetCameraMatrix2DRay = _Matrix Function(_Camera2D);
+typedef _GetCameraMatrix2DDart = _Matrix Function(_Camera2D);
+final _getCameraMatrix2D = _dylib.lookupFunction<_GetCameraMatrix2DRay, _GetCameraMatrix2DDart>('GetCameraMatrix2D');
 
 //------------------------------------------------------------------------------------
 //                                   Shapes3D
@@ -2443,7 +2554,6 @@ final _drawPolyLinesEx = _dylib.lookupFunction<_DrawPolyLinesExRay, _DrawPolyLin
 //                                   Splines
 //------------------------------------------------------------------------------------
 
-
 typedef _DrawSplineLinearRay = Void Function(Pointer<_Vector2>, Int32, Float, _Color);
 typedef _DrawSplineLinearDart = void Function(Pointer<_Vector2>, int, double, _Color);
 final _drawSplineLinear = _dylib.lookupFunction<_DrawSplineLinearRay, _DrawSplineLinearDart>('DrawSplineLinear');
@@ -2483,3 +2593,135 @@ final _drawSplineSegmentBezierQuadratic = _dylib.lookupFunction<_DrawSplineSegme
 typedef _DrawSplineSegmentBezierCubicRay = Void Function(_Vector2, _Vector2, _Vector2, _Vector2, Float, _Color);
 typedef _DrawSplineSegmentBezierCubicDart = void Function(_Vector2, _Vector2, _Vector2, _Vector2, double, _Color);
 final _drawSplineSegmentBezierCubic = _dylib.lookupFunction<_DrawSplineSegmentBezierCubicRay, _DrawSplineSegmentBezierCubicDart>('DrawSplineSegmentBezierCubic');
+
+typedef _GetSplinePointLinearRay = _Vector2 Function(_Vector2, _Vector2, Float);
+typedef _GetSplinePointLinearDart = _Vector2 Function(_Vector2, _Vector2, double);
+final _getSplinePointLinear = _dylib.lookupFunction<_GetSplinePointLinearRay, _GetSplinePointLinearDart>('GetSplinePointLinear');
+
+typedef _GetSplinePointBasisRay = _Vector2 Function(_Vector2, _Vector2, _Vector2, _Vector2, Float);
+typedef _GetSplinePointBasisDart = _Vector2 Function(_Vector2, _Vector2, _Vector2, _Vector2, double);
+final _getSplinePointBasis = _dylib.lookupFunction<_GetSplinePointBasisRay, _GetSplinePointBasisDart>('GetSplinePointBasis');
+
+typedef _GetSplinePointCatmullRomRay = _Vector2 Function(_Vector2, _Vector2, _Vector2, _Vector2, Float);
+typedef _GetSplinePointCatmullRomDart = _Vector2 Function(_Vector2, _Vector2, _Vector2, _Vector2, double);
+final _getSplinePointCatmullRom = _dylib.lookupFunction<_GetSplinePointCatmullRomRay, _GetSplinePointCatmullRomDart>('GetSplinePointCatmullRom');
+
+typedef _GetSplinePointBezierQuadRay = _Vector2 Function(_Vector2, _Vector2, _Vector2, Float);
+typedef _GetSplinePointBezierQuadDart = _Vector2 Function(_Vector2, _Vector2, _Vector2, double);
+final _getSplinePointBezierQuad = _dylib.lookupFunction<_GetSplinePointBezierQuadRay, _GetSplinePointBezierQuadDart>('GetSplinePointBezierQuad');
+
+typedef _GetSplinePointBezierCubicRay = _Vector2 Function(_Vector2, _Vector2, _Vector2, _Vector2, Float);
+typedef _GetSplinePointBezierCubicDart = _Vector2 Function(_Vector2, _Vector2, _Vector2, _Vector2, double);
+final _getSplinePointBezierCubic = _dylib.lookupFunction<_GetSplinePointBezierCubicRay, _GetSplinePointBezierCubicDart>('GetSplinePointBezierCubic');
+
+//------------------------------------------------------------------------------------
+//                                   Collision
+//------------------------------------------------------------------------------------
+
+typedef _CheckCollisionRecsRay = Bool Function(_Rectangle, _Rectangle);
+typedef _CheckCollisionRecsDart = bool Function(_Rectangle, _Rectangle);
+final _checkCollisionRecs = _dylib.lookupFunction<_CheckCollisionRecsRay, _CheckCollisionRecsDart>('CheckCollisionRecs');
+
+typedef _CheckCollisionCirclesRay = Bool Function(_Vector2, Float, _Vector2, Float);
+typedef _CheckCollisionCirclesDart = bool Function(_Vector2, double, _Vector2, double);
+final _checkCollisionCircles = _dylib.lookupFunction<_CheckCollisionCirclesRay, _CheckCollisionCirclesDart>('CheckCollisionCircles');
+
+typedef _CheckCollisionCircleRecRay = Bool Function(_Vector2, Float, _Rectangle);
+typedef _CheckCollisionCircleRecDart = bool Function(_Vector2, double, _Rectangle);
+final _checkCollisionCircleRec = _dylib.lookupFunction<_CheckCollisionCircleRecRay, _CheckCollisionCircleRecDart>('CheckCollisionCircleRec');
+
+typedef _CheckCollisionCircleLineRay = Bool Function(_Vector2, Float, _Vector2, _Vector2);
+typedef _CheckCollisionCircleLineDart = bool Function(_Vector2, double, _Vector2, _Vector2);
+final _checkCollisionCircleLine = _dylib.lookupFunction<_CheckCollisionCircleLineRay, _CheckCollisionCircleLineDart>('CheckCollisionCircleLine');
+
+typedef _CheckCollisionPointRecRay = Bool Function(_Vector2, _Rectangle);
+typedef _CheckCollisionPointRecDart = bool Function(_Vector2, _Rectangle);
+final _checkCollisionPointRec = _dylib.lookupFunction<_CheckCollisionPointRecRay, _CheckCollisionPointRecDart>('CheckCollisionPointRec');
+
+typedef _CheckCollisionPointCircleRay = Bool Function(_Vector2, _Vector2, Float);
+typedef _CheckCollisionPointCircleDart = bool Function(_Vector2, _Vector2, double);
+final _checkCollisionPointCircle = _dylib.lookupFunction<_CheckCollisionPointCircleRay, _CheckCollisionPointCircleDart>('CheckCollisionPointCircle');
+
+typedef _CheckCollisionPointTriangleRay = Bool Function(_Vector2, _Vector2, _Vector2, _Vector2);
+typedef _CheckCollisionPointTriangleDart = bool Function(_Vector2, _Vector2, _Vector2, _Vector2);
+final _checkCollisionPointTriangle = _dylib.lookupFunction<_CheckCollisionPointTriangleRay, _CheckCollisionPointTriangleDart>('CheckCollisionPointTriangle');
+
+typedef _CheckCollisionPointLineRay = Bool Function(_Vector2, _Vector2, _Vector2, Int32);
+typedef _CheckCollisionPointLineDart = bool Function(_Vector2, _Vector2, _Vector2, int);
+final _checkCollisionPointLine = _dylib.lookupFunction<_CheckCollisionPointLineRay, _CheckCollisionPointLineDart>('CheckCollisionPointLine');
+
+typedef _CheckCollisionPointPolyRay = Bool Function(_Vector2, Pointer<_Vector2>, Int32);
+typedef _CheckCollisionPointPolyDart = bool Function(_Vector2, Pointer<_Vector2>, int);
+final _checkCollisionPointPoly = _dylib.lookupFunction<_CheckCollisionPointPolyRay, _CheckCollisionPointPolyDart>('CheckCollisionPointPoly');
+
+typedef _CheckCollisionLinesRay = Bool Function(_Vector2, _Vector2, _Vector2, _Vector2, Pointer<_Vector2>);
+typedef _CheckCollisionLinesDart = bool Function(_Vector2, _Vector2, _Vector2, _Vector2, Pointer<_Vector2>);
+final _checkCollisionLines = _dylib.lookupFunction<_CheckCollisionLinesRay, _CheckCollisionLinesDart>('CheckCollisionLines');
+
+typedef _GetCollisionRecRay = _Rectangle Function(_Rectangle, _Rectangle);
+typedef _GetCollisionRecDart = _Rectangle Function(_Rectangle, _Rectangle);
+final _getCollisionRec = _dylib.lookupFunction<_GetCollisionRecRay, _GetCollisionRecDart>('GetCollisionRec');
+
+//------------------------------------------------------------------------------------
+//                                   Collision 3D
+//------------------------------------------------------------------------------------
+
+typedef _CheckCollisionSpheresRay = Bool Function(_Vector3, Float, _Vector3, Float);
+typedef _CheckCollisionSpheresDart = bool Function(_Vector3, double, _Vector3, double);
+final _checkCollisionSpheres = _dylib.lookupFunction<_CheckCollisionSpheresRay, _CheckCollisionSpheresDart>('CheckCollisionSpheres');
+
+typedef _CheckCollisionBoxesRay = Bool Function(_BoundingBox, _BoundingBox);
+typedef _CheckCollisionBoxesDart = bool Function(_BoundingBox, _BoundingBox);
+final _checkCollisionBoxes = _dylib.lookupFunction<_CheckCollisionBoxesRay, _CheckCollisionBoxesDart>('CheckCollisionBoxes');
+
+typedef _CheckCollisionBoxSphereRay = Bool Function(_BoundingBox, _Vector3, Float);
+typedef _CheckCollisionBoxSphereDart = bool Function(_BoundingBox, _Vector3, double);
+final _checkCollisionBoxSphere = _dylib.lookupFunction<_CheckCollisionBoxSphereRay, _CheckCollisionBoxSphereDart>('CheckCollisionBoxSphere');
+
+typedef _GetRayCollisionSphereRay = _RayCollision Function(_Ray, _Vector3, Float);
+typedef _GetRayCollisionSphereDart = _RayCollision Function(_Ray, _Vector3, double);
+final _getRayCollisionSphere = _dylib.lookupFunction<_GetRayCollisionSphereRay, _GetRayCollisionSphereDart>('GetRayCollisionSphere');
+
+typedef _GetRayCollisionBoxRay = _RayCollision Function(_Ray, _BoundingBox);
+typedef _GetRayCollisionBoxDart = _RayCollision Function(_Ray, _BoundingBox);
+final _getRayCollisionBox = _dylib.lookupFunction<_GetRayCollisionBoxRay, _GetRayCollisionBoxDart>('GetRayCollisionBox');
+
+typedef _GetRayCollisionMeshRay = _RayCollision Function(_Ray, _Mesh, _Matrix);
+typedef _GetRayCollisionMeshDart = _RayCollision Function(_Ray, _Mesh, _Matrix);
+final _getRayCollisionMesh = _dylib.lookupFunction<_GetRayCollisionMeshRay, _GetRayCollisionMeshDart>('GetRayCollisionMesh');
+
+typedef _GetRayCollisionTriangleRay = _RayCollision Function(_Ray, _Vector3, _Vector3, _Vector3);
+typedef _GetRayCollisionTriangleDart = _RayCollision Function(_Ray, _Vector3, _Vector3, _Vector3);
+final _getRayCollisionTriangle = _dylib.lookupFunction<_GetRayCollisionTriangleRay, _GetRayCollisionTriangleDart>('GetRayCollisionTriangle');
+
+typedef _GetRayCollisionQuadRay = _RayCollision Function(_Ray, _Vector3, _Vector3, _Vector3, _Vector3);
+typedef _GetRayCollisionQuadDart = _RayCollision Function(_Ray, _Vector3, _Vector3, _Vector3, _Vector3);
+final _getRayCollisionQuad = _dylib.lookupFunction<_GetRayCollisionQuadRay, _GetRayCollisionQuadDart>('GetRayCollisionQuad');
+
+//------------------------------------------------------------------------------------
+//                                   FilePath List
+//------------------------------------------------------------------------------------
+
+typedef _LoadDirectoryFilesRay = _FilePathList Function(Pointer<Utf8>);
+typedef _LoadDirectoryFilesDart = _FilePathList Function(Pointer<Utf8>);
+final _loadDirectoryFiles = _dylib.lookupFunction<_LoadDirectoryFilesRay, _LoadDirectoryFilesDart>('LoadDirectoryFiles');
+
+typedef _LoadDirectoryFilesExRay = _FilePathList Function(Pointer<Utf8>, Pointer<Utf8>, Bool);
+typedef _LoadDirectoryFilesExDart = _FilePathList Function(Pointer<Utf8>, Pointer<Utf8>, bool);
+final _loadDirectoryFilesEx = _dylib.lookupFunction<_LoadDirectoryFilesExRay, _LoadDirectoryFilesExDart>('LoadDirectoryFilesEx');
+
+typedef _UnloadDirectoryFilesRay = Void Function(_FilePathList);
+typedef _UnloadDirectoryFilesDart = void Function(_FilePathList);
+final _unloadDirectoryFiles = _dylib.lookupFunction<_UnloadDirectoryFilesRay, _UnloadDirectoryFilesDart>('UnloadDirectoryFiles');
+
+typedef _IsFileDroppedRay = Bool Function();
+typedef _IsFileDroppedDart = bool Function();
+final _isFileDropped = _dylib.lookupFunction<_IsFileDroppedRay, _IsFileDroppedDart>('IsFileDropped');
+
+typedef _LoadDroppedFilesRay = _FilePathList Function();
+typedef _LoadDroppedFilesDart = _FilePathList Function();
+final _loadDroppedFiles = _dylib.lookupFunction<_LoadDroppedFilesRay, _LoadDroppedFilesDart>('LoadDroppedFiles');
+
+typedef _UnloadDroppedFilesRay = Void Function(_FilePathList);
+typedef _UnloadDroppedFilesDart = void Function(_FilePathList);
+final _unloadDroppedFiles = _dylib.lookupFunction<_UnloadDroppedFilesRay, _UnloadDroppedFilesDart>('UnloadDroppedFiles');
