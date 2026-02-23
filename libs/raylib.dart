@@ -356,10 +356,8 @@ abstract class Draw
   /// Update screen by calling `Begin()` `renderLogic()` and `End()` while also clearing the background
   static void RenderFrame({
     required void Function() renderLogic,
-    required Color color
   }) {
     Begin();
-    ClearBackground(color);
     renderLogic();
     End();
   }
@@ -374,10 +372,8 @@ abstract class Draw
   static void Render2DMode({
     required void Function() renderLogic,
     required Camera2D camera,
-    required Color background
   }) {
     Begin2DMode(camera);
-    ClearBackground(background);
     renderLogic();
     End2DMode();
   }
@@ -392,10 +388,8 @@ abstract class Draw
   static void Render3DMode({
     required void Function() renderLogic,
     required Camera3D camera,
-    required Color background
   }) {
     Begin3DMode(camera);
-    ClearBackground(background);
     renderLogic();
     End3DMode();
   }
@@ -410,10 +404,8 @@ abstract class Draw
   static void RenderTextureMode({
     required void Function() renderLogic,
     required RenderTexture2D render,
-    required Color background
   }) {
     BeginTextureMode(render);
-    ClearBackground(background);
     renderLogic();
     EndTextureMode();
   }
@@ -422,16 +414,14 @@ abstract class Draw
   static void BeginShaderMode(Shader shader) => _beginShaderMode(shader.ref);
   /// End custom shader drawing (use default shader)
   static void EndShaderMode() => _endShaderMode();
-  /// Update screen by calling `BeginShaderMode()` `renderLogic()` and `EndShaderMode()` while also clearing the background
+  /// Update screen by calling `BeginShaderMode()` `renderLogic()` and `EndShaderMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
   static void RenderShaderMode({
     required Shader shader,
     required void Function() renderLogic,
-    required Color background
   }) {
     BeginShaderMode(shader);
-    ClearBackground(background);
     renderLogic();
     EndShaderMode();
   }
@@ -440,16 +430,14 @@ abstract class Draw
   static void BeginBlendMode(int mode) => _beginBlendMode(mode);
   /// End blending mode (reset to default: alpha blending)
   static void EndBlendMode() => _endBlendMode();
-  /// Update screen by calling `BeginBlendMode()` `renderLogic()` and `EndBlendMode()` while also clearing the background
+  /// Update screen by calling `BeginBlendMode()` `renderLogic()` and `EndBlendMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
   static void RenderBlendMode({
     required int mode,
     required void Function() renderLogic,
-    required Color background
   }) {
     BeginBlendMode(mode);
-    ClearBackground(background);
     renderLogic();
     EndBlendMode();
   }
@@ -458,19 +446,17 @@ abstract class Draw
   static void BeginScissorMode(int x, int y, int width, int height) => _beginScissorMode(x, y, width, height);
   /// End scissor mode
   static void EndScissorMode() => _endScissorMode();
-  /// Update screen by calling `BeginScissorMode()` `renderLogic()` and `EndScissorMode()` while also clearing the background
+  /// Update screen by calling `BeginScissorMode()` `renderLogic()` and `EndScissorMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
   static void RenderScissorMode({
     required Rectangle rect,
     required void Function() renderLogic,
-    required Color background
   }) {
     BeginScissorMode(
       rect.x.round(), rect.y.round(),
       rect.width.round(), rect.height.round()
     );
-    ClearBackground(background);
     renderLogic();
     EndScissorMode();
   }
@@ -479,12 +465,11 @@ abstract class Draw
   static void BeginVrStereoMode(VrStereoConfig config) => _beginVrStereoMode(config.ref);
   /// End stereo rendering (requires VR simulator)
   static void EndVrStereoMode() => _endVrStereoMode();
-  /// Update screen by calling `BeginVrStereoMode()` `renderLogic()` and `EndVrStereoMode()` while also clearing the background
+  /// Update screen by calling `BeginVrStereoMode()` `renderLogic()` and `EndVrStereoMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void RenderVrStereoMode({required VrStereoConfig config, required void Function() renderLogic, required Color background}) {
+  static void RenderVrStereoMode({required VrStereoConfig config, required void Function() renderLogic}) {
     BeginVrStereoMode(config);
-    ClearBackground(background);
     renderLogic();
     EndVrStereoMode();
   }
