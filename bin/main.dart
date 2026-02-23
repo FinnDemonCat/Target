@@ -1,5 +1,5 @@
 // ignore: unused_import
-import '../libs/raylib.dart';
+import '../libs/raylib/raylib.dart';
 int winWidth = 800;
 int winHeight = 800;
 List<Rectangle> rects = [];
