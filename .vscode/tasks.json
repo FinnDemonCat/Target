@@ -10,13 +10,13 @@
 		{
 			"label": "CMake: debug",
 			"type": "shell",
-			"command": "cmake --build build --target run_debug",
+			"command": "cmake --build build",
 			"dependsOn": ["Cmake: init"]
 		},
 		{
 			"label": "CMake: build",
 			"type": "shell",
-			"command": "cmake --build build --target build_aot",
+			"command": "cmake --build build",
 			"dependsOn": ["Cmake: init"]
 		}
 	]

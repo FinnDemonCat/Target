@@ -22,6 +22,14 @@ class Rectangle implements Disposeable
   set x(double value) => _memory!.pointer.ref.x = value.abs().roundToDouble();
   set y(double value) => _memory!.pointer.ref.y = value.abs().roundToDouble();
 
+  void Set([double x = -1, double y = -1, double width = -1, double height = -1])
+  {
+    if (x != -1) this.x = x;
+    if (y != -1) this.y = y;
+    if (width != -1) this.width = width;
+    if (height != -1) this.height = height;
+  }
+
   // ignore: unused_element
   void _setMemory(_Rectangle result)
   {

@@ -1,0 +1,8 @@
+[
+{
+  "directory": "C:/Users/Calie/Documents/Code/Dart/Target/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -Dnuklear_layout_EXPORTS -g -o CMakeFiles\\nuklear_layout.dir\\src\\nuklear.c.obj -c C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\src\\nuklear.c",
+  "file": "C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\src\\nuklear.c",
+  "output": "CMakeFiles\\nuklear_layout.dir\\src\\nuklear.c.obj"
+}
+]

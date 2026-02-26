@@ -55,7 +55,12 @@ String FromCharArray(Array<Uint8> name, int size) {
 
   return String.fromCharCodes(array);
 }
-
+/* 
+typedef NuklearDebugC = Void Function();
+typedef NuklearDebugDart = void Function();
+final DynamicLibrary _debug = DynamicLibrary.open('bin/nuklear_layout.dll');
+final NuklearDebug = _debug.lookupFunction<NuklearDebugC, NuklearDebugDart>('DebugMessage');
+*/
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -859,9 +864,9 @@ final DynamicLibrary _dylib = _load();
 
 DynamicLibrary _load()
 {
-  if (Platform.isWindows) return DynamicLibrary.open('../bin/libraylib.dll');
-  if (Platform.isLinux) return DynamicLibrary.open('libraylib.so');
-  if (Platform.isMacOS) return DynamicLibrary.open('libraylib.dylib');
+  if (Platform.isWindows) return DynamicLibrary.open('libs/raylib/libraylib.dll');
+  if (Platform.isLinux) return DynamicLibrary.open('libs/raylib/libraylib.so');
+  if (Platform.isMacOS) return DynamicLibrary.open('libs/raylib/libraylib.dylib');
 
   throw UnsupportedError("Operational system not supported");
 }

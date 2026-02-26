@@ -1,5 +1,4 @@
 # ninja log v7
-7	2286	7927265614316614	CMakeFiles/run_debug	9d291474573e3f02
-7	2286	7927265614316614	C:/Users/Calie/Documents/Code/Dart/Target/build/CMakeFiles/run_debug	9d291474573e3f02
-6	2786	7927208204305464	CMakeFiles/build_aot	a0fab7d7a9e94eab
-6	2786	7927208204305464	C:/Users/Calie/Documents/Code/Dart/Target/build/CMakeFiles/build_aot	a0fab7d7a9e94eab
+7	495	7936524816111158	CMakeFiles/target_native.dir/src/nuklear.c.obj	2c71d46479ceab47
+9	316	7936528301356971	CMakeFiles/nuklear_layout.dir/src/nuklear.c.obj	26c8cfcfe7b2e88e
+319	630	7936528307376053	nuklear_layout.dll.a	67332b5dd09d0333
