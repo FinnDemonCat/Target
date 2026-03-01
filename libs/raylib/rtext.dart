@@ -4,51 +4,89 @@ part of 'raylib.dart';
 //                                     Text
 //------------------------------------------------------------------------------------
 
-abstract class Text
+class Text implements Disposeable
 {
+  String _text = "";
+  late Pointer<Uint8> _content;
+  int length = 1024;
+
+  Text(this._text)
+  {
+    _content = malloc.allocate<Uint8>(length * sizeOf<Uint8>());
+    _content[0] = 0;
+    
+    _finalizer.attach(this, _content.cast<Utf8>(), detach: this);
+  }
+
+  Pointer<Utf8> get ref => _content.cast<Utf8>();
+  String get text => _text;
+
+  void _ExpandArray(int size)
+  {
+    if (size < length) return;
+
+    int newlength = length;
+    while(newlength < size) newlength *= 2;
+    newlength++;
+
+    final newptr = malloc.allocate<Uint8>(sizeOf<Uint8>() * newlength);
+    newptr.asTypedList(newlength).setAll(0, _content.asTypedList(length));
+
+    _finalizer.detach(this);
+    malloc.free(_content);
+
+    length = newlength;
+    _content = newptr;
+
+    _finalizer.attach(this, _content.cast<Utf8>(), detach: this);
+  }
+
+  set text(String value) {
+    if (_text == value)
+      return;
+
+    _text = value;
+    
+    final units = utf8.encode(_text);
+    _ExpandArray(units.length);
+
+    _content.asTypedList(length).setAll(0, units);
+    _content[units.length] = 0;
+  }
+
   /// Draw current FPS
   static void DrawFPS(int posX, int posY) => _drawFPS(posX, posY);
 
   /// Draw text (using default font)
-  static void Draw(String text, int fontSize, { int posX = 0, int posY = 0, Color? color })
+  static void Draw(Text text, int fontSize, { int posX = 0, int posY = 0, Color? color })
   {
     final finalColor = color ?? Color.WHITE;
-    using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
-
-      _drawText(ctext, posX, posY, fontSize, finalColor.ref);
-    });
+    _drawText(text.ref, posX, posY, fontSize, finalColor.ref);
   }
 
   /// Draw text using font and additional parameters
-  static void DrawEx(Font font, String text,{ Vector2? position, required double fontSize, required double spacing, Color? tint })
+  static void DrawEx(Font font, Text text,{ Vector2? position, required double fontSize, required double spacing, Color? tint })
   {
-    using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
-      final finalPos = position ?? Vector2.Zero();
-      final colorTint = tint ?? Color.WHITE;
-
-      _drawTextEx(font.ref, ctext, finalPos.ref, fontSize, spacing, colorTint.ref); 
-    });
+    final finalPos = position ?? Vector2.Zero();
+    final colorTint = tint ?? Color.WHITE;
+    _drawTextEx(font.ref, text.ref, finalPos.ref, fontSize, spacing, colorTint.ref); 
   }
 
   /// Draw text using Font and pro parameters (rotation)
-  static void DrawPro(Font font, String text,
+  static void DrawPro(
+    Font font, Text text,
     {Vector2? position, Vector2? origin,
      double rotation = 0.0, required double fontSize,
      required double spacing, Color? tint}
   ) {
-    using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
-      final finalPos = position ?? Vector2.Zero();
-      final finalOrigin = origin ?? Vector2.Zero();
-      final colorTint = tint ?? Color.WHITE;
+    final finalPos = position ?? Vector2.Zero();
+    final finalOrigin = origin ?? Vector2.Zero();
+    final colorTint = tint ?? Color.WHITE;
 
-      _drawTextPro(
-        font.ref, ctext, finalPos.ref, finalOrigin.ref,
-        rotation, fontSize, spacing, colorTint.ref
-      ); 
-    });
+    _drawTextPro(
+      font.ref, text.ref, finalPos.ref, finalOrigin.ref,
+      rotation, fontSize, spacing, colorTint.ref
+    ); 
   }
 
   /// Draw one character (codepoint)
@@ -57,7 +95,7 @@ abstract class Text
    {Vector2? position, required double fontSize, Color? tint}
   ) {
     final finalPos = position ?? Vector2.Zero();
-    final finalTint = Color.WHITE;
+    final finalTint = tint ?? Color.WHITE;
 
     _drawTextCodepoint(font.ref, codepoint, finalPos.ref, fontSize, finalTint.ref);
   }
@@ -71,20 +109,31 @@ abstract class Text
     final finalTint = Color.WHITE;
 
     using ((Arena arena) {
-      Pointer<Int32> pointer = arena.allocate<Int32>(sizeOf<Int32>() * codepoints.length);
-      pointer.asTypedList(codepoints.length).setAll(0, codepoints);
+      Pointer<Int32> pointer = arena.allocate<Int32>(codepoints.length * sizeOf<Int32>());
+      for (var i = 0; i < codepoints.length; i++) {
+        pointer[i] = codepoints[i];
+      }
 
-      _drawTextCodepoints(font.ref, pointer, codepoints.length, finalPos.ref, fontSize, spacing, finalTint.ref);
+      _drawTextCodepoints(font.ref, pointer.cast<Int32>(), codepoints.length, finalPos.ref, fontSize, spacing, finalTint.ref);
     });
   }
 
   /// Open URL with default system browser (if available)
-  static void OpenUrl(String url)
+  static void OpenUrl(Text url) => _openURL(url.ref);
+
+  @override
+  String toString() => _text;
+
+  static final Finalizer<Pointer<Utf8>> _finalizer = Finalizer((ptr) {
+    if (ptr != nullptr)
+      malloc.free(ptr);
+  });
+  
+  @override
+  void dispose()
   {
-    using ((Arena arena) {
-      final cUrl = url.toNativeUtf8(allocator: arena);
-      _openURL(cUrl);
-    });
+    _finalizer.detach(this);
+    malloc.free(_content);
   }
 }
 

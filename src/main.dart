@@ -3,15 +3,30 @@ import 'package:ffigen/ffigen.dart';
 import '../libs/raylib/raylib.dart';
 import 'haybale.dart';
 
-int winWidth = 800;
-int winHeight = 800;
-Columm columm = Columm(0, 0, 800, 800);
-
 class Button extends Widget
 {
-  Button([super.x, super.y, super.width, super.height]);
+  NPatchInfo nPatchInfo;
+  Texture2D texture;
+
+  Button({
+    required double width,
+    required double height,
+    required Texture2D texture,
+    required NPatchInfo nInfo
+  }) :
+    this.texture = texture,
+    this.nPatchInfo = nInfo,
+    super(width: width, height: height);
+  
   @override
-  void draw() => Shapes.DrawRectangleRounded(this, 0.25, 1);
+  void draw() => Texture2D.DrawNPatch(texture, nPatchInfo, this);
+
+  @override
+  void dispose() {
+    nPatchInfo.dispose();
+    texture.dispose();
+    super.dispose();
+  }
 }
 
 bool ListenTerminal()
@@ -23,17 +38,13 @@ bool ListenTerminal()
   return false;
 } 
 
+int winWidth = 800;
+int winHeight = 800;
+
 void main()
 {
   Window.Init(width: winWidth, height: winHeight, title: "Dart Test");
   Frame.SetTargetFPS(30);
-
-  columm.widgets.add(Button(0, 0, 200, 50));
-  columm.widgets.add(Button(0, 0, 200, 50));
-  columm.widgets.add(Button(0, 0, 200, 50));
-  columm.widgets.add(Button(0, 0, 200, 50));
-
-  columm.mount();
 
   while(!Window.ShouldClose())
   {
@@ -47,14 +58,5 @@ void DrawScreen()
 {
   Draw.ClearBackground(Color.GOLD);
   if (ListenTerminal()) {
-    columm.mainAxis = HayYAxisAlign.LEFT;
-    columm.horizontalAxis = HayXAxisAlign.CENTER;
-    columm.width = 500;
-    columm.height = 500;
-    columm.x = (winWidth - 500) / 2;
-
-    columm.mount();
   }
-
-  columm.draw();
-}
+} 

@@ -172,16 +172,12 @@ class Font implements Disposeable
   }
 
   /// Measure string size for Font
-  Vector2 MeasureText(String text,{ required double fontSize, required double spacing })
+  Vector2 MeasureText(Text text,{ required double fontSize, required double spacing })
   {
-    return using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
-
-      _Vector2 result = _measureTextEx(ref, ctext, fontSize, spacing);
-
-      return Vector2._internal(result);
-    });
+    _Vector2 result = _measureTextEx(ref, text.ref, fontSize, spacing);
+    return Vector2._internal(result);
   }
+  
   /// Get glyph index position in font for a codepoint (unicode character), fallback to '?' if not found
   int GetGlyphIndex(int codepoint) => _getGlyphIndex(ref, codepoint);
 
