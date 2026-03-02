@@ -1962,26 +1962,26 @@ final _drawTextCodepoints = _dylib.lookupFunction<_DrawTextCodepointsRay, _DrawT
 //                                   Unicode
 //------------------------------------------------------------------------------------
 
-typedef _LoadUTF8Ray = Pointer<Utf8> Function(Pointer<Int32>, Int32);
-typedef _LoadUTF8Dart = Pointer<Utf8> Function(Pointer<Int32>, int);
-final _loadUTF8 = _dylib.lookupFunction<_LoadUTF8Ray, _LoadUTF8Dart>('LoadUTF8');
+// typedef _LoadUTF8Ray = Pointer<Utf8> Function(Pointer<Int32>, Int32);
+// typedef _LoadUTF8Dart = Pointer<Utf8> Function(Pointer<Int32>, int);
+// final _loadUTF8 = _dylib.lookupFunction<_LoadUTF8Ray, _LoadUTF8Dart>('LoadUTF8');
 
-typedef _UnloadUTF8Ray = Void Function(Pointer<Utf8>);
-typedef _UnloadUTF8Dart = void Function(Pointer<Utf8>);
-final _unloadUTF8 = _dylib.lookupFunction<_UnloadUTF8Ray, _UnloadUTF8Dart>('UnloadUTF8');
+// typedef _UnloadUTF8Ray = Void Function(Pointer<Utf8>);
+// typedef _UnloadUTF8Dart = void Function(Pointer<Utf8>);
+// final _unloadUTF8 = _dylib.lookupFunction<_UnloadUTF8Ray, _UnloadUTF8Dart>('UnloadUTF8');
 
-typedef _LoadCodepointsRay = Pointer<Int32> Function(Pointer<Utf8>, Pointer<Int32>);
-typedef _LoadCodepointsDart = Pointer<Int32> Function(Pointer<Utf8>, Pointer<Int32>);
-final _loadCodepoints = _dylib.lookupFunction<_LoadCodepointsRay, _LoadCodepointsDart>('LoadCodepoints');
+// typedef _LoadCodepointsRay = Pointer<Int32> Function(Pointer<Utf8>, Pointer<Int32>);
+// typedef _LoadCodepointsDart = Pointer<Int32> Function(Pointer<Utf8>, Pointer<Int32>);
+// final _loadCodepoints = _dylib.lookupFunction<_LoadCodepointsRay, _LoadCodepointsDart>('LoadCodepoints');
 
-typedef _UnloadCodepointsRay = Void Function(Pointer<Int32>);
-typedef _UnloadCodepointsDart = void Function(Pointer<Int32>);
-final _unloadCodepoints = _dylib.lookupFunction<_UnloadCodepointsRay, _UnloadCodepointsDart>('UnloadCodepoints');
+// typedef _UnloadCodepointsRay = Void Function(Pointer<Int32>);
+// typedef _UnloadCodepointsDart = void Function(Pointer<Int32>);
+// final _unloadCodepoints = _dylib.lookupFunction<_UnloadCodepointsRay, _UnloadCodepointsDart>('UnloadCodepoints');
 
-//RLAPI const char *CodepointToUTF8(int codepoint, int *utf8Size);
-typedef _CodepointToUTF8Ray = Pointer<Utf8> Function(Int32 codepoint, Pointer<Int32> utf8Size);
-typedef _CodepointToUTF8Dart = Pointer<Utf8> Function(int codepoint, Pointer<Int32> utf8Size);
-final _codepointToUTF8 = _dylib.lookupFunction<_CodepointToUTF8Ray, _CodepointToUTF8Dart>('CodepointToUTF8');
+// //RLAPI const char *CodepointToUTF8(int codepoint, int *utf8Size);
+// typedef _CodepointToUTF8Ray = Pointer<Utf8> Function(Int32 codepoint, Pointer<Int32> utf8Size);
+// typedef _CodepointToUTF8Dart = Pointer<Utf8> Function(int codepoint, Pointer<Int32> utf8Size);
+// final _codepointToUTF8 = _dylib.lookupFunction<_CodepointToUTF8Ray, _CodepointToUTF8Dart>('CodepointToUTF8');
 
 typedef _BeginShaderModeRay = Void Function(_Shader);
 typedef _BeginShaderModeDart = void Function(_Shader);

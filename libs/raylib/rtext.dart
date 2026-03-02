@@ -3,55 +3,51 @@ part of 'raylib.dart';
 //------------------------------------------------------------------------------------
 //                                     Text
 //------------------------------------------------------------------------------------
-
 class Text implements Disposeable
 {
-  String _text = "";
-  late Pointer<Uint8> _content;
-  int length = 1024;
+  StringBuffer _buffer = StringBuffer();
+  late Pointer<Uint8> _array;
+  int _length = 1024;
+  bool _isDirt = true;
 
-  Text(this._text)
+  int get length => _length;
+  StringBuffer get text { _isDirt = true; return _buffer; }
+
+  void _EnsureCapacity(int size)
   {
-    _content = malloc.allocate<Uint8>(length * sizeOf<Uint8>());
-    _content[0] = 0;
-    
-    _finalizer.attach(this, _content.cast<Utf8>(), detach: this);
-  }
-
-  Pointer<Utf8> get ref => _content.cast<Utf8>();
-  String get text => _text;
-
-  void _ExpandArray(int size)
-  {
-    if (size < length) return;
+    final int required = size + 1;
+    if (required <= length) return;
 
     int newlength = length;
     while(newlength < size) newlength *= 2;
-    newlength++;
-
-    final newptr = malloc.allocate<Uint8>(sizeOf<Uint8>() * newlength);
-    newptr.asTypedList(newlength).setAll(0, _content.asTypedList(length));
 
     _finalizer.detach(this);
-    malloc.free(_content);
+    malloc.free(_array);
 
-    length = newlength;
-    _content = newptr;
+    _length = newlength;
+    _array = malloc.allocate<Uint8>(sizeOf<Uint8>() * newlength);;
 
-    _finalizer.attach(this, _content.cast<Utf8>(), detach: this);
+    _finalizer.attach(this, _array, detach: this);
+  }
+  
+  Pointer<Utf8> get ref
+  {
+    if (_isDirt) {
+      final units = utf8.encode(_buffer.toString());
+      _EnsureCapacity(units.length);
+      _array.asTypedList(_length).setAll(0, units);
+      _array[units.length] = 0;
+      _isDirt = false;
+    }
+
+    return _array.cast<Utf8>();
   }
 
-  set text(String value) {
-    if (_text == value)
-      return;
+  Text(String text) {
+    _buffer.write(text);
 
-    _text = value;
-    
-    final units = utf8.encode(_text);
-    _ExpandArray(units.length);
-
-    _content.asTypedList(length).setAll(0, units);
-    _content[units.length] = 0;
+    _array = malloc.allocate<Uint8>(sizeOf<Uint8>() * length);
+    _finalizer.attach(this, _array, detach: this);
   }
 
   /// Draw current FPS
@@ -89,6 +85,84 @@ class Text implements Disposeable
     ); 
   }
 
+  /// Open URL with default system browser (if available)
+  static void OpenUrl(Text url) => _openURL(url.ref);
+
+  static final Finalizer _finalizer = Finalizer<Pointer<Utf8>>((ptr) {
+    malloc.free(ptr);
+  });
+
+  @override
+  void dispose()
+  {
+    _finalizer.detach(this);
+    _length = 1024;
+    malloc.free(_array);
+    _isDirt = true;
+  }
+}
+
+class TextCodepoint implements Disposeable
+{
+  Uint32List _buffer;
+  late Pointer<Int32> _codepoints;
+
+  int _capacity;
+  int _count = 0;
+  int get capacity => _capacity;
+  int get length => _count;
+  bool _isDirty = true;
+
+  TextCodepoint({int capacity = 64}) :
+    _capacity = capacity,
+    _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * capacity),
+    _buffer = Uint32List(capacity) {
+    _finalizer.attach(this, _codepoints, detach: this);
+  }
+
+  void _EnsureCapacity(int required) {
+    if (required <= capacity) return;
+
+    int newCapacity = capacity;
+    while (newCapacity < required) newCapacity *= 2;
+
+    final newBuffer = Uint32List(newCapacity);
+    newBuffer.setRange(0, _count, _buffer);
+
+    _buffer = newBuffer;
+    _capacity = newCapacity;
+  }
+
+  void Write(String text) {
+    if (text.isEmpty) return;
+
+    Runes runes = text.runes;
+    _EnsureCapacity(_count + runes.length);
+
+    _buffer.setAll(_count, runes);
+    _count += runes.length;
+    _isDirty = true;
+  }
+
+  Pointer<Int32> get ref {
+    if (_isDirty) {
+      dispose();
+      _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * _capacity);
+      _finalizer.attach(this, _codepoints, detach: this);
+
+      _codepoints.asTypedList(_count).setAll(0, _buffer.getRange(0, _count));
+      _isDirty = false;
+    }
+
+    return _codepoints;
+  }
+
+  factory TextCodepoint.fromString(String text) {
+    final textCodepoint = TextCodepoint(capacity: text.length + 8);
+    textCodepoint.Write(text);
+    return textCodepoint;
+  }
+
   /// Draw one character (codepoint)
   static void DrawCodepoint(
     Font font, int codepoint,
@@ -102,92 +176,33 @@ class Text implements Disposeable
 
   /// Draw multiple character (codepoint)
   static DrawCodepoints(
-    Font font, List<int> codepoints,
-   {Vector2? position, required double fontSize, required double spacing, Color? tint}
-  ) {
+    Font font, TextCodepoint codepoints, int length, {
+    required double fontSize, required double spacing, Vector2? position, Color? tint
+  }) {
     final finalPos = position ?? Vector2.Zero();
     final finalTint = Color.WHITE;
 
-    using ((Arena arena) {
-      Pointer<Int32> pointer = arena.allocate<Int32>(codepoints.length * sizeOf<Int32>());
-      for (var i = 0; i < codepoints.length; i++) {
-        pointer[i] = codepoints[i];
-      }
-
-      _drawTextCodepoints(font.ref, pointer.cast<Int32>(), codepoints.length, finalPos.ref, fontSize, spacing, finalTint.ref);
-    });
+    _drawTextCodepoints(
+      font.ref,
+      codepoints.ref,
+      (length < codepoints.length) ? length : codepoints.length,
+      finalPos.ref,
+      fontSize,
+      spacing,
+      finalTint.ref
+    );
   }
 
-  /// Open URL with default system browser (if available)
-  static void OpenUrl(Text url) => _openURL(url.ref);
-
-  @override
-  String toString() => _text;
-
-  static final Finalizer<Pointer<Utf8>> _finalizer = Finalizer((ptr) {
-    if (ptr != nullptr)
-      malloc.free(ptr);
+  static final Finalizer _finalizer = Finalizer<Pointer<Int32>>((ptr) {
+    malloc.free(ptr);
   });
-  
+
   @override
   void dispose()
   {
     _finalizer.detach(this);
-    malloc.free(_content);
-  }
-}
-
-//------------------------------------------------------------------------------------
-//                                   Unicode
-//------------------------------------------------------------------------------------
-
-abstract class Unicode
-{
-  /// Load all codepoints from a UTF-8 text string, codepoints count returned by parameter
-  static List<int> LoadCodepoints(String text)
-  {
-    return using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
-      Pointer<Int32> codepointsCountPtr = arena.allocate<Int32>(sizeOf<Int32>());
-
-      Pointer<Int32> loadedCodepoints = _loadCodepoints(ctext, codepointsCountPtr);
-      List<int> codepoints = [];
-
-      if (loadedCodepoints == nullptr) return codepoints;
-
-      codepoints = List<int>.from(loadedCodepoints.asTypedList(codepointsCountPtr.value));
-      _unloadCodepoints(loadedCodepoints);
-
-      return codepoints;
-    });
-  }
-  
-  /// Load UTF-8 text encoded from codepoints array
-  static String LoadUTF8(List<int> codepoints)
-  {
-    return using ((Arena arena) {
-      Pointer<Int32> ccodepoints = arena.allocate<Int32>(sizeOf<Int32>() * codepoints.length);
-      for (int x = 0; x < codepoints.length; x++) {
-        ccodepoints[x] = codepoints[x];
-      }
-
-      Pointer<Utf8> pointer = _loadUTF8(ccodepoints, codepoints.length);
-
-      final String string = pointer.toDartString();
-      _unloadUTF8(pointer);
-
-      return string;
-    });
-  }
-
-  /// Encode one codepoint into UTF-8 byte array (array length returned as parameter)
-  static String CodepointToUTF8(int codepoint)
-  {
-    return using ((Arena arena) {
-      Pointer<Int32> sizePtr = arena.allocate<Int32>(sizeOf<Int32>());
-      Pointer<Utf8> utf8 = _codepointToUTF8(codepoint, sizePtr);
-
-      return utf8.toDartString();
-    });
+    malloc.free(_codepoints);
+    _count = 0;
+    _isDirty = true;
   }
 }

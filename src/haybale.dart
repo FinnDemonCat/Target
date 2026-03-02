@@ -1,24 +1,5 @@
 import '../libs/raylib/raylib.dart';
 
-///class Widget
-class Widget extends Rectangle
-{
-  Widget({
-    double width = 0.0,
-    double height = 0.0,
-  }) :
-    super(0.0, 0.0, width, height);
-
-  void mount() {}
-  void draw() {}
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-  
-}
-
 /// Column vertical axis aligment
 enum HayXAxisAlign {
   LEFT,
@@ -31,6 +12,19 @@ enum HayYAxisAlign {
   TOP,
   CENTER,
   BOTTOM
+}
+
+class HaySize
+{
+  final double width, height;
+
+  static const double ExpandWidth = -1;
+  static const double ExpandHeight = -1;
+
+  const HaySize({required this.width, required this.height});
+  const HaySize.Grow() : width = ExpandWidth, height = ExpandHeight;
+  const HaySize.FullWidth({required this.height}) : width = ExpandWidth;
+  const HaySize.FullHeight({required this.width}) : height = ExpandHeight;
 }
 
 class HayPadding
@@ -46,6 +40,25 @@ class HayPadding
     : bottom = vertical, top = vertical, left = horizontal, right = horizontal;
 }
 
+///class Widget
+class Widget extends Rectangle
+{
+  final HaySize sizing;
+
+  Widget({
+    required this.sizing
+  }) :
+    super(0.0, 0.0, sizing.width, sizing.height);
+
+  void mount() {}
+  void draw() {}
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+}
+
 class Container extends Widget
 {
   HayPadding padding;
@@ -54,13 +67,12 @@ class Container extends Widget
   double get height => super.height - padding.bottom - padding.top;
 
   Container({
-    required double width,
-    required double height, 
+    required HaySize sizing, 
     Widget? this.child,
     HayPadding? padding,
   }) :
     padding = padding ?? HayPadding.All(),
-    super(width: width, height: height);
+    super(sizing: sizing);
 
   @override
   void mount()
@@ -70,6 +82,8 @@ class Container extends Widget
 
     child!.y = super.y + padding.top;
     child!.x = super.x + padding.left;
+    child!.width = (child!.sizing.width == -1) ? width : child!.width;
+    child!.height = (child!.sizing.height == -1) ? height : child!.height;
 
     child!.mount();
   }
@@ -92,24 +106,20 @@ class Column extends Widget
   double spacing;
 
   Column({
-    required double width,
-    required double height, 
+    required HaySize sizing,
     List<Widget>? children,
     this.spacing = 0.0,
     HayYAxisAlign? main,
     HayXAxisAlign? cross,
-    void Function()? callback
   }) : 
     widgets = children ?? [],
     MainAxis = main ?? HayYAxisAlign.TOP,
     CrossAxis = cross ?? HayXAxisAlign.LEFT,
-    super(width: width, height: height);
+    super(sizing: sizing);
 
   @override
   void draw()
   {
-    Shapes.DrawRectangleLines(x.round(), y.round(), width.round(), height.round());
-
     for (Widget widget in widgets)
       widget.draw();
   }
@@ -117,6 +127,11 @@ class Column extends Widget
   @override
   void mount()
   {
+    for (Widget widget in widgets) {
+      if (widget.sizing.width == -1) widget.width = width; 
+      if (widget.sizing.height == -1) widget.height = height;
+    }
+
     double startY = super.y;
 
     double widHeight = widgets.fold(0, (x, y) => x + y.height);
@@ -177,8 +192,7 @@ class Row extends Widget
   double spacing;
 
   Row({
-    required double width,
-    required double height, 
+    required HaySize sizing,
     List<Widget>? children,
     this.spacing = 0.0,
     HayYAxisAlign? main,
@@ -188,7 +202,7 @@ class Row extends Widget
     widgets = children ?? [],
     MainAxis = main ?? HayYAxisAlign.TOP,
     CrossAxis = cross ?? HayXAxisAlign.LEFT,
-    super(width: width, height: height);
+    super(sizing: sizing);
 
   @override
   void draw()
@@ -200,6 +214,11 @@ class Row extends Widget
   @override
   void mount()
   {
+    for (Widget widget in widgets) {
+      if (widget.sizing.width == -1) widget.width = width; 
+      if (widget.sizing.height == -1) widget.height = height;
+    }
+
     double widWidth = widgets.fold(0, (x, y) => x + y.width);
     widWidth += (widgets.length - 1) * spacing;
     if (widWidth > super.width) widWidth = super.width;
@@ -247,6 +266,40 @@ class Row extends Widget
     for (Widget widget in widgets)
       widget.dispose();
     
+    super.dispose();
+  }
+}
+
+// Area to display text
+class TextBox extends Widget
+{
+  Font font;
+  Text text;
+
+  TextBox({
+    required this.font,
+    required this.text,
+    required HaySize sizing
+  }) :
+    super(sizing: sizing);
+
+  @override
+  void mount()
+  {
+
+  }
+
+  @override
+  void draw()
+  {
+    
+  }
+
+  @override
+  void dispose() {
+    font.dispose();
+    text.dispose();
+
     super.dispose();
   }
 }
