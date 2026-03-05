@@ -152,6 +152,9 @@ class Font implements Disposeable
     int index = _getGlyphIndex(ref, codepoint);
     return glyphs[index];
   }
+  
+  /// Get glyph index position in font for a codepoint (unicode character), fallback to '?' if not found
+  int GetGlyphIndex(int codepoint) => _getGlyphIndex(ref, codepoint);
 
   /// Get glyph rectangle in font atlas for a codepoint (unicode character), fallback to '?' if not found
   Rectangle GetAtlasRec(int codepoint)
@@ -177,9 +180,29 @@ class Font implements Disposeable
     _Vector2 result = _measureTextEx(ref, text.ref, fontSize, spacing);
     return Vector2._internal(result);
   }
-  
-  /// Get glyph index position in font for a codepoint (unicode character), fallback to '?' if not found
-  int GetGlyphIndex(int codepoint) => _getGlyphIndex(ref, codepoint);
+
+  Vector2 MeasureCodepoints(
+    TextCodepoint codepoints,{
+      required double fontSize,
+      required double spacing
+  }) {
+    Vector2 size = Vector2(0, fontSize);
+    double scale = fontSize / ref.baseSize;
+
+    for (int x = 0; x < codepoints.length; x++)
+    {
+      int index = GetGlyphIndex(codepoints.buffer[x]);
+
+      double advance;
+      if ((advance = ref.glyphs[index].advanceX.toDouble()) == 0)
+        advance = ref.recs[index].width;
+      
+      size.x += (advance + spacing) * scale;
+    }
+
+    if (size.x > 0) size.x -= (spacing * fontSize);
+    return size;
+  }
 
   /// Unload font from GPU memory (VRAM)
   void Unload() => dispose();
@@ -210,8 +233,14 @@ class Font implements Disposeable
 class GlyphInfo implements Disposeable
 {
   NativeResource<_GlyphInfo>? _memory;
-  final int _length;
+  _GlyphInfo get ref => _memory!.pointer.ref;
+  _Image get image => ref.image;
+  int get value => ref.value;
+  int get offsetX => ref.offsetX;
+  int get offsetY => ref.offsetY;
+  int get advanceX => ref.advanceX;
 
+  final int _length;
   int get length => length;
 
   GlyphInfo._internal(Pointer<_GlyphInfo> pointer,{ int length = 1, bool owner = true }) : _length = length

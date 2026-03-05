@@ -65,6 +65,8 @@ class Container extends Widget
   Widget? child;
   double get width => super.width - padding.left - padding.right;
   double get height => super.height - padding.bottom - padding.top;
+  double get x => super.x - padding.left;
+  double get y => super.y - padding.top;
 
   Container({
     required HaySize sizing, 
@@ -109,12 +111,12 @@ class Column extends Widget
     required HaySize sizing,
     List<Widget>? children,
     this.spacing = 0.0,
-    HayYAxisAlign? main,
-    HayXAxisAlign? cross,
+    HayYAxisAlign? mainAxis,
+    HayXAxisAlign? crossAxis,
   }) : 
     widgets = children ?? [],
-    MainAxis = main ?? HayYAxisAlign.TOP,
-    CrossAxis = cross ?? HayXAxisAlign.LEFT,
+    MainAxis = mainAxis ?? HayYAxisAlign.TOP,
+    CrossAxis = crossAxis ?? HayXAxisAlign.LEFT,
     super(sizing: sizing);
 
   @override
@@ -274,25 +276,129 @@ class Row extends Widget
 class TextBox extends Widget
 {
   Font font;
-  Text text;
+  TextCodepoint text;
+  HayXAxisAlign textAlign;
+  double fontSize;
+  double spacing;
+  Color color;
+
+  List<({int cut, double width})> lines = [];
 
   TextBox({
     required this.font,
     required this.text,
-    required HaySize sizing
+    required this.textAlign,
+    required this.fontSize,
+    required this.spacing,
+    Color? color
   }) :
-    super(sizing: sizing);
+    this.color = color ?? Color.WHITE,
+    super(sizing: HaySize.Grow());
 
   @override
   void mount()
   {
+    lines.clear();
+    Vector2 size = font.MeasureCodepoints(text, fontSize: fontSize, spacing: spacing);
 
+    if (size.x <= width) {
+      lines.add((cut: text.length, width: size.x));
+      return;
+    }
+
+    double scale = fontSize / font.baseSize;
+    double textWidth = 0.0;
+    double textHeight = 0.0;
+    double widthAtLastSpace = 0.0;
+    int pin = 0;
+    int lineBreak = 0;
+
+    for (int index = 0; index <= text.length; index++) {      
+      if (index == text.length) {
+        lines.add((cut: index, width: textWidth));
+        break;
+      } else if (textHeight > height) {
+        break;
+      }
+
+      // Get glyph index of codepoints text.buffer[index]
+      int codepoint = text.buffer[index];
+      int glyphIndex = font.GetGlyphIndex(codepoint);
+      // Get glyph info of codepoints `index`
+      GlyphInfo glyph = font.GetGlyphInfo(glyphIndex);
+
+      double advanceX = (glyph.advanceX + spacing) * scale;
+
+      if (textWidth + advanceX > width) {
+        if (pin > lineBreak){
+          textWidth = widthAtLastSpace;
+          index = pin;
+        } else {
+          index--;
+        }
+
+        lines.add((cut: index, width: textWidth));
+        lineBreak = index;
+        textWidth = 0.0;
+
+        textHeight += fontSize;
+      } else {
+        textWidth += advanceX;
+      }
+
+      if (codepoint == 32) {
+        pin = index + 1;
+        widthAtLastSpace = textWidth;
+      }
+    }
   }
 
   @override
   void draw()
   {
-    
+    Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), height.toInt());
+
+    if (lines.isEmpty) return;
+    Vector2 pos = Vector2();
+
+    for(int index = 0; index < lines.length; index++) {
+      double posX = 0.0;
+      double posY = 0.0;
+
+      switch (textAlign)
+      {
+        case HayXAxisAlign.RIGHT:
+          posX = (width - lines[index].width).clamp(0, width);
+          break;
+        case HayXAxisAlign.CENTER:
+          posX = (width - lines[index].width).clamp(0, width);
+          posX /= 2;
+          break;
+        default:
+          break;
+      }
+      
+      pos.x = posX + x;
+      posY = index * (fontSize + spacing);
+      pos.y = posY + y;
+
+      int length = 0;
+      if (index == 0) length = lines[index].cut;
+      else length = lines[index].cut - lines[index - 1].cut;
+
+      TextCodepoint.DrawCodepoints(
+        font,
+        text,
+        length,
+        fontSize: fontSize,
+        spacing: spacing,
+        position: pos,
+        tint: color,
+        index: index == 0 ? 0 : lines[index - 1].cut
+      );
+    }
+
+    Draw.EndScissorMode();
   }
 
   @override

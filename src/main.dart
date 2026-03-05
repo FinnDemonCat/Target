@@ -7,6 +7,7 @@ class Button extends Widget
 {
   late NPatchInfo nPatchInfo;
   Texture2D texture;
+  TextBox text;
 
   Button({
     required HaySize sizing,
@@ -15,7 +16,8 @@ class Button extends Widget
     required int top,
     required int left,
     required int right,
-    required NPatchLayout ninfo
+    required NPatchLayout ninfo,
+    required this.text
   }) : 
     super(sizing: sizing) {
       final rect = Rectangle(0, 0, texture.width.toDouble(), texture.heigth.toDouble());
@@ -31,7 +33,21 @@ class Button extends Widget
     }
   
   @override
-  void draw() => Texture2D.DrawNPatch(texture, nPatchInfo, this);
+  void draw() {
+    Texture2D.DrawNPatch(texture, nPatchInfo, this);
+    text.draw();
+  }
+
+  @override
+  void mount() {
+    if (text.sizing.width == -1) text.width = super.width;
+    if (text.sizing.height == -1) text.height = super.height;
+    text.x = this.x;
+    text.y = this.y;
+    text.mount();
+
+    super.mount();
+  }
 
   @override
   void dispose() {
@@ -53,8 +69,9 @@ bool ListenTerminal()
 int winWidth = 800;
 int winHeight = 800;
 
+/*
 Button button = Button(
-  sizing: HaySize.FullWidth(height: 50),
+  sizing: HaySize.FullWidth(height: 200),
   texture: Texture2D("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_light.png"),
   bottom: 4,
   top: 4,
@@ -62,39 +79,31 @@ Button button = Button(
   right: 4,
   ninfo: NPatchLayout.NPATCH_NINE_PATCH
 );
-
-Button button1 = Button(
-  sizing: HaySize.FullWidth(height: 50),
-  texture: Texture2D("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_light.png"),
-  bottom: 4,
-  top: 4,
-  left: 4,
-  right: 4,
-  ninfo: NPatchLayout.NPATCH_NINE_PATCH
-);
-
-Button button2 = Button(
-  sizing: HaySize.FullWidth(height: 50),
-  texture: Texture2D("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_light.png"),
-  bottom: 4,
-  top: 4,
-  left: 4,
-  right: 4,
-  ninfo: NPatchLayout.NPATCH_NINE_PATCH
-);
-
-Button button3 = Button(
-  sizing: HaySize.FullWidth(height: 50),
-  texture: Texture2D("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_light.png"),
-  bottom: 4,
-  top: 4,
-  left: 4,
-  right: 4,
-  ninfo: NPatchLayout.NPATCH_NINE_PATCH
-);
+*/
+// AI generated test string
+String text = "Welcome back to Let's Game It Out, where today we are playing 'Super-Ultra-Mega-Industrial-Boring-Machine-Simulator-2026'. Now, the developers said I should probably build a small, efficient drill to start my mining empire. But you know me... why build one tiny drill when I can stack five thousand conveyors in a single floating pile of madness that eventually consumes the entire map and collapses the frame rate into a single, painful image? Ive spent the last twelve hours manually placing every individual piece of ore into a giant bucket just to see if the game engine would scream in agony. Spoiler alert: it did! Now lets see if we can make this physics engine actually achieve escape velocity. Its not a bug, its a feature, and that feature is beautiful, beautiful chaos.";
 
 Widget MainPage()
 {
+  return Button(
+    sizing: HaySize.FullWidth(height: 200),
+    texture: Texture2D("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_light.png"),
+    bottom: 4,
+    top: 4,
+    left: 4,
+    right: 4,
+    ninfo: NPatchLayout.NPATCH_NINE_PATCH,
+    text: TextBox(
+      font: Font("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\Salmon Typewriter 9 Regular.ttf"),
+      text: TextCodepoint.fromString(text),
+      textAlign: HayXAxisAlign.LEFT,
+      fontSize: 32,
+      spacing: 0,
+      color: .BLACK
+    )
+  );
+  
+  /*
   return Row(
     sizing: HaySize.Grow(),
     children: [
@@ -107,9 +116,9 @@ Widget MainPage()
           button3
         ],
         spacing: 10.0,
-        main: HayYAxisAlign.CENTER,
-        cross: HayXAxisAlign.CENTER
-      ),/* 
+        mainAxis: HayYAxisAlign.CENTER,
+        crossAxis: HayXAxisAlign.CENTER
+      ), 
       Column(
         sizing: HaySize.FullHeight(width: 400),
         children: [
@@ -121,21 +130,25 @@ Widget MainPage()
         spacing: 10.0,
         main: HayYAxisAlign.CENTER,
         cross: HayXAxisAlign.CENTER
-      ) */
+      ) 
     ]
   );
+  */
 }
 
-Container page = Container(
-  sizing: HaySize.Grow(),
-  child: MainPage()
-);
+late Container page;
 
 void main()
 {
   Window.Init(width: winWidth, height: winHeight, title: "Dart Test");
   Window.SetState(WinFlags.WINDOW_RESIZABLE);
   Frame.SetTargetFPS(30);
+
+  page = Container(
+    sizing: HaySize.Grow(),
+    padding: HayPadding.All(10),
+    child: MainPage()
+  );
 
   page.width = winWidth.toDouble();
   page.height = winHeight.toDouble();
@@ -150,12 +163,14 @@ void main()
   Window.Close();
 }
 
+
 void DrawScreen()
 {
   Draw.ClearBackground(Color.GOLD);
   if (ListenTerminal() || Window.IsResized()) {
     page.width = Window.Width().toDouble();
     page.height = Window.Height().toDouble();
+
     page.mount();
   }
 

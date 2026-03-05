@@ -104,7 +104,8 @@ class Text implements Disposeable
 
 class TextCodepoint implements Disposeable
 {
-  Uint32List _buffer;
+  Int32List _buffer;
+  Int32List get buffer => _buffer;
   late Pointer<Int32> _codepoints;
 
   int _capacity;
@@ -116,7 +117,7 @@ class TextCodepoint implements Disposeable
   TextCodepoint({int capacity = 64}) :
     _capacity = capacity,
     _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * capacity),
-    _buffer = Uint32List(capacity) {
+    _buffer = Int32List(capacity) {
     _finalizer.attach(this, _codepoints, detach: this);
   }
 
@@ -126,7 +127,7 @@ class TextCodepoint implements Disposeable
     int newCapacity = capacity;
     while (newCapacity < required) newCapacity *= 2;
 
-    final newBuffer = Uint32List(newCapacity);
+    final newBuffer = Int32List(newCapacity);
     newBuffer.setRange(0, _count, _buffer);
 
     _buffer = newBuffer;
@@ -150,7 +151,12 @@ class TextCodepoint implements Disposeable
       _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * _capacity);
       _finalizer.attach(this, _codepoints, detach: this);
 
-      _codepoints.asTypedList(_count).setAll(0, _buffer.getRange(0, _count));
+      // _codepoints.asTypedList(_count).setAll(0, _buffer.getRange(0, _count));
+
+      for (int x = 0; x < _count; x++) {
+        _codepoints[x] = buffer[x];
+      }
+      
       _isDirty = false;
     }
 
@@ -177,14 +183,15 @@ class TextCodepoint implements Disposeable
   /// Draw multiple character (codepoint)
   static DrawCodepoints(
     Font font, TextCodepoint codepoints, int length, {
-    required double fontSize, required double spacing, Vector2? position, Color? tint
+    required double fontSize, required double spacing, Vector2? position, Color? tint,
+    int index = 0
   }) {
     final finalPos = position ?? Vector2.Zero();
     final finalTint = Color.WHITE;
 
     _drawTextCodepoints(
       font.ref,
-      codepoints.ref,
+      codepoints.ref + index,
       (length < codepoints.length) ? length : codepoints.length,
       finalPos.ref,
       fontSize,
@@ -202,7 +209,7 @@ class TextCodepoint implements Disposeable
   {
     _finalizer.detach(this);
     malloc.free(_codepoints);
-    _count = 0;
+    // _count = 0;
     _isDirty = true;
   }
 }
