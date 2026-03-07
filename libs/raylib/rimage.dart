@@ -45,7 +45,7 @@ class Image implements Disposeable
   void _setMemory(_Image result)
   {
     if (result.data.address == 0) throw Exception("[Dart] Could not load image!");
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     // Allocating memory in C heap
     Pointer<_Image> pointer = malloc.allocate<_Image>(sizeOf<_Image>());
@@ -509,7 +509,7 @@ static Image GenText(int width, int height, String text)
 //--------------------------------Deconstructors--------------------------------------
 
   /// Unload image from CPU memory (RAM)
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   // Garbage Colector dispose reference
   static final Finalizer<Pointer<_Image>> _finalizer = Finalizer((ptr) 
@@ -523,7 +523,7 @@ static Image GenText(int width, int height, String text)
   /// Unload image from CPU memory (RAM)
   // Manual dispose
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
@@ -537,7 +537,7 @@ static Image GenText(int width, int height, String text)
         _unloadImageColors(_colorsPtr!);
         _colorsPtr = null; _pixels = null;
       }
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

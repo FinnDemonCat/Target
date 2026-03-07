@@ -12,7 +12,7 @@ class BoneInfo implements Disposeable
 
   BoneInfo._internal(Pointer<_BoneInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
     _memory = NativeResource<_BoneInfo>(pointer, IsOwner: owner);
 
     if (owner)
@@ -30,12 +30,12 @@ class BoneInfo implements Disposeable
   });
   
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -177,20 +177,20 @@ class Model implements Disposeable
 //-----------------------------Memory Management--------------------------------------
   
   /// Unload model (including meshes) from memory (RAM and/or VRAM)
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   static final Finalizer _finalizer = Finalizer<Pointer<_Model>>((pointer) {
     malloc.free(pointer);
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadModel(_memory!.pointer.ref);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -241,7 +241,7 @@ class ModelAnimation implements Disposeable
  */
   ModelAnimation._recieve(Pointer<_ModelAnimation> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
     if (pointer.address == 0) return;
 
     _memory = NativeResource<_ModelAnimation>(pointer);
@@ -287,16 +287,16 @@ class ModelAnimation implements Disposeable
     _unloadModelAnimations(ptr, len);
   });
 
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadModelAnimations(_memory!.pointer, _length);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -317,7 +317,7 @@ class Ray implements Disposeable
 
   void _setmemory(_Ray result)
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     Pointer<_Ray> pointer = malloc.allocate<_Ray>(sizeOf<_Ray>());
     pointer.ref = result;
@@ -332,7 +332,7 @@ class Ray implements Disposeable
 
   Ray(Vector3 position, Vector3 direction)
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     Pointer<_Ray> pointer = malloc.allocate<_Ray>(sizeOf<_Ray>());
     pointer.ref
@@ -347,12 +347,12 @@ class Ray implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -368,7 +368,7 @@ class RayCollision implements Disposeable
 
   void _setmemory(_RayCollision result)
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     Pointer<_RayCollision> pointer = malloc.allocate<_RayCollision>(sizeOf<_RayCollision>());
     pointer.ref = result;
@@ -386,12 +386,12 @@ class RayCollision implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

@@ -109,11 +109,11 @@ class VrDeviceInfo implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed) {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -168,13 +168,13 @@ class VrStereoConfig implements Disposeable
     malloc.free(pointer);
   });
 
-  void Unload() => dispose(); 
+  void Unload() => Dispose(); 
 
   @override
-  void dispose()
+  void Dispose()
   {
     _finalizer.detach(this);
     _unloadVrStereoConfig(_memory!.pointer.ref);
-    _memory!.dispose();
+    _memory!.Dispose();
   }
 } 

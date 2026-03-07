@@ -33,7 +33,7 @@ class Rectangle implements Disposeable
   // ignore: unused_element
   void _setMemory(_Rectangle result)
   {
-    if (_memory != null) _memory!.dispose();
+    if (_memory != null) _memory!.Dispose();
 
     Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
     pointer.ref = result;
@@ -45,7 +45,7 @@ class Rectangle implements Disposeable
   // ignore: unused_element
   Rectangle._internal(Pointer<_Rectangle> pointer,{ bool owner = true, int length = 1 }) : _length = length
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     _memory = NativeResource<_Rectangle>(pointer, IsOwner: owner);
     if (owner)
@@ -82,12 +82,12 @@ class Rectangle implements Disposeable
   });
   
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

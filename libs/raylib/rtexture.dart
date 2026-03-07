@@ -11,7 +11,7 @@ class Texture2D implements Disposeable
 	void _setmemory(_Texture2D result)
 	{
 		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     // Allocating memory in C heap
     Pointer<_Texture2D> pointer = malloc.allocate<_Texture2D>(sizeOf<_Texture2D>());
@@ -170,13 +170,13 @@ class Texture2D implements Disposeable
 
   /// Unload texture from GPU memory (VRAM)
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadTexture(_memory!.pointer.ref);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -207,7 +207,7 @@ class RenderTexture2D implements Disposeable
 	void _setmemory(_RenderTexture2D result)
 	{
 		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     // Allocating memory in C heap
     Pointer<_RenderTexture2D> pointer = malloc.allocate<_RenderTexture2D>(sizeOf<_RenderTexture2D>());
@@ -243,13 +243,13 @@ class RenderTexture2D implements Disposeable
 
   /// Unload render texture from GPU memory (VRAM)
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadRenderTexture(_memory!.pointer.ref);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

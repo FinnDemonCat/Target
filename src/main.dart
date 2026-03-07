@@ -3,7 +3,7 @@ import 'package:ffigen/ffigen.dart';
 import '../libs/raylib/raylib.dart';
 import 'haybale.dart';
 
-class Button extends Widget
+class Button extends Interactible
 {
   late NPatchInfo nPatchInfo;
   Texture2D texture;
@@ -17,9 +17,9 @@ class Button extends Widget
     required int left,
     required int right,
     required NPatchLayout ninfo,
-    required this.text
-  }) : 
-    super(sizing: sizing) {
+    required this.text,
+  }) :
+    super(sizing: sizing){
       final rect = Rectangle(0, 0, texture.width.toDouble(), texture.heigth.toDouble());
 
       this.nPatchInfo = NPatchInfo(
@@ -29,31 +29,34 @@ class Button extends Widget
         layout: ninfo.index
       );
 
-      rect.dispose();
-    }
+      OnPress = () {};
+      rect.Dispose();
+  }
   
   @override
-  void draw() {
+  void DrawWidget() {
+    super.DrawWidget();
+
     Texture2D.DrawNPatch(texture, nPatchInfo, this);
-    text.draw();
+    text.DrawWidget();
   }
 
   @override
-  void mount() {
+  void Mount() {
     if (text.sizing.width == -1) text.width = super.width;
     if (text.sizing.height == -1) text.height = super.height;
     text.x = this.x;
     text.y = this.y;
-    text.mount();
+    text.Mount();
 
-    super.mount();
+    super.Mount();
   }
 
   @override
-  void dispose() {
-    nPatchInfo.dispose();
-    texture.dispose();
-    super.dispose();
+  void Dispose() {
+    nPatchInfo.Dispose();
+    texture.Dispose();
+    super.Dispose();
   }
 }
 
@@ -68,18 +71,6 @@ bool ListenTerminal()
 
 int winWidth = 800;
 int winHeight = 800;
-
-/*
-Button button = Button(
-  sizing: HaySize.FullWidth(height: 200),
-  texture: Texture2D("c:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_light.png"),
-  bottom: 4,
-  top: 4,
-  left: 4,
-  right: 4,
-  ninfo: NPatchLayout.NPATCH_NINE_PATCH
-);
-*/
 // AI generated test string
 String text = "Welcome back to Let's Game It Out, where today we are playing 'Super-Ultra-Mega-Industrial-Boring-Machine-Simulator-2026'. Now, the developers said I should probably build a small, efficient drill to start my mining empire. But you know me... why build one tiny drill when I can stack five thousand conveyors in a single floating pile of madness that eventually consumes the entire map and collapses the frame rate into a single, painful image? Ive spent the last twelve hours manually placing every individual piece of ore into a giant bucket just to see if the game engine would scream in agony. Spoiler alert: it did! Now lets see if we can make this physics engine actually achieve escape velocity. Its not a bug, its a feature, and that feature is beautiful, beautiful chaos.";
 
@@ -102,38 +93,6 @@ Widget MainPage()
       color: .BLACK
     )
   );
-  
-  /*
-  return Row(
-    sizing: HaySize.Grow(),
-    children: [
-      Column(
-        sizing: HaySize.FullHeight(width: 400),
-        children: [
-          button,
-          button1,
-          button2,
-          button3
-        ],
-        spacing: 10.0,
-        mainAxis: HayYAxisAlign.CENTER,
-        crossAxis: HayXAxisAlign.CENTER
-      ), 
-      Column(
-        sizing: HaySize.FullHeight(width: 400),
-        children: [
-          // button,
-          // button,
-          // button,
-          // button
-        ],
-        spacing: 10.0,
-        main: HayYAxisAlign.CENTER,
-        cross: HayXAxisAlign.CENTER
-      ) 
-    ]
-  );
-  */
 }
 
 late Container page;
@@ -152,17 +111,16 @@ void main()
 
   page.width = winWidth.toDouble();
   page.height = winHeight.toDouble();
-  page.mount();
+  page.Mount();
 
   while(!Window.ShouldClose())
   {
     Draw.RenderFrame(renderLogic: DrawScreen);
   }
 
-  page.dispose();
+  page.Dispose();
   Window.Close();
 }
-
 
 void DrawScreen()
 {
@@ -171,8 +129,9 @@ void DrawScreen()
     page.width = Window.Width().toDouble();
     page.height = Window.Height().toDouble();
 
-    page.mount();
+    page.Mount();
   }
 
-  page.draw();
+  Interactible.SetMousePosition(Mouse.GetX(), Mouse.GetY());
+  page.DrawWidget();
 } 

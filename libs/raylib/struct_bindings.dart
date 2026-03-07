@@ -2,7 +2,7 @@ part of 'raylib.dart';
 
 abstract interface class Disposeable
 {
-  void dispose();
+  void Dispose();
 }
 
 // C memory resourcers manager class
@@ -17,7 +17,7 @@ class NativeResource<T extends NativeType> implements Disposeable {
   void MarkAsDisposed() { _disposed = true; }
 
   @override
-  void dispose() {
+  void Dispose() {
     if (!isDisposed && IsOwner) {
       MarkAsDisposed();
       malloc.free(this.pointer);

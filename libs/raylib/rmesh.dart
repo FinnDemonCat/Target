@@ -141,7 +141,7 @@ class Mesh implements Disposeable
   static void Upload({required Mesh mesh, required bool dynamic}) => _uploadMesh(mesh._memory!.pointer, dynamic);
 
   /// Unload mesh data from CPU and GPU
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   /// Update mesh vertex data in GPU for a specific buffer index
   static void UpdateBuffer({
@@ -213,13 +213,13 @@ class Mesh implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadMesh(_memory!.pointer.ref);
-      _memory!.dispose();      
+      _memory!.Dispose();      
     }
   }
 }
@@ -308,16 +308,16 @@ class Shader implements Disposeable
   });
 
   /// Unload shader from GPU memory (VRAM)
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadShader(ref);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -339,7 +339,7 @@ class Material implements Disposeable
   // ignore: unused_element
   void _setmemory(_Material result)
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
     Pointer<_Material> pointer = malloc.allocate<_Material>(sizeOf<_Material>());
     pointer.ref = result;
 
@@ -349,7 +349,7 @@ class Material implements Disposeable
 
   Material._internal(Pointer<_Material> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     _memory = NativeResource(pointer, IsOwner: owner);
     if (owner)
@@ -384,7 +384,7 @@ class Material implements Disposeable
   bool IsValid() => _isMaterialValid(this.ref);
 
   /// Unload material from GPU memory (VRAM)
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   /// Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...)
   void SetTexture({ required int mapType, required Texture2D texture })
@@ -406,10 +406,10 @@ class Material implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     _finalizer.detach(this);
     _unloadMaterial(_memory!.pointer.ref);
-    _memory!.dispose();
+    _memory!.Dispose();
   }
 }

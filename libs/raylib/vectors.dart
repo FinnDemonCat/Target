@@ -9,7 +9,7 @@ class Vector2 implements Disposeable
 
 	void _setmemory(_Vector2 result)
 	{
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
 
     Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
     _memory = NativeResource(pointer);
@@ -146,11 +146,11 @@ class Vector2 implements Disposeable
   });
   
   @override
-  void dispose() {
+  void Dispose() {
     if(_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -322,7 +322,7 @@ class Vector3 implements Disposeable
   // ignore: unused_element
   void _setmemory(_Vector3 result)
   {
-    if (_memory != null) _memory!.dispose();
+    if (_memory != null) _memory!.Dispose();
 
     Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
     pointer.ref
@@ -357,7 +357,7 @@ class Vector3 implements Disposeable
 
   Vector3([double x = 0.0, double y = 0.0, double z = 0.0])
   {
-    if (_memory != null) _memory!.dispose();
+    if (_memory != null) _memory!.Dispose();
 
     Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
     pointer.ref
@@ -733,11 +733,11 @@ class Vector3 implements Disposeable
   }
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
-      _memory!.dispose();
+      _memory!.Dispose();
       _finalizer.detach(this);
     }
   }
@@ -1104,12 +1104,12 @@ class Vector4 implements Disposeable
   });
   
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

@@ -623,12 +623,12 @@ class Matrix implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

@@ -12,7 +12,7 @@ class NPatchInfo implements Disposeable
   // ignore: unused_element
   void _setmemory(_NPatchInfo result)
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
     Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
     pointer.ref = result;
 
@@ -65,12 +65,12 @@ class NPatchInfo implements Disposeable
   });
   
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

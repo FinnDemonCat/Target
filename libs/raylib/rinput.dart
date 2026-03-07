@@ -19,7 +19,7 @@ abstract class Cursor
   /// Check if cursor is on the screen
   static bool IsOnScreen() => _isCursorOnScreen();
   /// Set mouse cursor
-  static void Set(int cursor) => _setMouseCursor(cursor);
+  static void Set(MouseCursor cursor) => _setMouseCursor(cursor.index);
 }
 
 abstract class Gestures
@@ -71,13 +71,13 @@ abstract class Key
 abstract class Mouse
 { 
   /// Check if a mouse button has been pressed once
-  static bool IsButtonDown(int button) => _isMouseButtonDown(button);
+  static bool IsButtonDown(MouseButton button) => _isMouseButtonDown(button.index);
   /// Check if a mouse button is NOT being pressed
-  static bool IsButtonUp(int button) => _isMouseButtonUp(button);
+  static bool IsButtonUp(MouseButton button) => _isMouseButtonUp(button.index);
   /// Check if a mouse button has been pressed once
-  static bool IsPressed(int button) => _isMouseButtonPressed(button);
+  static bool IsPressed(MouseButton button) => _isMouseButtonPressed(button.index);
   /// Check if a mouse button has been released once
-  static bool IsReleased(int button) => _isMouseButtonReleased(button);
+  static bool IsReleased(MouseButton button) => _isMouseButtonReleased(button.index);
   // Get mouse position X
   static int GetX() => _getMouseX();
   /// Get mouse position Y

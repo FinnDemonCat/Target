@@ -93,7 +93,7 @@ class Text implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     _finalizer.detach(this);
     _length = 1024;
@@ -147,7 +147,7 @@ class TextCodepoint implements Disposeable
 
   Pointer<Int32> get ref {
     if (_isDirty) {
-      dispose();
+      Dispose();
       _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * _capacity);
       _finalizer.attach(this, _codepoints, detach: this);
 
@@ -205,7 +205,7 @@ class TextCodepoint implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     _finalizer.detach(this);
     malloc.free(_codepoints);

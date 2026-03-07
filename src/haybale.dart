@@ -50,12 +50,12 @@ class Widget extends Rectangle
   }) :
     super(0.0, 0.0, sizing.width, sizing.height);
 
-  void mount() {}
-  void draw() {}
+  void Mount() {}
+  void DrawWidget() {}
 
   @override
-  void dispose() {
-    super.dispose();
+  void Dispose() {
+    super.Dispose();
   }
 }
 
@@ -77,7 +77,7 @@ class Container extends Widget
     super(sizing: sizing);
 
   @override
-  void mount()
+  void Mount()
   {
     if (child == null)
       return;
@@ -87,16 +87,16 @@ class Container extends Widget
     child!.width = (child!.sizing.width == -1) ? width : child!.width;
     child!.height = (child!.sizing.height == -1) ? height : child!.height;
 
-    child!.mount();
+    child!.Mount();
   }
 
   @override
-  void draw() => child?.draw();
+  void DrawWidget() => child?.DrawWidget();
 
   @override
-  void dispose() {
-    child?.dispose();
-    super.dispose();
+  void Dispose() {
+    child?.Dispose();
+    super.Dispose();
   }
 }
 
@@ -120,14 +120,14 @@ class Column extends Widget
     super(sizing: sizing);
 
   @override
-  void draw()
+  void DrawWidget()
   {
     for (Widget widget in widgets)
-      widget.draw();
+      widget.DrawWidget();
   }
 
   @override
-  void mount()
+  void Mount()
   {
     for (Widget widget in widgets) {
       if (widget.sizing.width == -1) widget.width = width; 
@@ -173,15 +173,15 @@ class Column extends Widget
     }
 
     for (Widget widget in widgets)
-      widget.mount();
+      widget.Mount();
   }
 
   @override
-  void dispose() {
+  void Dispose() {
     for (Widget widget in widgets)
-      widget.dispose();
+      widget.Dispose();
     
-    super.dispose();
+    super.Dispose();
   }
 }
 
@@ -207,14 +207,14 @@ class Row extends Widget
     super(sizing: sizing);
 
   @override
-  void draw()
+  void DrawWidget()
   {
     for (Widget widget in widgets)
-      widget.draw();
+      widget.DrawWidget();
   }
 
   @override
-  void mount()
+  void Mount()
   {
     for (Widget widget in widgets) {
       if (widget.sizing.width == -1) widget.width = width; 
@@ -260,15 +260,15 @@ class Row extends Widget
     }
 
     for (Widget widget in widgets)
-      widget.mount();
+      widget.Mount();
   }
 
   @override
-  void dispose() {
+  void Dispose() {
     for (Widget widget in widgets)
-      widget.dispose();
+      widget.Dispose();
     
-    super.dispose();
+    super.Dispose();
   }
 }
 
@@ -296,7 +296,7 @@ class TextBox extends Widget
     super(sizing: HaySize.Grow());
 
   @override
-  void mount()
+  void Mount()
   {
     lines.clear();
     Vector2 size = font.MeasureCodepoints(text, fontSize: fontSize, spacing: spacing);
@@ -354,7 +354,7 @@ class TextBox extends Widget
   }
 
   @override
-  void draw()
+  void DrawWidget()
   {
     Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), height.toInt());
 
@@ -402,10 +402,65 @@ class TextBox extends Widget
   }
 
   @override
-  void dispose() {
-    font.dispose();
-    text.dispose();
+  void Dispose() {
+    font.Dispose();
+    text.Dispose();
 
-    super.dispose();
+    super.Dispose();
+  }
+}
+
+Interactible? _PinnedWidget;
+Vector2 _MousePosition = Vector2.Zero();
+
+class Interactible extends Widget
+{
+  static void SetMousePosition(int x, int y) {
+    _MousePosition.Set(x.toDouble(), y.toDouble());
+  } 
+
+  void Function()? OnPress;
+
+  bool selected = false;
+  bool pressed = false;
+  Interactible({required super.sizing, void Function()? OnPress}) :
+    OnPress = OnPress;
+
+  @override
+  void DrawWidget() {
+    // Custom Draw logic
+    selected = false;
+    Cursor.Set(MouseCursor.DEFAULT);
+
+    // If the interacted widget is this, continue
+    if (
+      _PinnedWidget != null
+      && this == _PinnedWidget
+      && (Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT))
+    ) {
+      _PinnedWidget = null;
+      pressed = false;
+
+      return;
+    }
+
+    // Logic breaker
+    if (!Collision.CheckPointRec(_MousePosition, this))
+      return;
+    
+    selected = true;
+    Cursor.Set(MouseCursor.POINTING_HAND);
+
+    // If no widget is pinned
+    if (
+      _PinnedWidget == null
+      && (Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT))
+    ) {
+      _PinnedWidget = this;
+      pressed = true;
+      OnPress?.call();
+
+      return;
+    }
   }
 }

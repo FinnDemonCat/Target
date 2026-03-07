@@ -205,7 +205,7 @@ class Font implements Disposeable
   }
 
   /// Unload font from GPU memory (VRAM)
-  void Unload() => dispose();
+  void Unload() => Dispose();
 
   /// Unload font chars info data (RAM)
   void UnloadData() => _unloadFontData(glyphs._memory!.pointer, glyphs.length);
@@ -216,13 +216,13 @@ class Font implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
       _unloadFont(ref);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
@@ -245,7 +245,7 @@ class GlyphInfo implements Disposeable
 
   GlyphInfo._internal(Pointer<_GlyphInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
     _memory = NativeResource<_GlyphInfo>(pointer, IsOwner: owner);
 
     if (owner)
@@ -273,12 +273,12 @@ class GlyphInfo implements Disposeable
   }
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

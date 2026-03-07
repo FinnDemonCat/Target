@@ -23,7 +23,7 @@ class Transform implements Disposeable
 
   Transform._internal(Pointer<_Transform> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
-    if (_memory != null) dispose();
+    if (_memory != null) Dispose();
     _memory = NativeResource<_Transform>(pointer, IsOwner: owner);
 
     if (owner)
@@ -53,12 +53,12 @@ class Transform implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && _memory!.isDisposed)
     {
       _finalizer.detach(this);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }

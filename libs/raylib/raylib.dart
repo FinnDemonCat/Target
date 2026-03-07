@@ -306,13 +306,13 @@ class FilePathList implements Disposeable
   });
 
   @override
-  void dispose()
+  void Dispose()
   {
     if (_memory != null && !_memory!.isDisposed) {
       _finalizer.detach(this);
       if (droppedFiles) _unloadDroppedFiles(ref);
       else _unloadDirectoryFiles(ref);
-      _memory!.dispose();
+      _memory!.Dispose();
     }
   }
 }
