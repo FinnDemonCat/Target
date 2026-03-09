@@ -759,20 +759,20 @@ abstract class PixelFormat {
 /// 
 /// NOTE 2: Filter is accordingly set for minification and magnification
 enum TextureFilter {
-  TEXTURE_FILTER_POINT,                   // No filter, just pixel approximation
-  TEXTURE_FILTER_BILINEAR,                // Linear filtering
-  TEXTURE_FILTER_TRILINEAR,               // Trilinear filtering (linear with mipmaps)
-  TEXTURE_FILTER_ANISOTROPIC_4X,          // Anisotropic filtering 4x
-  TEXTURE_FILTER_ANISOTROPIC_8X,          // Anisotropic filtering 8x
-  TEXTURE_FILTER_ANISOTROPIC_16X,         // Anisotropic filtering 16x
+  POINT,                                  // No filter, just pixel approximation
+  BILINEAR,                               // Linear filtering
+  TRILINEAR,                              // Trilinear filtering (linear with mipmaps)
+  ANISOTROPIC_4X,                         // Anisotropic filtering 4x
+  ANISOTROPIC_8X,                         // Anisotropic filtering 8x
+  ANISOTROPIC_16X,                        // Anisotropic filtering 16x
 }
 
 /// Texture parameters: wrap mode
 enum TextureWrap {
-  TEXTURE_WRAP_REPEAT,                    // Repeats texture in tiled mode
-  TEXTURE_WRAP_CLAMP,                     // Clamps texture to edge pixel in tiled mode
-  TEXTURE_WRAP_MIRROR_REPEAT,             // Mirrors and repeats the texture in tiled mode
-  TEXTURE_WRAP_MIRROR_CLAMP               // Mirrors and clamps to border the texture in tiled mode
+  REPEAT,                                 // Repeats texture in tiled mode
+  CLAMP,                                  // Clamps texture to edge pixel in tiled mode
+  MIRROR_REPEAT,                          // Mirrors and repeats the texture in tiled mode
+  MIRROR_CLAMP                            // Mirrors and clamps to border the texture in tiled mode
 }
 
 /// Cubemap layouts
