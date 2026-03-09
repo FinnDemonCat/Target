@@ -30,16 +30,8 @@ class Texture2D implements Disposeable
 
   //--------------------------------Constructors----------------------------------------
 
-  Texture2D._internal(Pointer<_Texture> pointer,{ bool owner = true }) {
-    if (_memory != null) Dispose();
-
-    _memory = NativeResource<_Texture>(pointer, IsOwner: owner);
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-
   // Used for TextureCubeMap constructor
-  Texture2D._recieve(_Texture struct) { _setmemory(struct); }
+  Texture2D._internal(_Texture struct) { _setmemory(struct); }
 
   /// Load texture from file into GPU memory (VRAM)
   Texture2D(String fileName)
@@ -67,9 +59,9 @@ class Texture2D implements Disposeable
   /// Generate GPU mipmaps for a texture
   void GenMipmaps() => _genTextureMipmaps(_memory!.pointer);
   /// Set texture scaling filter mode
-  void SetFilter(TextureFilter filter) => _setTextureFilter(ref, filter.index);
+  void SetFilter(int filter) => _setTextureFilter(ref, filter);
   /// Set texture wrapping mode
-  void SetWrap(TextureWrap wrap) => _setTextureWrap(ref, wrap.index);
+  void SetWrap(int wrap) => _setTextureWrap(ref, wrap);
 
   /// Check if a texture is valid (loaded in GPU)
   bool isValid()
@@ -189,11 +181,9 @@ class Texture2D implements Disposeable
   }
 }
 
-typedef Texture = Texture2D;
-
 class TextureCubemap extends Texture2D
 {
-  TextureCubemap._internal(_Texture texture) : super._recieve(texture);
+  TextureCubemap._internal(_Texture texture) : super._internal(texture);
 
   /// Load cubemap from image, multiple image cubemap layouts supported
   factory TextureCubemap(Image image, int layout)
@@ -213,14 +203,6 @@ class RenderTexture2D implements Disposeable
   NativeResource<_RenderTexture2D>? _memory;
 
   _RenderTexture2D get ref => _memory!.pointer.ref;
-  Texture get texture {
-    final int address = _memory!.pointer.address + sizeOf<Uint32>();
-    final ptr = Pointer<_Texture>.fromAddress(address);
-
-    return Texture._internal(ptr, owner: false);
-  }
-  int get width => ref.texture.width;
-  int get heigth => ref.texture.heigth;
 
 	void _setmemory(_RenderTexture2D result)
 	{
@@ -271,5 +253,3 @@ class RenderTexture2D implements Disposeable
     }
   }
 }
-
-typedef RenderTexture = RenderTexture2D;

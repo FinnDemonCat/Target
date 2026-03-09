@@ -42,7 +42,7 @@ class Color implements Disposeable
   static final Color DARKBROWN  = Color( 76,  63,  47);
   static final Color WHITE      = Color(255, 255, 255);
   static final Color BLACK      = Color(  0,   0,   0);
-  static final Color BLANK      = Color(  0,   0,   0, a:  0); // Transparent
+  static final Color BLANK      = Color(  0,   0,   0); // Transparent
   static final Color RAYWHITE   = Color(245, 245, 245);
   /* 
   Color._internal(Pointer<_Color> pointer,{ int length = 1, bool owner = true })
@@ -53,7 +53,7 @@ class Color implements Disposeable
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
   }
-  */
+   */
   Color._recieve(_Color result) { _setMemory(result); }
 
   Color(int r, int g, int b,{ int a = 255 })

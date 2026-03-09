@@ -45,7 +45,7 @@ class NPatchInfo implements Disposeable
     if (layout != null) this.layout = layout;
   }
 
-  NPatchInfo({ required Rectangle source, required int bottom, required int top, required int left, required int right, required NPatchLayout layout })
+  NPatchInfo({ required Rectangle source, required int bottom, required int top, required int left, required int right, required int layout })
   {
     Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
     pointer.ref
@@ -54,7 +54,7 @@ class NPatchInfo implements Disposeable
     ..top    = top
     ..left   = left
     ..right  = right
-    ..layout = layout.index;
+    ..layout = layout;
 
     this._memory = NativeResource<_NPatchInfo>(pointer);
     _finalizer.attach(this, pointer, detach: this);

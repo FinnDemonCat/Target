@@ -1,12 +1,4 @@
-import 'package:collection/collection.dart';
 import '../libs/raylib/raylib.dart';
-
-/// AI generated extension for double comparison
-extension DoublePrecision on double {
-  bool isApprox(double other, [double epsilon = 0.0001]) {
-    return (this - other).abs() < epsilon;
-  }
-}
 
 /// Column vertical axis aligment
 enum HayXAxisAlign {
@@ -24,15 +16,15 @@ enum HayYAxisAlign {
 
 class HaySize
 {
-  final double width, heigth;
+  final double width, height;
 
   static const double ExpandWidth = -1;
   static const double ExpandHeight = -1;
 
-  const HaySize({required this.width, required this.heigth});
-  const HaySize.Grow() : width = ExpandWidth, heigth = ExpandHeight;
-  const HaySize.FullWidth({required this.heigth}) : width = ExpandWidth;
-  const HaySize.FullHeight({required this.width}) : heigth = ExpandHeight;
+  const HaySize({required this.width, required this.height});
+  const HaySize.Grow() : width = ExpandWidth, height = ExpandHeight;
+  const HaySize.FullWidth({required this.height}) : width = ExpandWidth;
+  const HaySize.FullHeight({required this.width}) : height = ExpandHeight;
 }
 
 class HayPadding
@@ -56,7 +48,7 @@ class Widget extends Rectangle
   Widget({
     required this.sizing
   }) :
-    super(0.0, 0.0, sizing.width, sizing.heigth);
+    super(0.0, 0.0, sizing.width, sizing.height);
 
   void Mount() {}
   void DrawWidget() {}
@@ -72,7 +64,7 @@ class Container extends Widget
   HayPadding padding;
   Widget? child;
   double get width => super.width - padding.left - padding.right;
-  double get heigth => super.heigth - padding.bottom - padding.top;
+  double get height => super.height - padding.bottom - padding.top;
   double get x => super.x - padding.left;
   double get y => super.y - padding.top;
 
@@ -93,7 +85,7 @@ class Container extends Widget
     child!.y = super.y + padding.top;
     child!.x = super.x + padding.left;
     child!.width = (child!.sizing.width == -1) ? width : child!.width;
-    child!.heigth = (child!.sizing.heigth == -1) ? heigth : child!.heigth;
+    child!.height = (child!.sizing.height == -1) ? height : child!.height;
 
     child!.Mount();
   }
@@ -138,46 +130,46 @@ class Column extends Widget
   void Mount()
   {
     for (Widget widget in widgets) {
-      if (widget.sizing.width == -1) widget.width = width;
-      if (widget.sizing.heigth == -1) widget.heigth = heigth;
+      if (widget.sizing.width == -1) widget.width = width; 
+      if (widget.sizing.height == -1) widget.height = height;
     }
 
     double startY = super.y;
 
-    double widHeight = widgets.fold(0, (x, y) => x + y.heigth);
+    double widHeight = widgets.fold(0, (x, y) => x + y.height);
     widHeight += (widgets.length - 1) * spacing;
-    if (widHeight > heigth) widHeight = heigth;
+    if (widHeight > super.height) widHeight = super.height;
 
     switch(MainAxis)
     {
       case HayYAxisAlign.CENTER:
-        startY = (heigth - widHeight) / 2;
+        startY = (super.height - widHeight) / 2;
         break;
       case HayYAxisAlign.BOTTOM:
-        startY = heigth - widHeight;
+        startY = super.height - widHeight;
         break;
       default:
         break;
     }
     
-    for (int index = 0; index < widgets.length; index++)
+    for (int x = 0; x < widgets.length; x++)
     {
       switch (CrossAxis)
       {
         case HayXAxisAlign.CENTER:
-          widgets[index].x = (width - widgets[index].width) / 2;
-          widgets[index].x += x;
+          widgets[x].x = (super.width - widgets[x].width) / 2;
+          widgets[x].x += super.x;
           break;
         case HayXAxisAlign.RIGHT:
-          widgets[index].x = width - widgets[index].width;
-          widgets[index].x += x;
+          widgets[x].x = super.width - widgets[x].width;
+          widgets[x].x += super.x;
           break;
         default:
-          widgets[index].x = x;
+          widgets[x].x = super.x;
           break;
       }
 
-      widgets[index].y = startY + index*(widgets[index].heigth + spacing);
+      widgets[x].y = startY + x*(widgets[x].height + spacing);
     }
 
     for (Widget widget in widgets)
@@ -205,12 +197,13 @@ class Row extends Widget
     required HaySize sizing,
     List<Widget>? children,
     this.spacing = 0.0,
-    HayYAxisAlign? mainAxis,
-    HayXAxisAlign? crossAxis,
+    HayYAxisAlign? main,
+    HayXAxisAlign? cross,
+    void Function()? callback
   }) :
     widgets = children ?? [],
-    MainAxis = mainAxis ?? HayYAxisAlign.TOP,
-    CrossAxis = crossAxis ?? HayXAxisAlign.LEFT,
+    MainAxis = main ?? HayYAxisAlign.TOP,
+    CrossAxis = cross ?? HayXAxisAlign.LEFT,
     super(sizing: sizing);
 
   @override
@@ -225,45 +218,45 @@ class Row extends Widget
   {
     for (Widget widget in widgets) {
       if (widget.sizing.width == -1) widget.width = width; 
-      if (widget.sizing.heigth == -1) widget.heigth = heigth;
+      if (widget.sizing.height == -1) widget.height = height;
     }
 
     double widWidth = widgets.fold(0, (x, y) => x + y.width);
     widWidth += (widgets.length - 1) * spacing;
-    if (widWidth > width) widWidth = width;
+    if (widWidth > super.width) widWidth = super.width;
 
-    double startX = x;
+    double startX = super.x;
 
     switch(CrossAxis)
     {
       case HayXAxisAlign.CENTER:
-        startX = (width - widWidth) / 2;
+        startX = (super.width - widWidth) / 2;
         break;
       case HayXAxisAlign.RIGHT:
-        startX = width - widWidth;
+        startX = super.width - widWidth;
         break;
       default:
         break;
     }
 
-    for (int index = 0; index < widgets.length; index++)
+    for (int x = 0; x < widgets.length; x++)
     {
       switch(MainAxis)
       {
         case HayYAxisAlign.BOTTOM:
-          widgets[index].y = heigth - widgets[index].heigth;
-          widgets[index].y += y;
+          widgets[x].y = super.height - widgets[x].height;
+          widgets[x].y += super.y;
           break;
         case HayYAxisAlign.CENTER:
-          widgets[index].y = (heigth - widgets[index].heigth) / 2;
-          widgets[index].y += y;
+          widgets[x].y = (super.height - widgets[x].height) / 2;
+          widgets[x].y += super.y;
           break;
         default:
-          widgets[index].y = y;
+          widgets[x].y = super.y;
           break;
       }
       
-      widgets[index].x = startX + index*(widgets[index].width + spacing); 
+      widgets[x].x = startX + x*(widgets[x].width + spacing); 
     }
 
     for (Widget widget in widgets)
@@ -324,7 +317,7 @@ class TextBox extends Widget
       if (index == text.length) {
         lines.add((cut: index, width: textWidth));
         break;
-      } else if (textHeight > heigth) {
+      } else if (textHeight > height) {
         break;
       }
 
@@ -363,7 +356,7 @@ class TextBox extends Widget
   @override
   void DrawWidget()
   {
-    Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), heigth.toInt());
+    Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), height.toInt());
 
     if (lines.isEmpty) return;
     Vector2 pos = Vector2();
@@ -430,15 +423,14 @@ class Interactible extends Widget
 
   bool selected = false;
   bool pressed = false;
-  MouseCursor cursor;
-  Interactible({required super.sizing, void Function()? OnPress, this.cursor = .POINTING_HAND}) :
+  Interactible({required super.sizing, void Function()? OnPress}) :
     OnPress = OnPress;
 
   @override
   void DrawWidget() {
     // Custom Draw logic
     selected = false;
-    Cursor.Set(.DEFAULT);
+    Cursor.Set(MouseCursor.DEFAULT);
 
     // If the interacted widget is this, continue
     if (
@@ -457,7 +449,7 @@ class Interactible extends Widget
       return;
     
     selected = true;
-    Cursor.Set(cursor);
+    Cursor.Set(MouseCursor.POINTING_HAND);
 
     // If no widget is pinned
     if (
@@ -470,95 +462,5 @@ class Interactible extends Widget
 
       return;
     }
-  }
-}
-
-typedef _Sheet = ({String layer, double scale, List<Widget> children});
-class Canvas extends Widget
-{
-  List<_Sheet> _sheets = [];
-  List<_Sheet> get sheets => _sheets;
-  RenderTexture frame;
-
-  double get width => frame.width.toDouble();
-  double get heigth => frame.heigth.toDouble();
-
-  void AddWidgetToLayer(List<Widget> widgets, [String layer = "default", double scale = 1.0]) {
-    _Sheet? page = _sheets.firstWhereOrNull((record) => record.layer == layer);
-    if (page == null) {
-      page = (layer: layer, scale: scale, children: []);
-      _sheets.add(page);
-    }
-
-    page.children.addAll(widgets);
-  }
-
-  Canvas(double width, double height) :
-    frame = RenderTexture(width.toInt(), height.toInt()),
-    super(sizing: HaySize(width: width, heigth: height));
-
-  @override
-  void Mount() {
-    super.width = Window.Width().toDouble();
-    super.heigth = Window.Height().toDouble();
-
-    for (int index = 0; index < _sheets.length; index++) {
-      _Sheet sheet = _sheets[index];
-
-      for (int offset = 0; offset < sheet.children.length; offset++) {
-        Widget widget = sheet.children[offset];
-
-        if (widget.sizing.width == -1) widget.width = super.width * sheet.scale;
-        else widget.width = widget.sizing.width * sheet.scale;
-
-        if (widget.sizing.heigth == -1) widget.heigth = super.heigth * sheet.scale;
-        else widget.heigth = widget.sizing.heigth * sheet.scale;
-
-        widget.Mount();
-      }
-    }
-    super.Mount();
-  }
-
-  @override
-  void DrawWidget () {
-    Rectangle normal = Rectangle();
-
-    for (int index = 0; index < _sheets.length; index++) {
-      _Sheet sheet = _sheets[index]; 
-      double scale = sheet.scale;
-
-      if (
-          frame.width != (super.width * scale).round()
-          || frame.heigth != (super.heigth * scale).round()
-      ) {
-        frame.Dispose();
-        int newWidth = (super.width * scale).round();
-        int newHeigth = (super.heigth * scale).round();
-
-        frame = RenderTexture(newWidth, newHeigth);
-      }
-
-      Draw.BeginTextureMode(frame);
-        Draw.ClearBackground(.BLANK);
-        for (Widget widget in sheet.children)
-          widget.DrawWidget();
-      Draw.EndTextureMode();
-
-      normal.Set(0, 0, frame.width.toDouble(), -frame.heigth.toDouble());
-      Texture2D.DrawPro(frame.texture, normal, this);
-    }
-
-    normal.Dispose();
-    super.DrawWidget();
-  }
-
-  @override
-  void Dispose() {
-    for (_Sheet page in _sheets)
-      for (Widget widget in page.children)
-        widget.Dispose();
-
-    super.Dispose();
   }
 }

@@ -456,7 +456,7 @@ abstract class Draw
   }) {
     BeginScissorMode(
       rect.x.round(), rect.y.round(),
-      rect.width.round(), rect.heigth.round()
+      rect.width.round(), rect.height.round()
     );
     renderLogic();
     EndScissorMode();
