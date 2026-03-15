@@ -1,7 +1,6 @@
 part of 'raylib.dart';
 
-abstract interface class Disposeable
-{
+abstract interface class Disposeable {
   void Dispose();
 }
 
@@ -9,19 +8,18 @@ abstract interface class Disposeable
 class NativeResource<T extends NativeType> implements Disposeable {
   final Pointer<T> pointer;
   bool _disposed = false;
+  bool get isDisposed => _disposed;
   bool IsOwner = true;
 
-  NativeResource(this.pointer,{ this.IsOwner = true });
-
-  bool get isDisposed => _disposed;
-  void MarkAsDisposed() { _disposed = true; }
+  NativeResource(this.pointer, {this.IsOwner = true});
 
   @override
   void Dispose() {
     if (!isDisposed && IsOwner) {
-      MarkAsDisposed();
+      _disposed = true;
       malloc.free(this.pointer);
-  }}
+    }
+  }
 }
 
 const int RAYLIB_VERSION_MAJOR = 5;
@@ -55,12 +53,6 @@ String FromCharArray(Array<Uint8> name, int size) {
 
   return String.fromCharCodes(array);
 }
-/* 
-typedef NuklearDebugC = Void Function();
-typedef NuklearDebugDart = void Function();
-final DynamicLibrary _debug = DynamicLibrary.open('bin/nuklear_layout.dll');
-final NuklearDebug = _debug.lookupFunction<NuklearDebugC, NuklearDebugDart>('DebugMessage');
-*/
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -425,30 +417,47 @@ final class AutomationEventList extends Struct
 /// NOTE: Every bit registers one state (use it with bit masks)
 /// 
 /// By default all flags are set to 0
-abstract class WinFlags
-{
-  static const int VSYNC_HINT         = 0x00000040;   // Set to try enabling V-Sync on GPU
-  static const int FULLSCREEN_MODE    = 0x00000002;   // Set to run program in fullscreen
-  static const int WINDOW_RESIZABLE   = 0x00000004;   // Set to allow resizable window
-  static const int WINDOW_UNDECORATED = 0x00000008;   // Set to disable window decoration (frame and buttons)
-  static const int WINDOW_HIDDEN      = 0x00000080;   // Set to hide window
-  static const int WINDOW_MINIMIZED   = 0x00000200;   // Set to minimize window (iconify)
-  static const int WINDOW_MAXIMIZED   = 0x00000400;   // Set to maximize window (expanded to monitor)
-  static const int WINDOW_UNFOCUSED   = 0x00000800;   // Set to window non focused
-  static const int WINDOW_TOPMOST     = 0x00001000;   // Set to window always on top
-  static const int WINDOW_ALWAYS_RUN  = 0x00000100;   // Set to allow windows running while minimized
-  static const int WINDOW_TRANSPARENT = 0x00000010;   // Set to allow transparent framebuffer
-  static const int WINDOW_HIGHDPI     = 0x00002000;   // Set to support HighDPI
-  static const int WINDOW_MOUSE_PASSTHROUGH = 0x00004000; // Set to support mouse passthrough only supported when FLAG_WINDOW_UNDECORATED
-  static const int BORDERLESS_WINDOWED_MODE = 0x00008000; // Set to run program in borderless windowed mode
-  static const int MSAA_4X_HINT       = 0x00000020;   // Set to try enabling MSAA 4X
-  static const int INTERLACED_HINT    = 0x00010000;   // Set to try enabling interlaced video format (for V3D)
+enum WinFlags {
+  /// Set to try enabling V-Sync on GPU
+  VSYNC_HINT(0x00000040),
+  /// Set to run program in fullscreen
+  FULLSCREEN_MODE(0x00000002),
+  /// Set to allow resizable window
+  RESIZABLE(0x00000004),
+  /// Set to disable window decoration (frame and buttons)
+  UNDECORATED(0x00000008),
+  /// Set to allow transparent framebuffer
+  TRANSPARENT(0x00000010),
+  /// Set to try enabling MSAA 4X
+  MSAA_4X_HINT(0x00000020),
+  /// Set to hide window
+  HIDDEN(0x00000080),
+  /// Set to allow windows running while minimized
+  ALWAYS_RUN(0x00000100),
+  /// Set to minimize window (iconify)
+  MINIMIZED(0x00000200),
+  /// Set to maximize window (expanded to monitor)
+  MAXIMIZED(0x00000400),
+  /// Set to window non focused
+  UNFOCUSED(0x00000800),
+  /// Set to window always on top
+  TOPMOST(0x00001000),
+  /// Set to support HighDPI
+  HIGHDPI(0x00002000),
+  /// Set to support mouse passthrough only supported when FLAG_WINDOW_UNDECORATED
+  MOUSE_PASSTHROUGH(0x00004000),
+  /// Set to run program in borderless windowed mode
+  BORDERLESS_WINDOWED_MODE(0x00008000),
+  /// Set to try enabling interlaced video format (for V3D)
+  INTERLACED_HINT(0x00010000);
+
+  final int flag;
+  const WinFlags(this.flag);
 }
 
 /// Trace log level
 /// NOTE: Organized by priority level
-enum TraceLogLevel
-{
+enum TraceLogLevel {
   LOG_ALL,            // Display all logs
   LOG_TRACE,          // Trace logging, intended for internal use only
   LOG_DEBUG,          // Debug logging, used for internal debugging, it should be disabled on release builds

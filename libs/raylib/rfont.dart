@@ -178,7 +178,7 @@ class Font implements Disposeable
   Vector2 MeasureText(Text text,{ required double fontSize, required double spacing })
   {
     _Vector2 result = _measureTextEx(ref, text.ref, fontSize, spacing);
-    return Vector2._internal(result);
+    return Vector2._recieve(result);
   }
 
   Vector2 MeasureCodepoints(

@@ -3,14 +3,14 @@ import 'package:ffigen/ffigen.dart';
 import '../libs/raylib/raylib.dart';
 import 'haybale.dart';
 
+final Texture _texture = Texture("C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_dark.png");
+
 class Button extends Widget
 {
-  static final Texture _texture = Texture("C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_dark.png");
   late NPatchInfo nPatchInfo;
 
   Button([HaySize? sizing]) :
     super(sizing: sizing ?? HaySize.Grow()) {
-    finalizer.attach(this, _texture, detach: this);
     Rectangle source = Rectangle(0.0, 0.0, _texture.width.toDouble(), _texture.heigth.toDouble());
 
     nPatchInfo = NPatchInfo(
@@ -24,10 +24,6 @@ class Button extends Widget
 
     source.Dispose();
   }
-
-  static final Finalizer finalizer = Finalizer<Texture>((texture) {
-    texture.Dispose();
-  });
 
   @override
   void DrawWidget() {
@@ -43,67 +39,60 @@ class Button extends Widget
 }
 
 bool ListenTerminal() {
-  if (Key.IsDown(Keyboard.KEY_LEFT_CONTROL) && Key.IsDown(Keyboard.KEY_R))
-    return true;
+  if (Key.IsDown(Keyboard.KEY_LEFT_CONTROL))
+    if (Key.IsPressed(Keyboard.KEY_R))
+      return true;
   else;
     return false;
 } 
 
 int winWidth = 800;
 int winHeight = 800;
-// AI generated test string
-String text = "Welcome back to Let's Game It Out, where today we are playing 'Super-Ultra-Mega-Industrial-Boring-Machine-Simulator-2026'. Now, the developers said I should probably build a small, efficient drill to start my mining empire. But you know me... why build one tiny drill when I can stack five thousand conveyors in a single floating pile of madness that eventually consumes the entire map and collapses the frame rate into a single, painful image? Ive spent the last twelve hours manually placing every individual piece of ore into a giant bucket just to see if the game engine would scream in agony. Spoiler alert: it did! Now lets see if we can make this physics engine actually achieve escape velocity. Its not a bug, its a feature, and that feature is beautiful, beautiful chaos.";
 
-Canvas canvas = Canvas(winWidth.toDouble(), winHeight.toDouble());
-List<Widget> Layout() {
-  return [
-    Row(
-      sizing: HaySize.Grow(),
-      crossAxis: .CENTER,
-      mainAxis: .CENTER,
+Canvas canvas = Canvas(
+  children: [
+    Grid(
+      sizing: HaySize(width: 400, height: 400),
+      cellSize: Vector2(75, 75),
       children: [
-        Column(
-          sizing: HaySize.FullHeight(width: 200),
-          mainAxis: .CENTER,
-          crossAxis: .CENTER,
-          children: [
-            Button(HaySize.FullWidth(heigth: 50)),
-            Button(HaySize.FullWidth(heigth: 50)),
-            Button(HaySize.FullWidth(heigth: 50)),
-            Button(HaySize.FullWidth(heigth: 50))
-          ]
-        ),
-        Column(
-          sizing: HaySize.FullHeight(width: 200),
-          mainAxis: .CENTER,
-          crossAxis: .CENTER,
-          children: [
-            Button(HaySize.FullWidth(heigth: 50)),
-            Button(HaySize.FullWidth(heigth: 50)),
-            Button(HaySize.FullWidth(heigth: 50)),
-            Button(HaySize.FullWidth(heigth: 50))
-          ]
-        ),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
+        Button(),
       ]
     )
-  ];
-}
+  ]
+);
+
+Vector2 _pivot = Vector2(winWidth / 2, winHeight / 2);
+
+Camera2D camera = Camera2D(
+  offset: _pivot,
+  target: _pivot,
+);
 
 void main()
 {
+  Window.SetFlags(resizable: true);
   Window.Init(width: winWidth, height: winHeight, title: "Dart Test");
-  Window.SetState(WinFlags.WINDOW_RESIZABLE);
   Frame.SetTargetFPS(30);
 
-  canvas.AddWidgetToLayer(Layout(), "default", 1);
   canvas.Mount();
 
   while(!Window.ShouldClose())
   {
-    Draw.RenderFrame(renderLogic: DrawScreen);
+    Draw.Render2DMode(renderLogic: DrawScreen, camera: camera);
+    // Draw.RenderFrame(renderLogic: DrawScreen);
   }
 
   canvas.Dispose();
+  _texture.Dispose();
   Window.Close();
 }
 
@@ -111,8 +100,15 @@ void DrawScreen()
 {
   Draw.ClearBackground(Color.GOLD);
   if (ListenTerminal() || Window.IsResized()) {
+    if (camera.zoom == 1.0) {
+      camera.zoom = 0.5;
+    } else {
+      camera.zoom = 1.0;
+    }
+    
     canvas.Mount();
   }
 
+  Shapes.DrawCircle(300, 300, 10);
   canvas.DrawWidget();
 } 

@@ -30,7 +30,7 @@ class Texture2D implements Disposeable
 
   //--------------------------------Constructors----------------------------------------
 
-  Texture2D._internal(Pointer<_Texture> pointer,{ bool owner = true }) {
+  Texture2D._internal(Pointer<_Texture> pointer, {bool owner = true}) {
     if (_memory != null) Dispose();
 
     _memory = NativeResource<_Texture>(pointer, IsOwner: owner);

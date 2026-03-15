@@ -63,18 +63,49 @@ abstract class Window
   /// Check if window has been resized last frame
   static bool IsResized() => _isResized();
   /// Check if one specific window flag is enabled
-  /// 
-  /// The parameter `flag` expects a ConfigFlags value
-  static bool IsState(int flag) => _isWindowState(flag) != 0;
+  static bool IsState(WinFlags flag) => _isWindowState(flag.flag) != 0;
   /// Set window configuration state using flags
-  /// 
-  /// The parameter `flag` expects a ConfigFlags value
-  static void SetState(int flag) => _setWindowState(flag);
-
+  static void SetState(WinFlags flag) => _setWindowState(flag.flag);
   /// Setup init configuration flags (view FLAGS)
-  /// 
-  /// The parameter `flag` expects a ConfigFlags value
-  static void SetFlags(int flag) => _setConfigFlags(flag);
+  static void SetFlags({
+    bool vsync = false,
+    bool fullscreen = false,
+    bool resizable = false,
+    bool undecorated = false,
+    bool transparent = false,
+    bool msaa4x = false,
+    bool hidden = false,
+    bool alwaysRun = false,
+    bool minimized = false,
+    bool maximized = false,
+    bool unfocused = false,
+    bool topmost = false,
+    bool highDpi = false,
+    bool mousePassthrough = false,
+    bool borderless = false,
+    bool interlaced = false,
+  }) {
+    int flags = 0;
+
+    if (vsync)       flags |= WinFlags.VSYNC_HINT.flag;
+    if (fullscreen)  flags |= WinFlags.FULLSCREEN_MODE.flag;
+    if (resizable)   flags |= WinFlags.RESIZABLE.flag;
+    if (undecorated) flags |= WinFlags.UNDECORATED.flag;
+    if (transparent) flags |= WinFlags.TRANSPARENT.flag;
+    if (msaa4x)      flags |= WinFlags.MSAA_4X_HINT.flag;
+    if (hidden)      flags |= WinFlags.HIDDEN.flag;
+    if (alwaysRun)   flags |= WinFlags.ALWAYS_RUN.flag;
+    if (minimized)   flags |= WinFlags.MINIMIZED.flag;
+    if (maximized)   flags |= WinFlags.MAXIMIZED.flag;
+    if (unfocused)   flags |= WinFlags.UNFOCUSED.flag;
+    if (topmost)     flags |= WinFlags.TOPMOST.flag;
+    if (highDpi)     flags |= WinFlags.HIGHDPI.flag;
+    if (mousePassthrough) flags |= WinFlags.MOUSE_PASSTHROUGH.flag;
+    if (borderless)  flags |= WinFlags.BORDERLESS_WINDOWED_MODE.flag;
+    if (interlaced)  flags |= WinFlags.INTERLACED_HINT.flag;
+
+    _setConfigFlags(flags);
+  }
 
   /// Takes a screenshot of current screen (filename extension defines format)
   static void TakeScreenshoot(String fileName)
@@ -87,9 +118,7 @@ abstract class Window
   }
 
   /// Clear window configuration state flags
-  /// 
-  /// The parameter `flag` expects a ConfigFlags value
-  static void ClearState(int flag) => _clearWindowState(flag);
+  static void ClearState(WinFlags flag) => _clearWindowState(flag.flag);
   /// Toggle window state: fullscreen/windowed, resizes monitor to match window resolution
   static void ToggleFullscreen() => _toggleFullscreen();
   /// Toggle window state: borderless windowed, resizes window to match monitor resolution
@@ -328,13 +357,13 @@ abstract class ScreenToWorld
   /// Get a ray trace from screen position (i.e mouse) in a viewport
   static Ray GetRayEx(Vector2 position, Camera camera,{ required int width, required int height }) => Ray._recieve(_getScreenToWorldRayEx(position.ref, camera.ref, width, height));
   /// Get the screen space position for a 3d world space position
-  static Vector2 GetWorldToScreen(Vector3 position, Camera camera) => Vector2._internal(_getWorldToScreen(position.ref, camera.ref));
+  static Vector2 GetWorldToScreen(Vector3 position, Camera camera) => Vector2._recieve(_getWorldToScreen(position.ref, camera.ref));
   /// Get size position for a 3d world space position
-  static Vector2 GetWorldToScreenEx(Vector3 position, Camera camera,{ required int width, required int height }) => Vector2._internal(_getWorldToScreenEx(position.ref, camera.ref, width, height));
+  static Vector2 GetWorldToScreenEx(Vector3 position, Camera camera,{ required int width, required int height }) => Vector2._recieve(_getWorldToScreenEx(position.ref, camera.ref, width, height));
   /// Get the screen space position for a 2d camera world space position
-  static Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera) => Vector2._internal(_getWorldToScreen2D(position.ref, camera.ref));
+  static Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera) => Vector2._recieve(_getWorldToScreen2D(position.ref, camera.ref));
   /// Get the world space position for a 2d camera screen space position
-  static Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera) => Vector2._internal(_getScreenToWorld2D(position.ref, camera.ref));
+  static Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera) => Vector2._recieve(_getScreenToWorld2D(position.ref, camera.ref));
   /// Get camera transform matrix (view matrix)
   static Matrix GetMatrix(Camera camera) => Matrix._recieve(_getCameraMatrix(camera.ref));
   /// Get camera 2d transform matrix
@@ -374,9 +403,11 @@ abstract class Draw
     required void Function() renderLogic,
     required Camera2D camera,
   }) {
-    Begin2DMode(camera);
-    renderLogic();
-    End2DMode();
+    Begin();
+      Begin2DMode(camera);
+      renderLogic();
+      End2DMode();
+    End();
   }
 
   /// Begin 3D mode with custom camera (3D)
@@ -456,7 +487,7 @@ abstract class Draw
   }) {
     BeginScissorMode(
       rect.x.round(), rect.y.round(),
-      rect.width.round(), rect.heigth.round()
+      rect.width.round(), rect.height.round()
     );
     renderLogic();
     EndScissorMode();

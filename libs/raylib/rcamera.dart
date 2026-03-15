@@ -7,14 +7,26 @@ part of 'raylib.dart';
 class Camera2D implements Disposeable
 {
   NativeResource<_Camera2D>? _memory;
+  
   _Camera2D get ref => _memory!.pointer.ref;
+  Vector2 get offset => Vector2._recieve(ref.offset);
+  Vector2 get target => Vector2._recieve(ref.target);
+  double get rotation => ref.rotation;
+  double get zoom => ref.zoom;
+
+  set offset (Vector2 value) => ref.offset = value.ref;
+  set target (Vector2 value) => ref.target = value.ref;
+  set rotation (double value) => ref.rotation = value;
+  set zoom (double value) => ref.zoom = value;
 
   Camera2D({
     required Vector2 offset,
     required Vector2 target,
-    required double rotation,
-    required double zoom
+    double rotation = 0.0,
+    double zoom = 1.0
   }) {
+    if (zoom < 1.0) zoom = 1.0;
+
     Pointer<_Camera2D> pointer = malloc.allocate<_Camera2D>(sizeOf<_Camera2D>());
     pointer.ref
     ..offset = offset.ref

@@ -12,22 +12,22 @@ class Rectangle implements Disposeable
   int get length => _length;
 
   _Rectangle get ref => _memory!.pointer.ref;
-  double get width => _memory!.pointer.ref.width;
-  double get heigth => _memory!.pointer.ref.height;
   double get x => _memory!.pointer.ref.x;
   double get y => _memory!.pointer.ref.y;
+  double get width => _memory!.pointer.ref.width;
+  double get height => _memory!.pointer.ref.height;
 
-  set width(double value)  => _memory!.pointer.ref.width  = value.abs().roundToDouble();
-  set heigth(double value) => _memory!.pointer.ref.height = value.abs().roundToDouble();
-  set x(double value) => _memory!.pointer.ref.x = value.abs().roundToDouble();
-  set y(double value) => _memory!.pointer.ref.y = value.abs().roundToDouble();
+  set width(double value)  => _memory!.pointer.ref.width  = value;
+  set height(double value) => _memory!.pointer.ref.height = value;
+  set x(double value) => _memory!.pointer.ref.x = value;
+  set y(double value) => _memory!.pointer.ref.y = value;
 
-  void Set([double x = -1, double y = -1, double width = -1, double height = -1])
+  void Set({double x = -1, double y = -1, double width = -1, double height = -1})
   {
     if (x != -1) this.x = x;
     if (y != -1) this.y = y;
     if (width != -1) this.width = width;
-    if (height != -1) this.heigth = height;
+    if (height != -1) this.height = height;
   }
 
   // ignore: unused_element

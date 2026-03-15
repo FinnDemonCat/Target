@@ -33,11 +33,11 @@ abstract class Gestures
   /// Get gesture hold time in seconds
   static double GetHoldDuration() => _getGestureHoldDuration();
   /// Get gesture drag vector
-  static Vector2 GetDragVector() => Vector2._internal(_getGestureDragVector());
+  static Vector2 GetDragVector() => Vector2._recieve(_getGestureDragVector());
   /// Get gesture drag angle
   static double GetDragAngle() => _getGestureDragAngle().toDouble();
   /// Get gesture pinch delta
-  static Vector2 GetPinchVector() => Vector2._internal(_getGesturePinchVector());
+  static Vector2 GetPinchVector() => Vector2._recieve(_getGesturePinchVector());
   /// Get gesture pinch angle
   static double GetPinchAngle() => _getGesturePinchAngle().toDouble();
 }
@@ -83,9 +83,9 @@ abstract class Mouse
   /// Get mouse position Y
   static int GetY() => _getMouseY();
   /// Get mouse position XY
-  static Vector2 GetPosition() => Vector2._internal(_getMousePosition());
+  static Vector2 GetPosition() => Vector2._recieve(_getMousePosition());
   /// Get mouse delta between frames
-  static Vector2 GetPositionDelta() => Vector2._internal(_getMouseDelta());
+  static Vector2 GetPositionDelta() => Vector2._recieve(_getMouseDelta());
   /// Set mouse position XY
   static void SetPosition(int x, int y) => _setMousePosition(x, y);
   /// Set mouse offset
@@ -95,7 +95,7 @@ abstract class Mouse
   /// Get mouse wheel movement for X or Y, whichever is larger
   static double GetWheelMove() => _getMouseWheelMove().toDouble();
   /// Get mouse wheel movement for both X and Y
-  static Vector2 GetWheelMoveV() => Vector2._internal(_getMouseWheelMoveV());
+  static Vector2 GetWheelMoveV() => Vector2._recieve(_getMouseWheelMoveV());
 }
 
 /// Gamepad related functions
@@ -144,7 +144,7 @@ abstract class Touch
   /// Get touch position Y for touch point 0 (relative to screen size)
   static int GetY() => _getTouchY();
   /// Get touch position XY for a touch point index (relative to screen size)
-  static Vector2 GetPosition(int index) => Vector2._internal(_getTouchPosition(index));
+  static Vector2 GetPosition(int index) => Vector2._recieve(_getTouchPosition(index));
   /// Get touch point identifier for given index
   static int GetPointId(int index) => _getTouchPointId(index);
   /// Get number of touch points
