@@ -1,13 +1,10 @@
-// ignore: unused_import
-import 'package:ffigen/ffigen.dart';
 import '../libs/raylib/raylib.dart';
 import 'haybale.dart';
-
-final Texture _texture = Texture("C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_dark.png");
 
 class Button extends Widget
 {
   late NPatchInfo nPatchInfo;
+  static final Texture _texture = Texture("C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_dark.png");
 
   Button([HaySize? sizing]) :
     super(sizing: sizing ?? HaySize.Grow()) {
@@ -51,21 +48,24 @@ int winHeight = 800;
 
 Canvas canvas = Canvas(
   children: [
-    Grid(
-      sizing: HaySize(width: 400, height: 400),
-      cellSize: Vector2(75, 75),
+    ListView(
+      sizing: .Grow(),
+      spacing: 5.0,
+      sensitivity: 10.0,
+      padding: .All(10.0),
+      // cellSize: Vector2(75, 75),
       children: [
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-        Button(),
-      ]
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+        Button(.FullWidth(height: 75.0)),
+      ],  
     )
   ]
 );
@@ -92,7 +92,7 @@ void main()
   }
 
   canvas.Dispose();
-  _texture.Dispose();
+  Button._texture.Dispose();
   Window.Close();
 }
 
@@ -109,6 +109,5 @@ void DrawScreen()
     canvas.Mount();
   }
 
-  Shapes.DrawCircle(300, 300, 10);
   canvas.DrawWidget();
 } 

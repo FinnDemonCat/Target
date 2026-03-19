@@ -1,2 +1,7 @@
 /assets
 src/Stress Test Log.txt
+/.dart_tool
+/build
+/.dart_tool
+pubspec.lock
+pubspec.lock
