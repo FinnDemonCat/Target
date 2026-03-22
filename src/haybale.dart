@@ -1,6 +1,6 @@
 import '../libs/raylib/raylib.dart';
 import 'dart:math' as math;
-// import 'package:meta/meta.dart';
+import 'package:meta/meta.dart';
 
 /// ## HayXAxisAlign Enum
 /// 
@@ -149,6 +149,15 @@ class Widget extends Rectangle
   void Mount() {}
   void DrawWidget() {}
 
+  void SetSizing([double width = 0.0, double height = 0.0]) {
+    if (sizing.width == -1) this.width = width;
+    else this.width = sizing.width;
+
+    if (sizing.width == -1) this.height = height;
+    else this.height = sizing.height;
+  }
+
+  @mustCallSuper
   @override
   void Dispose() {
     super.Dispose();
@@ -195,43 +204,35 @@ class Widget extends Rectangle
 ///   canvas.DrawWidget();
 /// }
 /// ```
-class Container extends Widget
+class Center extends Widget
 {
-  HayPadding padding;
-  Widget? child;
-  double get width => super.width - padding.left - padding.right;
-  double get height => super.height - padding.bottom - padding.top;
-  double get x => super.x - padding.left;
-  double get y => super.y - padding.top;
+  Widget widget;
 
-  Container({
-    required HaySize sizing, 
-    Widget? this.child,
-    HayPadding? padding,
+  Center({
+    required HaySize sizing,
+    required this.widget,
   }) :
-    padding = padding ?? HayPadding.All(),
     super(sizing: sizing);
 
   @override
-  void Mount()
-  {
-    if (child == null)
-      return;
+  void Mount() {
+    widget.SetSizing(math.min(width, widget.sizing.width), height);
+    widget.Set(x: (width - widget.width) / 2, y: (height - widget.height) / 2);
 
-    child!.y = super.y + padding.top;
-    child!.x = super.x + padding.left;
-    child!.width = (child!.sizing.width == -1) ? width : child!.width;
-    child!.height = (child!.sizing.height == -1) ? height : child!.height;
-
-    child!.Mount();
+    widget.Mount();
   }
 
   @override
-  void DrawWidget() => child?.DrawWidget();
+  void DrawWidget() {
+    if (widget case Interactible interactible)
+      interactible.UpdateState();
+    
+    widget.DrawWidget();
+  }
 
   @override
   void Dispose() {
-    child?.Dispose();
+    widget.Dispose();
     super.Dispose();
   }
 }
@@ -305,15 +306,15 @@ class Column extends Widget
   {
     for (Widget widget in widgets)
       widget.DrawWidget();
+    
+    Interactible.UpdateWidgets(widgets);
   }
 
   @override
   void Mount()
   {
-    for (Widget widget in widgets) {
-      if (widget.sizing.width == -1) widget.width = width;
-      if (widget.sizing.height == -1) widget.height = height;
-    }
+    for (Widget widget in widgets) 
+      widget.SetSizing(math.min(width, widget.sizing.width), height);
 
     double startY = super.y;
 
@@ -436,15 +437,15 @@ class Row extends Widget
   {
     for (Widget widget in widgets)
       widget.DrawWidget();
+
+    Interactible.UpdateWidgets(widgets);
   }
 
   @override
   void Mount()
   {
-    for (Widget widget in widgets) {
-      if (widget.sizing.width == -1) widget.width = width; 
-      if (widget.sizing.height == -1) widget.height = height;
-    }
+    for (Widget widget in widgets) 
+      widget.SetSizing(math.min(width, widget.sizing.width), height);
 
     double widWidth = widgets.fold(0, (x, y) => x + y.width);
     widWidth += (widgets.length - 1) * spacing;
@@ -689,7 +690,7 @@ class TextBox extends Widget
 }
 
 enum InteractState {
-  None,
+  Idle,
   Selected,
   Pressed
 }
@@ -701,29 +702,28 @@ enum InteractState {
 /// 
 /// ## Architectural Responsibility
 /// 
-/// `Interactible` is a **passive utility** responsible for:
-/// - Updating the static [MousePosition] once per frame.
-/// - Breaking the interaction loop when [UpdateState] returns `true` to prevent "click-through".
+/// `Interactible` is a **passive utility**. For it to function, the **Mouse Position must be set manually** before processing interactions. 
+/// 
+/// - **Manual Setup**: The user or parent container must update the static [MousePosition] field 
+///   at the beginning of every frame/update cycle.
+/// - **Canvas Automation**: The [Canvas] widget performs this operation by default, 
+///   ensuring all its children have access to the correct global mouse coordinates with the layer defined scale.
+/// - **Event Consumption**: It is responsible for breaking interaction loops via [UpdateState] 
+///   returning `true`, effectively preventing "click-through" on overlapping elements.
 /// 
 /// ## Features
 /// 
-/// - **State Processing**: Encapsulates the logic for `None`, `Selected`, and `Pressed` states.
-/// - **Global Focus Lock**: Uses [PinnedWidget] to maintain interaction even if the 
-///   mouse leaves the widget bounds during a hold (e.g., dragging).
-/// - **Visual Feedback**: Automatically requests a system [cursor] change upon interaction.
+/// - **State Processing**: Encapsulates logic for `Idle`, `Selected`, and `Pressed` states.
+/// - **Global Focus Lock**: Uses [PinnedWidget] to maintain interaction (like dragging) 
+///   even if the mouse leaves the widget bounds during a hold.
+/// - **Visual Feedback**: Automatically requests system [cursor] changes upon interaction.
 /// 
 /// ## Example: Parent Orchestration
 /// 
 /// ```dart
-/// // Inside a Parent Widget's update/draw loop:
+/// // Manual orchestration (if not using Canvas)
 /// Interactible.MousePosition = currentMousePos;
-/// 
-/// for (var widget in children.reversed) {
-///   if (widget is Interactible && widget.UpdateState()) {
-///     // Top-most widget consumed the event; stop propagation.
-///     break; 
-///   }
-/// }
+/// Interactible.UpdateWidgets(myWidgetList); 
 /// ```
 class Interactible extends Widget
 {
@@ -732,26 +732,40 @@ class Interactible extends Widget
   static Interactible? PinnedWidget;
   static Vector2 MousePosition = Vector2.Zero();
   void Function()? _OnPress;
+  bool Function() _OnFocus;
+  bool Function() _OnUnfocus;
 
   void OnPress() => _OnPress?.call();
+  
+  Interactible({
+    required super.sizing,
+    void Function()? OnPress,
+    bool Function()? OnFocus,
+    bool Function()? OnUnfocus,
+    this.cursor = .POINTING_HAND
+  }) :
+    _OnPress = OnPress,
+    _OnFocus = OnFocus ?? (() { return Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT); }),
+    _OnUnfocus = OnUnfocus ?? (() { return Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT); }),
+    state = .Idle;
 
-  /// Processes the mouse interaction and returns the consumption status.
+  /// ## Processes mouse interaction and returns the consumption status.
   /// 
   /// ### Logic Flow:
-  /// 1. **Pinned Priority**: If this widget is the [PinnedWidget], it handles 
-  ///    release logic and returns `true` to maintain focus.
+  /// 1. **Pinned Priority**: If this is the [PinnedWidget], it handles [_OnUnfocus] 
+  ///    logic and returns `true` to maintain exclusive focus.
   /// 2. **Hit Testing**: Checks if [MousePosition] is within bounds. 
-  ///    If not, returns `false` (allowing the Parent to check other widgets).
+  ///    Returns `false` if not, allowing other widgets to be checked.
   /// 3. **Capture**: If a collision occurs, it updates [state], sets the [cursor], 
-  ///    and checks for press events to capture the [PinnedWidget].
+  ///    and checks [_OnFocus] to capture the [PinnedWidget].
   /// 
-  /// @return `true` if the interaction was consumed (the Parent should stop propagation).
+  /// @return `true` if the interaction was consumed (preventing click-through).
   bool UpdateState() {
     // While this widget is pinned, skip the after iteractions
     if (this == PinnedWidget) {
-      if (Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT)) {
+      if (_OnUnfocus.call()) {
         PinnedWidget = null;
-        state = .None;
+        state = .Idle;
       }
 
       return true;
@@ -767,7 +781,7 @@ class Interactible extends Widget
     Cursor.Set(cursor);
 
     // Compute iteraction
-    if (Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT)) {
+    if (_OnFocus.call()) {
       PinnedWidget = this;
       state = .Pressed;
       OnPress();
@@ -776,10 +790,32 @@ class Interactible extends Widget
     // When interacted, skip all the remaining Interactible Widgets Updates
     return true;
   }
-  
-  Interactible({required super.sizing, void Function()? OnPress, this.cursor = .POINTING_HAND}) :
-    _OnPress = OnPress,
-    state = .None;
+
+  /// ## Centralized logic to update multiple Widgets
+  /// 
+  /// Orchestrates interaction for a list of widgets. It gives absolute priority 
+  /// to the [PinnedWidget] if it exists. Otherwise, it iterates through 
+  /// [Interactible] widgets and breaks the loop as soon as one consumes the input.
+  static void UpdateWidgets(List<Widget> list) {
+    final widgets = list.whereType<Interactible>().toList();
+
+    if (PinnedWidget != null) {
+      PinnedWidget!.UpdateState();
+      return;
+    }
+
+    for (Interactible widget in widgets)
+      if (widget.UpdateState()) break;
+  }
+
+  @override
+  void Dispose() {
+    if (PinnedWidget != null && this == PinnedWidget) {
+      state = .Idle;
+      Cursor.Set(.DEFAULT);
+    }
+    super.Dispose();
+  }
 }
 
 typedef Sheet = ({String layer, double scale, List<Widget> children});
@@ -837,12 +873,7 @@ class Canvas extends Widget
 
     for (Sheet sheet in layers)
       for (Widget widget in sheet.children) {
-        if (widget.sizing.width == -1) widget.width = width * sheet.scale;
-        else widget.width = widget.sizing.width * sheet.scale;
-
-        if (widget.sizing.height == -1) widget.height = height * sheet.scale;
-        else widget.height = widget.sizing.height * sheet.scale;
-
+        widget.SetSizing(math.min(width, widget.sizing.width), height);
         widget.Mount();
       }
 
@@ -871,10 +902,20 @@ class Canvas extends Widget
         render: renderTexture,
         renderLogic: () {
           Draw.ClearBackground(.BLANK);
+
+          // Updates Screen
           for (Widget widget in sheet.children)
             widget.DrawWidget();
         }
       );
+
+      Vector2 mouse = Mouse.GetPosition();
+      mouse.Scale(sheet.scale);
+
+      Interactible.MousePosition.Set(mouse.x, mouse.y);
+      Interactible.UpdateWidgets(sheet.children);
+
+      mouse.Dispose();
 
       src.Set(width: renderWidth.toDouble(), height: -renderHeight.toDouble());
       Texture2D.DrawPro(renderTexture.texture, src, this);
@@ -1010,10 +1051,20 @@ class Grid extends Widget
 
           widgets[index].DrawWidget();
         }
+
+        for (int col = 0; col < _cols; col++) {
+          int index = (row * _cols) + col;
+          if (index >= widgets.length) break;
+          
+          Widget widget = widgets[index];
+
+          if (widget is Interactible)
+            if (widget.UpdateState()) break;
+        }
       }
 
-      super.DrawWidget();
     Draw.EndScissorMode();
+    super.DrawWidget();
   }
 
   @override
@@ -1098,17 +1149,9 @@ class ListView extends Widget
 
     for (Widget widget in widgets) {
       _totalHeight += widget.height;
-      widget.Set(x: x, y: y);
 
-      if (widget.sizing.width == -1)
-        widget.width = width;
-      else {
-        if (widget.sizing.width > width) widget.width = width;
-        else widget.width = widget.sizing.width;
-      }
-      
-      if (widget.sizing.height == -1) widget.height = height;
-      else widget.height = widget.sizing.height;
+      widget.Set(x: x, y: y);
+      widget.SetSizing(math.min(width, widget.sizing.width), height);
 
       switch (aligment) {
         case .RIGHT:
@@ -1144,7 +1187,151 @@ class ListView extends Widget
         widget.DrawWidget();
       }
 
-      super.DrawWidget();
     Draw.EndScissorMode();
+    Interactible.UpdateWidgets(widgets);
+    super.DrawWidget();
+  }
+
+  @override
+  void Dispose() {
+    for (Widget widget in widgets)
+      widget.Dispose();
+    
+    super.Dispose();
+  }
+}
+
+typedef WidgetBuilder = Widget Function();
+/// # Page Widget
+/// 
+/// A layout orchestrator and routing manager that handles the lifecycle of 
+/// primary views and overlays.
+/// 
+/// ## Architectural Responsibility
+/// 
+/// The `Page` widget acts as a **Root Router**. It manages a [Map] of [WidgetBuilder] 
+/// functions to instantiate UI trees on demand, ensuring efficient memory usage 
+/// by disposing of unused hierarchies.
+/// 
+/// - **Route Management**: Handles full-screen widgets defined in [routes].
+/// - **Overlay Management**: Manages temporary or persistent top-level widgets (like HUDs or Modals) in [overlays].
+/// - **Lifecycle Control**: Automatically calls [Dispose] on active widgets when 
+///   switching routes to prevent memory leaks and state pollution.
+/// 
+/// ## Features
+/// 
+/// - **Z-Order Rendering**: Always draws the active overlay on top of the active page.
+/// - **Automatic Sizing**: Scales the active widget and overlay to the [Window] 
+///   dimensions if their sizing is set to [Grow].
+/// - **Dynamic URI Switching**: Allows changing the current view via string-based identifiers.
+/// 
+/// ## Technical Implementation Note
+/// 
+/// This widget uses [WidgetBuilder] functions instead of direct instances. This allows 
+/// each page to be freshly initialized upon entry, which is ideal for resetting state 
+/// or passing new data through constructors.
+/// 
+/// ```dart
+/// // Example usage:
+/// var root = Page(
+///   page: () => MainMenu(),
+///   overlay: () => GameHUD()
+/// );
+/// root.routes['settings'] = () => SettingsScreen();
+/// root.PutPage('settings'); // Disposes MainMenu and mounts SettingsScreen
+/// ```
+class Page extends Widget
+{
+  Map<String, WidgetBuilder> routes = {};
+  Map<String, WidgetBuilder> overlays = {};
+  Widget? _activeWidget;
+  Widget? _activeOverlay;
+
+  List<String> history = [];
+
+  Page({ 
+    required WidgetBuilder page,
+    WidgetBuilder? overlay
+  }) :
+    super(sizing: .Grow()) {
+    routes['home/'] = page;
+    if (overlay != null)
+      overlays = { "main/": overlay };
+  }
+
+  bool PutPage(String uri) {
+    if (!routes.containsKey(uri))
+      return false;
+
+    _activeWidget?.Dispose();
+    _activeWidget = routes[uri]!.call();
+
+    Mount();
+    return true;
+  }
+
+  bool PushPage(String uri) {
+    if (history.length >= 8) return false;
+
+    bool result = PutPage(uri);
+    history.add(uri);
+
+    return result;
+  }
+
+  bool PopPage() {
+    if (history.length <= 1) return false;
+
+    history.remove(history.last);
+    bool result = PutPage(history.last);
+
+    return result;
+  }
+
+  bool PutOverlay(String uri) {
+    if (!overlays.containsKey(uri))
+      return false;
+
+    _activeOverlay?.Dispose();
+    _activeOverlay = overlays[uri]!.call();
+
+    Mount();
+    return true;
+  }
+  
+  @override void Mount() {
+    width = Window.Width().toDouble();
+    height = Window.Height().toDouble();
+
+    if (_activeWidget == null)
+      _activeWidget = routes['home/']!.call();
+
+    if (_activeWidget != null){
+      _activeWidget!.SetSizing(width, height);
+      _activeWidget!.Mount();
+    }
+
+    if (_activeOverlay != null){
+      _activeOverlay!.SetSizing(width, height);
+      _activeOverlay!.Mount();
+    }
+    
+    super.Mount();
+  }
+
+  @override
+  void DrawWidget() {
+    _activeWidget?.DrawWidget();
+    _activeOverlay?.DrawWidget();
+
+    super.DrawWidget();
+  }
+
+  @override
+  void Dispose() {
+    _activeWidget?.Dispose();
+    _activeOverlay?.Dispose();
+
+    super.Dispose();
   }
 }

@@ -5,3 +5,5 @@ src/Stress Test Log.txt
 /.dart_tool
 pubspec.lock
 pubspec.lock
+.dart_tool/package_config.json
+/.dart_tool

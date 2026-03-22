@@ -1,39 +1,6 @@
 import '../libs/raylib/raylib.dart';
 import 'haybale.dart';
-
-class Button extends Widget
-{
-  late NPatchInfo nPatchInfo;
-  static final Texture _texture = Texture("C:\\Users\\Calie\\Documents\\Code\\Dart\\Target\\assets\\panel_dark.png");
-
-  Button([HaySize? sizing]) :
-    super(sizing: sizing ?? HaySize.Grow()) {
-    Rectangle source = Rectangle(0.0, 0.0, _texture.width.toDouble(), _texture.heigth.toDouble());
-
-    nPatchInfo = NPatchInfo(
-      source: source,
-      bottom: 4,
-      top: 4,
-      left: 4,
-      right: 4,
-      layout: NPatchLayout.NPATCH_NINE_PATCH
-    );
-
-    source.Dispose();
-  }
-
-  @override
-  void DrawWidget() {
-    Texture2D.DrawNPatch(_texture, nPatchInfo, this);
-    super.DrawWidget();
-  }
-
-  @override
-  void Dispose() { 
-    nPatchInfo.Dispose();
-    super.Dispose();
-  }
-}
+import 'custom_widgets.dart';
 
 bool ListenTerminal() {
   if (Key.IsDown(Keyboard.KEY_LEFT_CONTROL))
@@ -46,36 +13,101 @@ bool ListenTerminal() {
 int winWidth = 800;
 int winHeight = 800;
 
-Canvas canvas = Canvas(
-  children: [
-    ListView(
-      sizing: .Grow(),
-      spacing: 5.0,
-      sensitivity: 10.0,
-      padding: .All(10.0),
-      // cellSize: Vector2(75, 75),
-      children: [
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-        Button(.FullWidth(height: 75.0)),
-      ],  
-    )
-  ]
-);
+Widget PageOne() {
+  return Canvas(
+    children: [
+      Column(
+        sizing: .Grow(),
+        mainAxis: .CENTER,
+        crossAxis: .CENTER,
+        children: [
+          Column(
+            sizing: HaySize(width: 400, height: 100),
+            spacing: 10.0,
+            children: [
+              Button(
+                sizing: .FullWidth(height: 75.0),
+                OnPress: () {
+                  page.PutPage('home/');
+                },
+              ),
+              TextBox(
+                font: Font.Default(),
+                text: TextCodepoint.fromString("This is Page 1"),
+                textAlign: .LEFT,
+                fontSize: 32.0,
+                spacing: 0.0
+              ),
+            ]
+          )
+        ]
+      )
+    ]
+  );
+}
 
-Vector2 _pivot = Vector2(winWidth / 2, winHeight / 2);
+Widget PageTwo() {
+  return Canvas(
+    children: [
+      Column(
+        sizing: .Grow(),
+        mainAxis: .CENTER,
+        crossAxis: .CENTER,
+        children: [
+          Column(
+            sizing: HaySize(width: 400, height: 100),
+            spacing: 10.0,
+            children: [
+              Button(
+                sizing: .FullWidth(height: 75.0),
+                OnPress: () {
+                  page.PutPage('home/');
+                },
+              ),
+              TextBox(
+                font: Font.Default(),
+                text: TextCodepoint.fromString("This is Page 2"),
+                textAlign: .LEFT,
+                fontSize: 32.0,
+                spacing: 0.0
+              ),
+            ]
+          )
+        ]
+      )
+    ]
+  );
+}
 
-Camera2D camera = Camera2D(
-  offset: _pivot,
-  target: _pivot,
-);
+Widget Main() {
+  return Canvas(
+    children: [
+      ListView(
+        sizing: .Grow(),
+        spacing: 5.0,
+        sensitivity: 10.0,
+        padding: .All(10.0),
+        // cellSize: Vector2(75, 75),
+        children: [
+          Button(
+            sizing: .FullWidth(height: 75.0),
+            OnPress: () {
+              page.PutPage("Page1/");
+            },
+          ),
+          Button(
+            sizing: .FullWidth(height: 75.0),
+            OnPress: () {
+              page.PutPage("Page2/");
+            },
+          ),
+        ],  
+      )
+    ]
+  );
+}
+
+Page page = Page(page: Main);
 
 void main()
 {
@@ -83,16 +115,18 @@ void main()
   Window.Init(width: winWidth, height: winHeight, title: "Dart Test");
   Frame.SetTargetFPS(30);
 
-  canvas.Mount();
+  // canvas.Mount();
+  page.routes["Page1/"] = PageOne;
+  page.routes["Page2/"] = PageTwo;
+  page.Mount();
 
   while(!Window.ShouldClose())
   {
-    Draw.Render2DMode(renderLogic: DrawScreen, camera: camera);
-    // Draw.RenderFrame(renderLogic: DrawScreen);
+    Draw.RenderFrame(renderLogic: DrawScreen);
   }
 
-  canvas.Dispose();
-  Button._texture.Dispose();
+  // canvas.Dispose();
+  Button.texture.Dispose();
   Window.Close();
 }
 
@@ -100,14 +134,10 @@ void DrawScreen()
 {
   Draw.ClearBackground(Color.GOLD);
   if (ListenTerminal() || Window.IsResized()) {
-    if (camera.zoom == 1.0) {
-      camera.zoom = 0.5;
-    } else {
-      camera.zoom = 1.0;
-    }
-    
-    canvas.Mount();
+    page.Mount();
+    // canvas.Mount();
   }
 
-  canvas.DrawWidget();
+  page.DrawWidget();
+  // canvas.DrawWidget();
 } 
