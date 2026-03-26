@@ -153,7 +153,7 @@ class Widget extends Rectangle
     if (sizing.width == -1) this.width = width;
     else this.width = sizing.width;
 
-    if (sizing.width == -1) this.height = height;
+    if (sizing.height == -1) this.height = height;
     else this.height = sizing.height;
   }
 
@@ -164,46 +164,6 @@ class Widget extends Rectangle
   }
 }
 
-
-/// # Container Widget
-/// 
-/// A single-child to contain another widget.
-/// 
-/// ## Features
-/// 
-/// - **Flexible Padding**: Supports uniform, symmetric, or custom padding values
-/// - **Child Sizing**: Automatically expands child to fill available space when configured
-/// - **Cascading Layout**: Properly mounts child widgets in the layout hierarchy
-/// 
-/// ## Example
-/// 
-/// ```dart
-/// Container myContainer = Container(
-///   sizing: HaySize.FullWidth(heigth: 100),
-///   padding: HayPadding.All(10),
-///   child: MyWidget()
-/// );
-/// 
-/// void main() {
-///   Window.Init(width: 800, height: 600, title: "Container Example");
-///   Canvas canvas = Canvas(800.0, 600.0);
-///   canvas.AddWidgetToLayer([myContainer], "default", 1);
-///   canvas.Mount();
-///   
-///   while(!Window.ShouldClose()) {
-///     Draw.RenderFrame(renderLogic: DrawScreen);
-///   }
-///   
-///   canvas.Dispose();
-///   Window.Close();
-/// }
-/// 
-/// void DrawScreen() {
-///   Draw.ClearBackground(Color.WHITE);
-///   if (Window.IsResized()) canvas.Mount();
-///   canvas.DrawWidget();
-/// }
-/// ```
 class Center extends Widget
 {
   Widget widget;
@@ -216,7 +176,7 @@ class Center extends Widget
 
   @override
   void Mount() {
-    widget.SetSizing(math.min(width, widget.sizing.width), height);
+    widget.SetSizing(width, height);
     widget.Set(x: (width - widget.width) / 2, y: (height - widget.height) / 2);
 
     widget.Mount();
@@ -313,12 +273,9 @@ class Column extends Widget
   @override
   void Mount()
   {
-    for (Widget widget in widgets) 
-      widget.SetSizing(math.min(width, widget.sizing.width), height);
-
     double startY = super.y;
-
     double widHeight = widgets.fold(0, (x, y) => x + y.height);
+
     widHeight += (widgets.length - 1) * spacing;
     if (widHeight > height) widHeight = height;
 
@@ -351,11 +308,10 @@ class Column extends Widget
           break;
       }
 
+      widgets[index].SetSizing(width, height);
       widgets[index].y = startY + index*(widgets[index].height + spacing);
+      widgets[index].Mount();
     }
-
-    for (Widget widget in widgets)
-      widget.Mount();
   }
 
   @override
@@ -433,20 +389,8 @@ class Row extends Widget
     CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
 
   @override
-  void DrawWidget()
-  {
-    for (Widget widget in widgets)
-      widget.DrawWidget();
-
-    Interactible.UpdateWidgets(widgets);
-  }
-
-  @override
   void Mount()
   {
-    for (Widget widget in widgets) 
-      widget.SetSizing(math.min(width, widget.sizing.width), height);
-
     double widWidth = widgets.fold(0, (x, y) => x + y.width);
     widWidth += (widgets.length - 1) * spacing;
     if (widWidth > width) widWidth = width;
@@ -482,11 +426,19 @@ class Row extends Widget
           break;
       }
       
-      widgets[index].x = startX + index*(widgets[index].width + spacing); 
+      widgets[index].SetSizing(width, height);
+      widgets[index].x = startX + index*(widgets[index].width + spacing);
+      widgets[index].Mount();
     }
+  }
 
+  @override
+  void DrawWidget()
+  {
     for (Widget widget in widgets)
-      widget.Mount();
+      widget.DrawWidget();
+
+    Interactible.UpdateWidgets(widgets);
   }
 
   @override
@@ -564,15 +516,17 @@ class TextBox extends Widget
   List<({int cut, double width})> lines = [];
 
   TextBox({
-    required this.font,
-    required this.text,
-    required this.textAlign,
+    Font? font,
+    required String text,
+    this.textAlign = .LEFT,
     required this.fontSize,
-    required this.spacing,
+    this.spacing = 2.0,
     Color? color
   }) :
-    this.color = color ?? Color.WHITE,
-    super(sizing: HaySize.Grow());
+    text = TextCodepoint.fromString(text),
+    color = color ?? Color.WHITE,
+    font = font ?? Font.Default(),
+    super(sizing: .Grow());
 
   @override
   void Mount()
@@ -635,49 +589,47 @@ class TextBox extends Widget
   @override
   void DrawWidget()
   {
-    Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), height.toInt());
+    Draw.WithScissorMode(rect: this, renderLogic: () {
+      if (lines.isEmpty) return;
+      Vector2 pos = Vector2();
 
-    if (lines.isEmpty) return;
-    Vector2 pos = Vector2();
+      for(int index = 0; index < lines.length; index++) {
+        double posX = 0.0;
+        double posY = 0.0;
 
-    for(int index = 0; index < lines.length; index++) {
-      double posX = 0.0;
-      double posY = 0.0;
+        switch (textAlign)
+        {
+          case HayXAxisAlign.RIGHT:
+            posX = (width - lines[index].width).clamp(0, width);
+            break;
+          case HayXAxisAlign.CENTER:
+            posX = (width - lines[index].width).clamp(0, width);
+            posX /= 2;
+            break;
+          default:
+            break;
+        }
+        
+        pos.x = posX + x;
+        posY = index * (fontSize + spacing);
+        pos.y = posY + y;
 
-      switch (textAlign)
-      {
-        case HayXAxisAlign.RIGHT:
-          posX = (width - lines[index].width).clamp(0, width);
-          break;
-        case HayXAxisAlign.CENTER:
-          posX = (width - lines[index].width).clamp(0, width);
-          posX /= 2;
-          break;
-        default:
-          break;
+        int length = 0;
+        if (index == 0) length = lines[index].cut;
+        else length = lines[index].cut - lines[index - 1].cut;
+
+        TextCodepoint.DrawCodepoints(
+          font,
+          text,
+          length,
+          fontSize: fontSize,
+          spacing: spacing,
+          position: pos,
+          tint: color,
+          index: index == 0 ? 0 : lines[index - 1].cut
+        );
       }
-      
-      pos.x = posX + x;
-      posY = index * (fontSize + spacing);
-      pos.y = posY + y;
-
-      int length = 0;
-      if (index == 0) length = lines[index].cut;
-      else length = lines[index].cut - lines[index - 1].cut;
-
-      TextCodepoint.DrawCodepoints(
-        font,
-        text,
-        length,
-        fontSize: fontSize,
-        spacing: spacing,
-        position: pos,
-        tint: color,
-        index: index == 0 ? 0 : lines[index - 1].cut
-      );
-    }
-
-    Draw.EndScissorMode();
+    });
   }
 
   @override
@@ -761,30 +713,35 @@ class Interactible extends Widget
   /// 
   /// @return `true` if the interaction was consumed (preventing click-through).
   bool UpdateState() {
-    // While this widget is pinned, skip the after iteractions
     if (this == PinnedWidget) {
       if (_OnUnfocus.call()) {
         PinnedWidget = null;
-        state = .Idle;
+        state = .Selected;
+
+        OnPress();
       }
 
       return true;
     }
 
-    // Reset MouseCursor
-    Cursor.Set(.DEFAULT);
-
-    if (!Collision.CheckPointRec(MousePosition, this))
+    if (!Collision.CheckPointRec(MousePosition, this)) {
+      if (state == .Selected) {
+        Cursor.Set(.DEFAULT);
+        state = .Idle;
+      }
+      
       return false;
+    }
     
-    state = .Selected;
-    Cursor.Set(cursor);
+    if (state == .Idle) {
+      state = .Selected;
+      Cursor.Set(cursor);
+    }
 
     // Compute iteraction
     if (_OnFocus.call()) {
       PinnedWidget = this;
       state = .Pressed;
-      OnPress();
     }
 
     // When interacted, skip all the remaining Interactible Widgets Updates
@@ -797,12 +754,12 @@ class Interactible extends Widget
   /// to the [PinnedWidget] if it exists. Otherwise, it iterates through 
   /// [Interactible] widgets and breaks the loop as soon as one consumes the input.
   static void UpdateWidgets(List<Widget> list) {
-    final widgets = list.whereType<Interactible>().toList();
-
     if (PinnedWidget != null) {
       PinnedWidget!.UpdateState();
       return;
     }
+
+    final widgets = list.whereType<Interactible>().toList();
 
     for (Interactible widget in widgets)
       if (widget.UpdateState()) break;
@@ -814,6 +771,7 @@ class Interactible extends Widget
       state = .Idle;
       Cursor.Set(.DEFAULT);
     }
+
     super.Dispose();
   }
 }
@@ -873,7 +831,7 @@ class Canvas extends Widget
 
     for (Sheet sheet in layers)
       for (Widget widget in sheet.children) {
-        widget.SetSizing(math.min(width, widget.sizing.width), height);
+        widget.SetSizing(width, height);
         widget.Mount();
       }
 
@@ -898,7 +856,7 @@ class Canvas extends Widget
         renderTexture = RenderTexture2D(renderWidth, renderHeight);
       }
 
-      Draw.RenderTextureMode(
+      Draw.WithTextureMode(
         render: renderTexture,
         renderLogic: () {
           Draw.ClearBackground(.BLANK);
@@ -1037,8 +995,7 @@ class Grid extends Widget
     _scroll -= Mouse.GetWheelMove() * _sensitivity;
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
-    Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), height.toInt());
-      // Drawing from the first visible row
+    Draw.WithScissorMode(rect: this, renderLogic: () {
       for (int row = (math.max(0.0, _scroll) / _rowStride).floor(); row < _rows; row++) {
         for (int col = 0; col < _cols; col++) {
           int index = (row * _cols) + col;
@@ -1062,8 +1019,8 @@ class Grid extends Widget
             if (widget.UpdateState()) break;
         }
       }
+    });
 
-    Draw.EndScissorMode();
     super.DrawWidget();
   }
 
@@ -1151,7 +1108,7 @@ class ListView extends Widget
       _totalHeight += widget.height;
 
       widget.Set(x: x, y: y);
-      widget.SetSizing(math.min(width, widget.sizing.width), height);
+      widget.SetSizing(width, height);
 
       switch (aligment) {
         case .RIGHT:
@@ -1163,6 +1120,8 @@ class ListView extends Widget
         default:
           widget.x = x;
       }
+
+      widget.Mount();
     }
 
     _totalHeight += spacing * widgets.length - 1;
@@ -1174,7 +1133,7 @@ class ListView extends Widget
     _scroll -= Mouse.GetWheelMove() * _sensitivity;
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
-    Draw.BeginScissorMode(x.toInt(), y.toInt(), width.toInt(), height.toInt());
+    Draw.WithScissorMode(rect: this, renderLogic: () {
       for (int index = 0; index < widgets.length; index++){
         Widget widget = widgets[index];
 
@@ -1186,8 +1145,8 @@ class ListView extends Widget
 
         widget.DrawWidget();
       }
+    });
 
-    Draw.EndScissorMode();
     Interactible.UpdateWidgets(widgets);
     super.DrawWidget();
   }
@@ -1250,11 +1209,18 @@ class Page extends Widget
   List<String> history = [];
 
   Page({ 
-    required WidgetBuilder page,
-    WidgetBuilder? overlay
+    required WidgetBuilder homePage,
+    WidgetBuilder? overlay,
+    Map<String, WidgetBuilder> route = const {}
   }) :
+    routes = route,
     super(sizing: .Grow()) {
-    routes['home/'] = page;
+    width = Window.Width().toDouble();
+    height = Window.Height().toDouble();
+
+    routes['home/'] = homePage;
+    _activeWidget = routes['home/']!.call();
+
     if (overlay != null)
       overlays = { "main/": overlay };
   }
@@ -1280,7 +1246,7 @@ class Page extends Widget
   }
 
   bool PopPage() {
-    if (history.length <= 1) return false;
+    if (history.length <= 1) return PutPage('home/');
 
     history.remove(history.last);
     bool result = PutPage(history.last);
@@ -1289,9 +1255,6 @@ class Page extends Widget
   }
 
   bool PutOverlay(String uri) {
-    if (!overlays.containsKey(uri))
-      return false;
-
     _activeOverlay?.Dispose();
     _activeOverlay = overlays[uri]!.call();
 
@@ -1300,22 +1263,12 @@ class Page extends Widget
   }
   
   @override void Mount() {
-    width = Window.Width().toDouble();
-    height = Window.Height().toDouble();
+    _activeWidget?.SetSizing(width, height);
+    _activeWidget?.Mount();
 
-    if (_activeWidget == null)
-      _activeWidget = routes['home/']!.call();
+    _activeOverlay?.SetSizing(width, height);
+    _activeOverlay?.Mount();
 
-    if (_activeWidget != null){
-      _activeWidget!.SetSizing(width, height);
-      _activeWidget!.Mount();
-    }
-
-    if (_activeOverlay != null){
-      _activeOverlay!.SetSizing(width, height);
-      _activeOverlay!.Mount();
-    }
-    
     super.Mount();
   }
 

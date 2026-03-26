@@ -384,7 +384,7 @@ abstract class Draw
   /// End canvas drawing and swap buffers (double buffering)
   static void End() => _endDrawing();
   /// Update screen by calling `Begin()` `renderLogic()` and `End()` while also clearing the background
-  static void RenderFrame({
+  static void WithDefault({
     required void Function() renderLogic,
   }) {
     Begin();
@@ -399,7 +399,7 @@ abstract class Draw
   /// Update screen by calling `Begin2D()` `renderLogic()` and `End2D()` while also clearing the backgroundbackground
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void Render2DMode({
+  static void With2DMode({
     required void Function() renderLogic,
     required Camera2D camera,
   }) {
@@ -417,7 +417,7 @@ abstract class Draw
   /// Update screen by calling `Begin3D()` `renderLogic()` and `End3D()` while also clearing the background
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void Render3DMode({
+  static void With3DMode({
     required void Function() renderLogic,
     required Camera3D camera,
   }) {
@@ -433,7 +433,7 @@ abstract class Draw
   /// Update screen by calling `BeginTextureMode()` `renderLogic()` and `EndTextureMode()` while also clearing the backgroundbackground
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void RenderTextureMode({
+  static void WithTextureMode({
     required void Function() renderLogic,
     required RenderTexture2D render,
   }) {
@@ -449,7 +449,7 @@ abstract class Draw
   /// Update screen by calling `BeginShaderMode()` `renderLogic()` and `EndShaderMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void RenderShaderMode({
+  static void WithShaderMode({
     required Shader shader,
     required void Function() renderLogic,
   }) {
@@ -465,7 +465,7 @@ abstract class Draw
   /// Update screen by calling `BeginBlendMode()` `renderLogic()` and `EndBlendMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void RenderBlendMode({
+  static void WithBlendMode({
     required int mode,
     required void Function() renderLogic,
   }) {
@@ -481,7 +481,7 @@ abstract class Draw
   /// Update screen by calling `BeginScissorMode()` `renderLogic()` and `EndScissorMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void RenderScissorMode({
+  static void WithScissorMode({
     required Rectangle rect,
     required void Function() renderLogic,
   }) {
@@ -500,7 +500,7 @@ abstract class Draw
   /// Update screen by calling `BeginVrStereoMode()` `renderLogic()` and `EndVrStereoMode()`
   /// 
   /// Use this on the main loop to work with Hot Reload
-  static void RenderVrStereoMode({required VrStereoConfig config, required void Function() renderLogic}) {
+  static void WithVrStereoMode({required VrStereoConfig config, required void Function() renderLogic}) {
     BeginVrStereoMode(config);
     renderLogic();
     EndVrStereoMode();

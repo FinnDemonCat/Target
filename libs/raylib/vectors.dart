@@ -47,7 +47,7 @@ class Vector2 implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Vector2._recieve(_Vector2 result, {bool owner = true}) { _setmemory(result, owner: owner); }
+  Vector2._recieve(_Vector2 result, {bool owner = true}) {_setmemory(result, owner: owner); }
 
   /// Vector with components value 0.0f
   factory Vector2.Zero() => Vector2();
