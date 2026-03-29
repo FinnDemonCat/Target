@@ -13,15 +13,17 @@ class Button extends Interactible
 
   @override
   void Mount() {
+    text.SetSizing(width, height);
     text.Mount();
-    text.Set(x: (width - text.width) / 2, y: (height - text.height) / 2);
+    text.Set(x: x + (width - text.width) / 2, y: y + (height - text.fontSize) / 2);
     super.Mount();
   }
 
   @override
   void DrawWidget() {
+    Shapes.DrawRectangleRounded(this, 0.1, 1, color: state == .Pressed ? .LIGHTGRAY : .GRAY);
+    // Shapes.DrawRectangleLinesEx(text, 1);
     text.DrawWidget();
-    Shapes.DrawRectangleRounded(this, 0.125, 1, color: state == .Pressed ? .LIGHTGRAY : .GRAY);
     super.DrawWidget();
   }
 }

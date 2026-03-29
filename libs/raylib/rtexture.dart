@@ -220,7 +220,7 @@ class RenderTexture2D implements Disposeable
     return Texture._internal(ptr, owner: false);
   }
   int get width => ref.texture.width;
-  int get heigth => ref.texture.heigth;
+  int get height => ref.texture.heigth;
 
 	void _setmemory(_RenderTexture2D result)
 	{

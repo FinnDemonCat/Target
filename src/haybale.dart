@@ -264,6 +264,8 @@ class Column extends Widget
   @override
   void DrawWidget()
   {
+    Shapes.DrawRectangleLines(x.toInt(), y.toInt(), width.toInt(), height.toInt());
+
     for (Widget widget in widgets)
       widget.DrawWidget();
     
@@ -293,6 +295,8 @@ class Column extends Widget
     
     for (int index = 0; index < widgets.length; index++)
     {
+      widgets[index].SetSizing(width, height);
+
       switch (CrossAxis)
       {
         case HayXAxisAlign.CENTER:
@@ -308,7 +312,6 @@ class Column extends Widget
           break;
       }
 
-      widgets[index].SetSizing(width, height);
       widgets[index].y = startY + index*(widgets[index].height + spacing);
       widgets[index].Mount();
     }
@@ -411,6 +414,8 @@ class Row extends Widget
 
     for (int index = 0; index < widgets.length; index++)
     {
+      widgets[index].SetSizing(width, height);
+      
       switch(MainAxis)
       {
         case HayYAxisAlign.BOTTOM:
@@ -426,7 +431,6 @@ class Row extends Widget
           break;
       }
       
-      widgets[index].SetSizing(width, height);
       widgets[index].x = startX + index*(widgets[index].width + spacing);
       widgets[index].Mount();
     }
@@ -600,10 +604,12 @@ class TextBox extends Widget
         switch (textAlign)
         {
           case HayXAxisAlign.RIGHT:
-            posX = (width - lines[index].width).clamp(0, width);
+            posX = width - lines[index].width;
+            posX = math.min(width, posX);
             break;
           case HayXAxisAlign.CENTER:
-            posX = (width - lines[index].width).clamp(0, width);
+            posX = width - lines[index].width;
+            posX = math.min(width, posX);
             posX /= 2;
             break;
           default:
@@ -776,119 +782,90 @@ class Interactible extends Widget
   }
 }
 
-typedef Sheet = ({String layer, double scale, List<Widget> children});
 /// # Canvas Widget
 /// 
-/// A root-level container that manages multiple rendering layers (Sheets) using [RenderTexture].
+/// A high-level container designed to isolate UI rendering into a dedicated 
+/// [RenderTexture2D], enabling independent scaling and post-processing.
 /// 
-/// ## Purpose
+/// `Canvas` acts as a **Rendering Bridge** and **Input Transformer**. It decouples 
+/// the internal widget hierarchy from the main backbuffer.
 /// 
-/// The `Canvas` acts as the primary orchestrator for the UI system. It:
-/// - Manages a list of [Sheet] layers, each with its own scale.
-/// - Coordinates the [Mount] and [DrawWidget] lifecycle for all child widgets.
-/// - Projects independent layer scales onto the screen space.
+/// - **Input Scaling**: Automatically scales and updates the global [Interactible.MousePosition] 
+///   before dispatching it to children. This ensures coordinate precision regardless of 
+///   the UI's internal resolution.
+/// - **Interaction Control**: Through [blockInteraction], the widget can be instructed 
+///   to skip mouse coordinate updates, which is vital in layered (stacked) environments.
+/// - **Texture Isolation**: Renders all children into an internal GPU buffer, 
+///   allowing for independent scaling (e.g., pixel-art upscaling).
 /// 
-/// ## Features
-/// 
-/// - **Multi-Layering**: Supports stacked sheets for complex UI depth.
-/// - **Dynamic Scaling**: Each sheet can have a unique scale.
-/// - **Adaptive Sizing**: Grows to fill the window or follow explicit sizing constraints.
-/// 
-/// ## Example
+/// ## Example: Manual Interaction Override
 /// 
 /// ```dart
-/// // Create a canvas that fills the screen
-/// Canvas mainCanvas = Canvas(
-///   layer: "UI",
-///   scale: 1.0,
-///   children: [myButton, myTextBox]
+/// final myCanvas = Canvas(
+///   scale: 2.0,
+///   child: GameWorld(),
 /// );
 /// 
-/// // Inside the main loop
-/// while(!Window.ShouldClose()) {
-///   Draw.RenderFrame(renderLogic: () {
-///     Draw.ClearBackground(Color.BLACK);
-///     
-///     if (Window.IsResized()) mainCanvas.Mount();
-///     mainCanvas.DrawWidget();
-///   });
-/// }
+/// // Disable mouse authority for this specific canvas layer
+/// myCanvas.blockInteraction = true; 
 /// ```
 class Canvas extends Widget
 {
-  List<Sheet> layers;
-  RenderTexture renderTexture;
-  
-  Canvas({List<Widget>? children, String layer = "default", double scale = 1.0}) :
-    renderTexture = RenderTexture2D(10, 10),
-    layers = [(layer: layer, scale: scale, children: children ?? [])],
-    super(sizing: HaySize.Grow());
-  
+  Widget widget;
+  final double scale;
+  RenderTexture2D _renderTexture;
+  Rectangle _dest = Rectangle();
+  /// When drawing and updating [Interactible.MousePosition] for Interactible widgets,
+  /// this boolean blocks this update to cases where the Canvas its not alone (eg. Stacked)
+  bool blockInteraction = false;
+
+  Canvas({
+    required super.sizing,
+    required Widget child,
+    this.scale = 1.0
+  }) :
+    widget = child,
+    _renderTexture = RenderTexture2D(10, 10);
+
   @override
   void Mount() {
-    if (sizing.width == -1) width = Window.Width().toDouble();
-    if (sizing.height == -1) height = Window.Height().toDouble();
+    SetSizing(Window.Width().toDouble(), Window.Height().toDouble());
+    widget.SetSizing(width, height);
+    widget.Mount();
 
-    for (Sheet sheet in layers)
-      for (Widget widget in sheet.children) {
-        widget.SetSizing(width, height);
-        widget.Mount();
-      }
-
-    super.Mount();
+    if (
+      (_renderTexture.width - width).abs() > EPSILON
+      || (_renderTexture.height - height).abs() > EPSILON
+    ) {
+      _renderTexture.Dispose();
+      _renderTexture = RenderTexture2D((width * scale).toInt(), (height * scale).toInt());
+    }
   }
 
   @override
   void DrawWidget() {
-    Rectangle src = Rectangle();
+    if (!blockInteraction)
+      Interactible.MousePosition.Set(Mouse.GetX() * scale, Mouse.GetY() * scale);
 
-    for (Sheet sheet in layers) {
-      int renderWidth = (width * sheet.scale).round();
-      int renderHeight = (height * sheet.scale).round();
+    Draw.WithTextureMode(renderLogic: () {
+      Draw.ClearBackground(.BLANK);
+      widget.DrawWidget();
+    }, render: _renderTexture);
 
-      // Resizing RenderTexture to sheet scale
-      if (
-        renderTexture.width != renderWidth
-        || renderTexture.heigth != renderHeight 
-      ) {
-        renderTexture.Dispose();
+    _dest.Set(
+      x: x, y: y,
+      width: _renderTexture.width.toDouble(),
+      height: -_renderTexture.height.toDouble()
+    );
 
-        renderTexture = RenderTexture2D(renderWidth, renderHeight);
-      }
-
-      Draw.WithTextureMode(
-        render: renderTexture,
-        renderLogic: () {
-          Draw.ClearBackground(.BLANK);
-
-          // Updates Screen
-          for (Widget widget in sheet.children)
-            widget.DrawWidget();
-        }
-      );
-
-      Vector2 mouse = Mouse.GetPosition();
-      mouse.Scale(sheet.scale);
-
-      Interactible.MousePosition.Set(mouse.x, mouse.y);
-      Interactible.UpdateWidgets(sheet.children);
-
-      mouse.Dispose();
-
-      src.Set(width: renderWidth.toDouble(), height: -renderHeight.toDouble());
-      Texture2D.DrawPro(renderTexture.texture, src, this);
-    }
-
-    src.Dispose();
-    super.DrawWidget();
+    Texture2D.DrawPro(_renderTexture.texture, _dest, this);
   }
 
   @override
   void Dispose() {
-    for (Sheet sheet in layers)
-      for (Widget widget in sheet.children)
-        widget.Dispose();
-    
+    widget.Dispose();
+    _renderTexture.Dispose();
+    _dest.Dispose();
     super.Dispose();
   }
 }
@@ -1160,131 +1137,138 @@ class ListView extends Widget
   }
 }
 
-typedef WidgetBuilder = Widget Function();
-/// # Page Widget
+/// # Stack Widget
 /// 
-/// A layout orchestrator and routing manager that handles the lifecycle of 
-/// primary views and overlays.
+/// A layout container that overlaps its children in a back-to-front Z-order, 
+/// allowing multiple widgets to occupy the same visual space.
 /// 
-/// ## Architectural Responsibility
-/// 
-/// The `Page` widget acts as a **Root Router**. It manages a [Map] of [WidgetBuilder] 
-/// functions to instantiate UI trees on demand, ensuring efficient memory usage 
-/// by disposing of unused hierarchies.
-/// 
-/// - **Route Management**: Handles full-screen widgets defined in [routes].
-/// - **Overlay Management**: Manages temporary or persistent top-level widgets (like HUDs or Modals) in [overlays].
-/// - **Lifecycle Control**: Automatically calls [Dispose] on active widgets when 
-///   switching routes to prevent memory leaks and state pollution.
-/// 
-/// ## Features
-/// 
-/// - **Z-Order Rendering**: Always draws the active overlay on top of the active page.
-/// - **Automatic Sizing**: Scales the active widget and overlay to the [Window] 
-///   dimensions if their sizing is set to [Grow].
-/// - **Dynamic URI Switching**: Allows changing the current view via string-based identifiers.
-/// 
-/// ## Technical Implementation Note
-/// 
-/// This widget uses [WidgetBuilder] functions instead of direct instances. This allows 
-/// each page to be freshly initialized upon entry, which is ideal for resetting state 
-/// or passing new data through constructors.
+/// ## Example: Multi-Scale Layers
 /// 
 /// ```dart
-/// // Example usage:
-/// var root = Page(
-///   page: () => MainMenu(),
-///   overlay: () => GameHUD()
+/// Stack(
+///   sizing: .Grow(),
+///   children: [
+///     Canvas(scale: 0.5, child: GameWorld()),
+///     Canvas(scale: 1.0, child: GameHUD()),
+///   ],
 /// );
-/// root.routes['settings'] = () => SettingsScreen();
-/// root.PutPage('settings'); // Disposes MainMenu and mounts SettingsScreen
 /// ```
-class Page extends Widget
+class Stack extends Widget
 {
-  Map<String, WidgetBuilder> routes = {};
-  Map<String, WidgetBuilder> overlays = {};
-  Widget? _activeWidget;
-  Widget? _activeOverlay;
+  List<Widget> widgets;
+  Stack({
+    required super.sizing,
+    required List<Widget> children
+  }) : 
+    widgets = children;
 
-  List<String> history = [];
-
-  Page({ 
-    required WidgetBuilder homePage,
-    WidgetBuilder? overlay,
-    Map<String, WidgetBuilder> route = const {}
-  }) :
-    routes = route,
-    super(sizing: .Grow()) {
-    width = Window.Width().toDouble();
-    height = Window.Height().toDouble();
-
-    routes['home/'] = homePage;
-    _activeWidget = routes['home/']!.call();
-
-    if (overlay != null)
-      overlays = { "main/": overlay };
-  }
-
-  bool PutPage(String uri) {
-    if (!routes.containsKey(uri))
-      return false;
-
-    _activeWidget?.Dispose();
-    _activeWidget = routes[uri]!.call();
-
-    Mount();
-    return true;
-  }
-
-  bool PushPage(String uri) {
-    if (history.length >= 8) return false;
-
-    bool result = PutPage(uri);
-    history.add(uri);
-
-    return result;
-  }
-
-  bool PopPage() {
-    if (history.length <= 1) return PutPage('home/');
-
-    history.remove(history.last);
-    bool result = PutPage(history.last);
-
-    return result;
-  }
-
-  bool PutOverlay(String uri) {
-    _activeOverlay?.Dispose();
-    _activeOverlay = overlays[uri]!.call();
-
-    Mount();
-    return true;
-  }
-  
-  @override void Mount() {
-    _activeWidget?.SetSizing(width, height);
-    _activeWidget?.Mount();
-
-    _activeOverlay?.SetSizing(width, height);
-    _activeOverlay?.Mount();
-
-    super.Mount();
+  @override
+  void Mount() {
+    for (Widget widget in widgets) {
+      widget.SetSizing(width, height);
+      widget.Mount();
+    }
   }
 
   @override
   void DrawWidget() {
-    _activeWidget?.DrawWidget();
-    _activeOverlay?.DrawWidget();
-
-    super.DrawWidget();
+    for (Widget widget in widgets)
+      widget.DrawWidget();
   }
 
   @override
   void Dispose() {
-    _activeWidget?.Dispose();
-    _activeOverlay?.Dispose();
-
+    for (Widget widget in widgets)
+      widget.Dispose();
     super.Dispose();
+  }
+}
+
+typedef WidgetBuilder = Widget Function();
+typedef WidgetTransition = bool Function(Widget, double);
+
+abstract class Router
+{
+  static Map<String, WidgetBuilder> routes = {};
+  static Widget? _activeWidget;
+  // static Map<String, WidgetBuilder> overlays = {};
+  // static Widget? _activeOverlay;
+
+  static List<String> history = [];
+  static Widget? _destWidget;
+  static double elapsedTime = 0.0;
+
+  static void Init(
+    WidgetBuilder home,[
+    Map<String, WidgetBuilder> routes = const {},
+    // Map<String, WidgetBuilder> overlays = const {}
+  ]) {
+    // Router.overlays = overlays;
+    Router.routes = routes;
+
+    Router.routes['home/'] = home;
+    history.add('home/');
+
+    _activeWidget = home.call();
+    _activeWidget!.Mount();
+  }
+
+  //-----------------------------------Pages--------------------------------------------
+
+  static bool _PutPage(String uri) {
+    if (!routes.containsKey(uri)) {
+      print("[Haybale] The uri $uri passed doesn't exist!");
+      return false;
+    }
+
+    _destWidget = routes[uri]!.call();
+    _destWidget!.Mount();
+    return true;
+  }
+
+  static void PushPage([ String uri = 'home/' ]) {
+    if (!_PutPage(uri)) return;
+    history.add(uri);
+  }
+
+  static void PopPage() {
+    if (history.length == 1) {
+      print("[Haybale] You can't pop the home page!");
+      return;
+    }
+    history.removeLast();
+    _PutPage(history.last);
+  }
+
+  //----------------------------------Overlays-----------------------------------------
+
+  // To implement
+
+  //----------------------------------Methods------------------------------------------
+
+  static void Update() {
+    _activeWidget?.Mount();
+    _destWidget?.Mount();
+  }
+
+  static void Release() {
+    _activeWidget?.Dispose();
+    _destWidget?.Dispose();
+    // _activeOverlay?.Dispose();
+  }
+
+  static void DrawPage({WidgetTransition? transition}) {
+    if (transition == null)
+      transition = (_destWidget, elapsedTime) { return true; };
+
+    if (_destWidget != null && transition(_destWidget!, elapsedTime)) {
+      elapsedTime = 0.0;
+      _activeWidget?.Dispose();
+      _activeWidget = _destWidget;
+      _destWidget = null;
+    }
+    
+    _activeWidget?.DrawWidget();
+    _destWidget?.DrawWidget();
   }
 }
