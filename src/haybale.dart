@@ -1184,9 +1184,95 @@ class Stack extends Widget
   }
 }
 
+/// # Widget Builder
+/// 
+/// A functional factory pattern used to defer the creation of a [Widget] 
+/// until it is explicitly needed by the [Router] or a parent container.
+/// 
+/// Allows the [Router] to store "recipes" for pages 
+/// without needing to know the specific parameters or internal state of 
+/// the widgets themselves.
+/// 
+/// It also ensures that widgets are only created when 
+/// navigating to a URI, and can be recreated fresh every time a page is 
+/// re-pushed.
+/// 
+/// ## Example: Defining a Route
+/// 
+/// ```dart
+/// // The builder is the anonymous function () => MyPage()
+/// Router.Init(() => MainMenu(), {
+///   "settings/": () => SettingsPage(showDebug: true),
+///   "game/": () => GameCanvas(),
+/// });
+/// ```
 typedef WidgetBuilder = Widget Function();
+/// # Widget Transition
+/// 
+/// Ccoordinate the Router visual
+/// switch between the current page and the next one.
+/// 
+/// ## Parameters
+/// 
+/// - **[Widget]**: The incoming destination widget ([_destWidget]) currently 
+///   being transitioned into the active state.
+/// - **[double]**: The [elapsedTime] since the transition started, typically 
+///   used to calculate interpolation (Lerp), opacity, or offset.
+/// 
+/// ## Returns
+/// 
+/// - **[bool]**: Must return `true` when the transition is **complete**. 
+///   At this point, the [Router] will dispose of the old widget and 
+///   officially promote the destination widget to [_activeWidget].
+/// 
+/// ## Example: Simple Fade-In
+/// 
+/// ```dart
+/// WidgetTransition fadeIn = (widget, time) {
+///   widget.opacity = Math.Min(time / 0.5, 1.0); // 500ms fade
+///   return time >= 0.5;
+/// };
+/// ```
 typedef WidgetTransition = bool Function(Widget, double);
 
+/// # Router Manager
+/// 
+/// A static orchestration engine responsible for managing the application's 
+/// navigation stack, widget lifecycle, and page transitions.
+/// 
+/// ## Technical Overview
+/// 
+/// - **Stack Management**: Maintains a [history] of URIs to allow for sequential 
+///   navigation and "Pop" operations without losing the navigation context.
+/// - **Lifecycle Control**: Strictly manages the [Mount] and [Dispose] cycles 
+///   of pages. It ensures that when a new widget is instantiated via a 
+///   [WidgetBuilder], the previous one is properly cleaned up to prevent memory leaks.
+/// - **Deferred Transition Logic**: Uses a "Destination Buffer" ([_destWidget]) 
+///   pattern. Instead of swapping pages instantly, it allows a [WidgetTransition] 
+///   to coordinate how and when the old page is replaced by the new one.
+/// 
+/// ## Navigation Flow
+/// 
+/// 1. **Push**: Creates the new widget, mounts it, and moves it to the destination buffer.
+/// 2. **Transition**: During [DrawPage], both active and destination widgets 
+///    are rendered. The transition function dictates the swap timing.
+/// 3. **Commit**: Once the transition returns `true`, the old widget is 
+///    disposed of, and the destination becomes the new active widget.
+/// 
+/// ## Example: Global Navigation
+/// 
+/// ```dart
+/// // From anywhere in the app (e.g., a Button inside a deeply nested Canvas)
+/// Button(
+///   label: "Settings",
+///   onPressed: () => Router.PushPage("settings/"),
+/// );
+/// ```
+/// 
+/// ## Technical Warning
+/// 
+/// Since the `Router` manages global state, ensure [Release] is called 
+/// when the engine shuts down to free GPU resources held by the active widgets.
 abstract class Router
 {
   static Map<String, WidgetBuilder> routes = {};
@@ -1261,11 +1347,16 @@ abstract class Router
     if (transition == null)
       transition = (_destWidget, elapsedTime) { return true; };
 
-    if (_destWidget != null && transition(_destWidget!, elapsedTime)) {
-      elapsedTime = 0.0;
-      _activeWidget?.Dispose();
-      _activeWidget = _destWidget;
-      _destWidget = null;
+    if (_destWidget != null) {
+      if (transition(_destWidget!, elapsedTime)) {
+        elapsedTime += Frame.GetFrameTime();
+      }
+      else {
+        elapsedTime = 0.0;
+        _activeWidget?.Dispose();
+        _activeWidget = _destWidget;
+        _destWidget = null;
+      }
     }
     
     _activeWidget?.DrawWidget();
