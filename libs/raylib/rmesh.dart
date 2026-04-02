@@ -400,7 +400,7 @@ class Material implements Disposeable
     return Material._internal(_memory!.pointer + index, owner: false);
   }
 
-  static Finalizer _finalizer = Finalizer<Pointer<_Material>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_Material>>((pointer) {
     _unloadMaterial(pointer.ref);
     malloc.free(pointer);
   });

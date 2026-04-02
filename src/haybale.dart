@@ -169,10 +169,9 @@ class Center extends Widget
   Widget widget;
 
   Center({
-    required HaySize sizing,
+    required super.sizing,
     required this.widget,
-  }) :
-    super(sizing: sizing);
+  });
 
   @override
   void Mount() {
@@ -689,9 +688,9 @@ class Interactible extends Widget
   MouseCursor cursor;
   static Interactible? PinnedWidget;
   static Vector2 MousePosition = Vector2.Zero();
-  void Function()? _OnPress;
-  bool Function() _OnFocus;
-  bool Function() _OnUnfocus;
+  final void Function()? _OnPress;
+  final bool Function() _OnFocus;
+  final bool Function() _OnUnfocus;
 
   void OnPress() => _OnPress?.call();
   
@@ -814,7 +813,7 @@ class Canvas extends Widget
   Widget widget;
   final double scale;
   RenderTexture2D _renderTexture;
-  Rectangle _dest = Rectangle();
+  final Rectangle _dest = Rectangle();
   /// When drawing and updating [Interactible.MousePosition] for Interactible widgets,
   /// this boolean blocks this update to cases where the Canvas its not alone (eg. Stacked)
   bool blockInteraction = false;
@@ -926,9 +925,13 @@ class Grid extends Widget
   List<Widget> widgets;
   HayPadding padding;
 
+  @override
   double get x => super.x + padding.left;
+  @override
   double get y => super.y + padding.top;
+  @override
   double get width => super.width - padding.left - padding.right;
+  @override
   double get height => super.height - padding.bottom - padding.top;
 
   Grid({
@@ -1058,9 +1061,13 @@ class ListView extends Widget
     _sensitivity = value;
   }
 
+  @override
   double get x => super.x + padding.left;
+  @override
   double get y => super.y + padding.top;
+  @override
   double get width => super.width - padding.left - padding.right;
+  @override
   double get height => super.height - padding.bottom - padding.top;
 
   ListView({
@@ -1344,8 +1351,7 @@ abstract class Router
   }
 
   static void DrawPage({WidgetTransition? transition}) {
-    if (transition == null)
-      transition = (_destWidget, elapsedTime) { return true; };
+    transition ??= (destWidget, elapsedTime) { return true; };
 
     if (_destWidget != null) {
       if (transition(_destWidget!, elapsedTime)) {

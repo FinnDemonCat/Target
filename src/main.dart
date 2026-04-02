@@ -8,8 +8,8 @@ bool ListenTerminal() {
   if (Key.IsDown(Keyboard.KEY_LEFT_CONTROL))
     if (Key.IsPressed(Keyboard.KEY_R))
       return true;
-  else;
-    return false;
+  
+  return false;
 }
 
 Widget PageOne() {

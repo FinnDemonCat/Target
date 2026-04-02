@@ -5,7 +5,7 @@ part of 'raylib.dart';
 //------------------------------------------------------------------------------------
 class Text implements Disposeable
 {
-  StringBuffer _buffer = StringBuffer();
+  final _buffer = StringBuffer();
   late Pointer<Uint8> _array;
   int _length = 1024;
   bool _isDirt = true;
@@ -25,7 +25,7 @@ class Text implements Disposeable
     malloc.free(_array);
 
     _length = newlength;
-    _array = malloc.allocate<Uint8>(sizeOf<Uint8>() * newlength);;
+    _array = malloc.allocate<Uint8>(sizeOf<Uint8>() * newlength);
 
     _finalizer.attach(this, _array, detach: this);
   }
@@ -181,7 +181,7 @@ class TextCodepoint implements Disposeable
   }
 
   /// Draw multiple character (codepoint)
-  static DrawCodepoints(
+  static void DrawCodepoints(
     Font font, TextCodepoint codepoints, int length, {
     required double fontSize, required double spacing, Vector2? position, Color? tint,
     int index = 0

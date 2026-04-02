@@ -109,7 +109,7 @@ class Image implements Disposeable
   /// Load image sequence from memory buffer
   Image.AnimFromMemory(String fileType, Uint8List bytes)
   {
-    if (bytes.length == 0) throw Exception("[Dart] byte array passed is empty!");
+    if (bytes.isEmpty) throw Exception("[Dart] byte array passed is empty!");
     
     Pointer<Utf8> cFileType = fileType.toNativeUtf8();
 	  Pointer<Int32> frameCount = malloc.allocate<Int32>(sizeOf<Int32>());
@@ -453,7 +453,7 @@ static Image GenText(int width, int height, String text)
   /// Draw a triangle fan defined by points within an image (first vertex is the center)
   void DrawTriangleFan(List<Vector2> points, Color color)
   {
-    if (points.length < 3 || points.length == 0) return;
+    if (points.length < 3 || points.isEmpty) return;
 
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
@@ -469,7 +469,7 @@ static Image GenText(int width, int height, String text)
   /// Draw a triangle strip defined by points within an image
   void DrawTriangleStrip(List<Vector2> points, Color color)
   {
-    if (points.length < 3 || points.length == 0) return;
+    if (points.length < 3 || points.isEmpty) return;
 
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);

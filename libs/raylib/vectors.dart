@@ -1404,7 +1404,7 @@ extension Vector4Math on Vector4
 
 class Quaternion extends Vector4
 {
-  Quaternion._internal(Pointer<_Quaternion> pointer) : super._internal(pointer);
+  Quaternion._internal(super.pointer) : super._internal();
 
   factory Quaternion([double x = 0.0, double y = 0.0, double z = 0.0, double w = 1.0])
   {

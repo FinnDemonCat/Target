@@ -5,6 +5,7 @@ This project aims to bring powerfull C libraries to Dart ecosystem with seamless
 
 ## 📦 Core Modules
 - **[Raylib](https://github.com/raysan5/raylib/tree/master)**: The core library for windowing and graphics.
+- **Haybale**: A builtin UI builder library built on top of Raylib bindings 
 
 ### 🖥️ Raylib Core Features
 - **Intuitive Syntax**: Idiomatic instancing of Raylib types (Rectangles, Colors, Matrices).

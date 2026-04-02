@@ -8,7 +8,7 @@ class Color implements Disposeable
   NativeResource<_Color>? _memory;
 
   // Creates a new pointer in heap and copies the value  
-  _setMemory(_Color result)
+  void _setMemory(_Color result)
   {
     Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
     pointer.ref = result;

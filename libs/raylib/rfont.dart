@@ -241,7 +241,7 @@ class GlyphInfo implements Disposeable
   int get advanceX => ref.advanceX;
 
   final int _length;
-  int get length => length;
+  int get length => _length;
 
   GlyphInfo._internal(Pointer<_GlyphInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
   {

@@ -1,11 +1,11 @@
-library raylib;
-
 import 'dart:convert';
 import 'dart:ffi';
-import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
+import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
+// ignore: unused_import
+import 'package:meta/meta.dart';
 
 part 'struct_bindings.dart';
 part 'vectors.dart';
@@ -63,7 +63,7 @@ abstract class Window
   /// Check if window has been resized last frame
   static bool IsResized() => _isResized();
   /// Check if one specific window flag is enabled
-  static bool IsState(WinFlags flag) => _isWindowState(flag.flag) != 0;
+  static bool IsState(WinFlags flag) => _isWindowState(flag.flag) == true;
   /// Set window configuration state using flags
   static void SetState(WinFlags flag) => _setWindowState(flag.flag);
   /// Setup init configuration flags (view FLAGS)
@@ -272,7 +272,7 @@ abstract class Frame
 class FilePathList implements Disposeable
 {
   NativeResource<_FilePathList>? _memory;
-  _FilePathList get ref => _memory!.pointer.ref;
+  _FilePathList get _ref => _memory!.pointer.ref;
   final bool droppedFiles;
 
   List<String> paths = [];
@@ -339,8 +339,8 @@ class FilePathList implements Disposeable
   {
     if (_memory != null && !_memory!.isDisposed) {
       _finalizer.detach(this);
-      if (droppedFiles) _unloadDroppedFiles(ref);
-      else _unloadDirectoryFiles(ref);
+      if (droppedFiles) _unloadDroppedFiles(_ref);
+      else _unloadDirectoryFiles(_ref);
       _memory!.Dispose();
     }
   }

@@ -207,9 +207,7 @@ class ModelAnimation implements Disposeable
   final int _length;
   late final String? _name;
   String get animName {
-    if (_name == null) {
-      _name = FromCharArray(ref.name, 32);
-    }
+    _name ??= FromCharArray(ref.name, 32);
     return _name!;
   }
   int get length => _length;

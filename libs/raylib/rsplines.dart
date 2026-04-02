@@ -77,35 +77,35 @@ abstract class Splines
   }
 
   /// Draw spline segment: Linear, 2 points
-  static DrawSegmentLinear(Vector2 p1, Vector2 p2, double thick,{ Color? color }) {
+  static void DrawSegmentLinear(Vector2 p1, Vector2 p2, double thick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
     _drawSplineSegmentLinear(p1.ref, p2.ref, thick, finalcolor.ref);
   }
 
   /// Draw spline segment: B-Spline, 4 points
-  static DrawSegmentBasis(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, double thick,{ Color? color }) {
+  static void DrawSegmentBasis(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, double thick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
     _drawSplineSegmentBasis(p1.ref, p2.ref, p3.ref, p4.ref, thick, finalcolor.ref);
   }
   
   /// Draw spline segment: Catmull-Rom, 4 points
-  static DrawSegmentCatmullRom(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, double thick,{ Color? color }) {
+  static void DrawSegmentCatmullRom(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, double thick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
     _drawSplineSegmentCatmullRom(p1.ref, p2.ref, p3.ref, p4.ref, thick, finalcolor.ref);
   }
 
   /// Draw spline segment: Quadratic Bezier, 2 points, 1 control point
-  static DrawSegmentBezierQuadratic(Vector2 p1, Vector2 c2, Vector2 p3, double thick,{ Color? color }) {
+  static void DrawSegmentBezierQuadratic(Vector2 p1, Vector2 c2, Vector2 p3, double thick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
     _drawSplineSegmentBezierQuadratic(p1.ref, c2.ref, p3.ref, thick, finalcolor.ref);
   }
 
   /// Draw spline segment: Cubic Bezier, 2 points, 2 control points  
-  static DrawSegmentBezierCubic(Vector2 p1, Vector2 c2, Vector2 c3, Vector2 p4, double thick,{ Color? color }) {
+  static void DrawSegmentBezierCubic(Vector2 p1, Vector2 c2, Vector2 c3, Vector2 p4, double thick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
     _drawSplineSegmentBezierCubic(p1.ref, c2.ref, c3.ref, p4.ref, thick, finalcolor.ref);

@@ -193,7 +193,7 @@ typedef Texture = Texture2D;
 
 class TextureCubemap extends Texture2D
 {
-  TextureCubemap._internal(_Texture texture) : super._recieve(texture);
+  TextureCubemap._internal(super.texture) : super._recieve();
 
   /// Load cubemap from image, multiple image cubemap layouts supported
   factory TextureCubemap(Image image, int layout)
