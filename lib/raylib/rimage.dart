@@ -64,7 +64,9 @@ class Image implements Disposeable
   int get format => ref.format;
   int get mipmaps => ref.mipmaps;
 
-  Image._internal(_Image result) { _setMemory(result); }
+  Image._recieve(_Image result) {
+    _setMemory(result);
+  }
 
   //------------------------------Constructors------------------------------------------
   /// Load image from file into CPU memory (RAM)
@@ -166,7 +168,7 @@ class Image implements Disposeable
 static Image FromColor(int width, int height, Color color)
 {
   _Image result = _genImageColor(width, height, color.ref);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
@@ -175,7 +177,7 @@ static Image GradientLinear(
  {required int direction, required Color start, required Color end}
 ) {
   _Image result = _genImageGradientLinear(width, height, direction, start.ref, end.ref);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: radial gradient
@@ -184,7 +186,7 @@ static Image GradientRadial(
  {required double density, required Color inner, required Color outer}
 ) {
   _Image result = _genImageGradientRadial(width, height, density, inner.ref, outer.ref);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: square gradient
@@ -193,7 +195,7 @@ static Image GradientSquare(
  {required double density, required Color inner, required Color outer}
 ) {
   _Image result = _genImageGradientSquare(width, height, density, inner.ref, outer.ref);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: checked
@@ -202,28 +204,28 @@ static Image Checked(
  {required int checksX, required int checksY, required Color col1, required Color col2}
 ) {
   _Image result = _genImageChecked(width, height, checksX, checksY, col1.ref, col2.ref);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: white noise
 static Image WhiteNoise(int width, int height,{ required double factor })
 {
   _Image result = _genImageWhiteNoise(width, height, factor);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: perlin noise
 static Image PerlinNoise(int width, int height,{ required int offsetX, required int offsetY, required double scale })
 {
   _Image result = _genImagePerlinNoise(width, height, offsetX, offsetY, scale);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 /// Generate image: cellular algorithm, bigger tileSize means bigger cells
 static Image Cellular(int width, int height, int tileSize)
 {
   _Image result = _genImageCellular(width, height, tileSize);
-  return Image._internal(result);
+  return Image._recieve(result);
 }
 
 static Image GenText(int width, int height, String text)
@@ -232,7 +234,7 @@ static Image GenText(int width, int height, String text)
     Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
 
     _Image result = _genImageText(width, height, ctext);
-    return Image._internal(result);
+    return Image._recieve(result);
   });
 }
 
@@ -240,21 +242,21 @@ static Image GenText(int width, int height, String text)
   static Image Copy(Image image)
   {
     _Image result = _imageCopy(image.ref);
-    return Image._internal(result); 
+    return Image._recieve(result); 
   }
 
   /// Create an image from another image piece
   static Image FromImage(Image image, Rectangle rect)
   {
     _Image result = _imageFromImage(image.ref, rect.ref);
-    return Image._internal(result);
+    return Image._recieve(result);
   }
 
   /// Create an image from a selected channel of another image (GRAYSCALE)
   static Image FromChannel(Image image, int selectedChannel)
   {
     _Image result = _imageFromChannel(image.ref, selectedChannel);
-    return Image._internal(result);
+    return Image._recieve(result);
   }
 
   /// Create an image from text (default font)
@@ -265,7 +267,7 @@ static Image GenText(int width, int height, String text)
       final finalcolor = color ?? Color.WHITE;
 
       _Image result = _imageText(ctext, fontSize, finalcolor.ref);
-      return Image._internal(result);
+      return Image._recieve(result);
     });
   }
 
@@ -277,7 +279,7 @@ static Image GenText(int width, int height, String text)
       final finaltint = tint ?? Color.WHITE;
 
       _Image result = _imageTextEx(font.ref, ctext, fontSize, spacing, finaltint.ref);
-      return Image._internal(result);
+      return Image._recieve(result);
     });
   }
 //----------------------------------Methods-------------------------------------------

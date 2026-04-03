@@ -4,8 +4,7 @@ import 'package:ffi/ffi.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
-// ignore: unused_import
-import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 part 'struct_bindings.dart';
 part 'vectors.dart';
@@ -229,7 +228,7 @@ abstract class Window
   /// Get clipboard text content
   static String GetClipboardText() => _getClipboardText().toDartString();
   /// Get clipboard image content
-  static Image GetClipboardImage() => Image._internal(_getClipboardImage());
+  static Image GetClipboardImage() => Image._recieve(_getClipboardImage());
   /// Enable waiting for events on EndDrawing(), no automatic event polling
   static void EnableEventWaiting() => _enableEventWaiting();
   /// Disable waiting for events on EndDrawing(), automatic events polling

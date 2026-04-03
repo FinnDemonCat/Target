@@ -873,11 +873,19 @@ final DynamicLibrary _dylib = _load();
 
 DynamicLibrary _load()
 {
-  if (Platform.isWindows) return DynamicLibrary.open('libs/raylib/libraylib.dll');
-  if (Platform.isLinux) return DynamicLibrary.open('libs/raylib/libraylib.so');
-  if (Platform.isMacOS) return DynamicLibrary.open('libs/raylib/libraylib.dylib');
+  String sdkPath = path.dirname(Platform.script.toFilePath());
+  sdkPath = sdkPath.replaceFirst('src', 'lib');
+  
+  if (Platform.isWindows) sdkPath = path.joinAll([sdkPath, 'raylib', 'libraylib.dll']);
+  else if (Platform.isLinux) sdkPath = path.joinAll([sdkPath, 'raylib', 'libraylib.so']);
+  else if (Platform.isMacOS) sdkPath = path.joinAll([sdkPath, 'raylib', 'libraylib.dylib']);
+  else throw UnsupportedError("Operational system not supported");
+  
+  return DynamicLibrary.open(sdkPath);
 
-  throw UnsupportedError("Operational system not supported");
+  // if (Platform.isWindows) return DynamicLibrary.open('lib/raylib/libraylib.dll');
+  // if (Platform.isLinux) return DynamicLibrary.open('lib/raylib/libraylib.so');
+  // if (Platform.isMacOS) return DynamicLibrary.open('lib/raylib/libraylib.dylib');
 }
 
 //------------------------------------------------------------------------------------

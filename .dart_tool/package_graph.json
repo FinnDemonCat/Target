@@ -1,18 +1,26 @@
 {
   "roots": [
-    "TargetEngine"
+    "target_engine"
   ],
   "packages": [
     {
-      "name": "TargetEngine",
+      "name": "target_engine",
       "version": "0.1.0",
       "dependencies": [
         "collection",
-        "ffi"
+        "ffi",
+        "meta",
+        "path"
       ],
       "devDependencies": [
-        "ffigen"
+        "ffigen",
+        "lints"
       ]
+    },
+    {
+      "name": "lints",
+      "version": "6.1.0",
+      "dependencies": []
     },
     {
       "name": "ffigen",
@@ -36,6 +44,16 @@
       ]
     },
     {
+      "name": "path",
+      "version": "1.9.1",
+      "dependencies": []
+    },
+    {
+      "name": "meta",
+      "version": "1.18.2",
+      "dependencies": []
+    },
+    {
       "name": "collection",
       "version": "1.19.1",
       "dependencies": []
@@ -46,43 +64,13 @@
       "dependencies": []
     },
     {
-      "name": "cli_util",
-      "version": "0.4.2",
+      "name": "yaml_edit",
+      "version": "2.2.3",
       "dependencies": [
+        "collection",
         "meta",
-        "path"
-      ]
-    },
-    {
-      "name": "file",
-      "version": "7.0.1",
-      "dependencies": [
-        "meta",
-        "path"
-      ]
-    },
-    {
-      "name": "args",
-      "version": "2.7.0",
-      "dependencies": []
-    },
-    {
-      "name": "pub_semver",
-      "version": "2.2.0",
-      "dependencies": [
-        "collection"
-      ]
-    },
-    {
-      "name": "path",
-      "version": "1.9.1",
-      "dependencies": []
-    },
-    {
-      "name": "package_config",
-      "version": "2.2.0",
-      "dependencies": [
-        "path"
+        "source_span",
+        "yaml"
       ]
     },
     {
@@ -95,13 +83,6 @@
       ]
     },
     {
-      "name": "string_scanner",
-      "version": "1.4.1",
-      "dependencies": [
-        "source_span"
-      ]
-    },
-    {
       "name": "quiver",
       "version": "3.2.2",
       "dependencies": [
@@ -109,13 +90,17 @@
       ]
     },
     {
-      "name": "yaml_edit",
-      "version": "2.2.3",
+      "name": "pub_semver",
+      "version": "2.2.0",
       "dependencies": [
-        "collection",
-        "meta",
-        "source_span",
-        "yaml"
+        "collection"
+      ]
+    },
+    {
+      "name": "package_config",
+      "version": "2.2.0",
+      "dependencies": [
+        "path"
       ]
     },
     {
@@ -135,23 +120,12 @@
       ]
     },
     {
-      "name": "source_span",
-      "version": "1.10.2",
+      "name": "file",
+      "version": "7.0.1",
       "dependencies": [
-        "collection",
-        "path",
-        "term_glyph"
+        "meta",
+        "path"
       ]
-    },
-    {
-      "name": "term_glyph",
-      "version": "1.2.2",
-      "dependencies": []
-    },
-    {
-      "name": "meta",
-      "version": "1.18.1",
-      "dependencies": []
     },
     {
       "name": "dart_style",
@@ -168,58 +142,32 @@
       ]
     },
     {
-      "name": "analyzer",
-      "version": "10.0.2",
-      "dependencies": [
-        "_fe_analyzer_shared",
-        "collection",
-        "convert",
-        "crypto",
-        "glob",
-        "meta",
-        "package_config",
-        "path",
-        "pub_semver",
-        "source_span",
-        "watcher",
-        "yaml"
-      ]
-    },
-    {
-      "name": "_fe_analyzer_shared",
-      "version": "94.0.0",
+      "name": "cli_util",
+      "version": "0.4.2",
       "dependencies": [
         "meta",
-        "source_span"
-      ]
-    },
-    {
-      "name": "convert",
-      "version": "3.1.2",
-      "dependencies": [
-        "typed_data"
-      ]
-    },
-    {
-      "name": "typed_data",
-      "version": "1.4.0",
-      "dependencies": [
-        "collection"
-      ]
-    },
-    {
-      "name": "watcher",
-      "version": "1.2.1",
-      "dependencies": [
-        "async",
         "path"
       ]
     },
     {
-      "name": "crypto",
-      "version": "3.0.7",
+      "name": "args",
+      "version": "2.7.0",
+      "dependencies": []
+    },
+    {
+      "name": "source_span",
+      "version": "1.10.2",
       "dependencies": [
-        "typed_data"
+        "collection",
+        "path",
+        "term_glyph"
+      ]
+    },
+    {
+      "name": "string_scanner",
+      "version": "1.4.1",
+      "dependencies": [
+        "source_span"
       ]
     },
     {
@@ -242,11 +190,27 @@
       ]
     },
     {
-      "name": "stack_trace",
-      "version": "1.12.1",
+      "name": "analyzer",
+      "version": "10.0.2",
       "dependencies": [
-        "path"
+        "_fe_analyzer_shared",
+        "collection",
+        "convert",
+        "crypto",
+        "glob",
+        "meta",
+        "package_config",
+        "path",
+        "pub_semver",
+        "source_span",
+        "watcher",
+        "yaml"
       ]
+    },
+    {
+      "name": "term_glyph",
+      "version": "1.2.2",
+      "dependencies": []
     },
     {
       "name": "test_api",
@@ -264,6 +228,50 @@
       ]
     },
     {
+      "name": "stack_trace",
+      "version": "1.12.1",
+      "dependencies": [
+        "path"
+      ]
+    },
+    {
+      "name": "watcher",
+      "version": "1.2.1",
+      "dependencies": [
+        "async",
+        "path"
+      ]
+    },
+    {
+      "name": "crypto",
+      "version": "3.0.7",
+      "dependencies": [
+        "typed_data"
+      ]
+    },
+    {
+      "name": "convert",
+      "version": "3.1.2",
+      "dependencies": [
+        "typed_data"
+      ]
+    },
+    {
+      "name": "_fe_analyzer_shared",
+      "version": "94.0.0",
+      "dependencies": [
+        "meta",
+        "source_span"
+      ]
+    },
+    {
+      "name": "stream_channel",
+      "version": "2.1.4",
+      "dependencies": [
+        "async"
+      ]
+    },
+    {
       "name": "boolean_selector",
       "version": "2.1.2",
       "dependencies": [
@@ -272,10 +280,10 @@
       ]
     },
     {
-      "name": "stream_channel",
-      "version": "2.1.4",
+      "name": "typed_data",
+      "version": "1.4.0",
       "dependencies": [
-        "async"
+        "collection"
       ]
     }
   ],

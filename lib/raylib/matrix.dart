@@ -7,6 +7,8 @@ part of 'raylib.dart';
 class Matrix implements Disposeable
 {
   NativeResource<_Matrix>? _memory;
+  final int _length;
+  int get length => _length;
 
   // ignore: unused_element
   void _setMemory(_Matrix result)
@@ -16,6 +18,8 @@ class Matrix implements Disposeable
 
     _finalizer.attach(this, pointer, detach: this);
   }
+
+//--------------------------------Getters-&-Setters-----------------------------------
 
   _Matrix get ref => _memory!.pointer.ref;
 
@@ -78,7 +82,16 @@ class Matrix implements Disposeable
   Vector4 get column3 => Vector4._internal((_memory!.pointer.cast<Float>() + 8).cast<_Vector4>());
   Vector4 get column4 => Vector4._internal((_memory!.pointer.cast<Float>() + 12).cast<_Vector4>());
   
-  Matrix._recieve(_Matrix result)
+//--------------------------------Constructors----------------------------------------
+
+  Matrix._internal(Pointer<_Matrix> pointer,{ int length = 1, bool owner = true }) : _length = length
+  {
+    _memory = NativeResource<_Matrix>(pointer, IsOwner: owner);
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Matrix._recieve(_Matrix result) : _length = 1
   {
     _setMemory(result);
   }
@@ -88,7 +101,9 @@ class Matrix implements Disposeable
     double m1 = 0.0, double m5 = 1.0, double m9 = 0.0, double m13 = 0.0,
     double m2 = 0.0, double m6 = 0.0, double m10 = 1.0, double m14 = 0.0,
     double m3 = 0.0, double m7 = 0.0, double m11 = 0.0, double m15 = 1.0,
-  ]) {
+  ]) :
+    _length = 1
+  {
     Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
     
     pointer.ref

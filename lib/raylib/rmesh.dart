@@ -18,6 +18,21 @@ class Mesh implements Disposeable
 
     _memory = NativeResource<_Mesh>(pointer);
     _finalizer.attach(this, pointer, detach: this);
+
+    vertices = ref.vertices.asTypedList(vertexCount);
+    texcoords = ref.texcoords.asTypedList(vertexCount * 2);
+    texcoords2 = ref.texcoords2.asTypedList(vertexCount * 2);
+    normals = ref.normals.asTypedList(vertexCount * 3);
+    tangents = ref.tangents.asTypedList(vertexCount * 4);
+    colors = ref.colors.asTypedList(vertexCount * 4);
+    indices = ref.indices.asTypedList(vertexCount * 3);
+
+    animVertices = ref.animVertices.asTypedList(vertexCount * 3);
+    animNormals = ref.animNormals.asTypedList(vertexCount * 3);
+    boneIds = ref.boneIds.asTypedList(vertexCount * 4);
+    boneWeights = ref.boneWeights.asTypedList(vertexCount * 4);
+    boneMatrices = Matrix._internal(ref.boneMatrices, owner: false, length: boneCount);
+    vboId = ref.vboId.asTypedList(7);
   }
 
   Mesh._internal(Pointer<_Mesh> pointer,{ bool owner = false, int length = 1 }) : _length = length
@@ -28,32 +43,59 @@ class Mesh implements Disposeable
       _finalizer.attach(this, pointer, detach: this);
   }
 
-  //--------------------------------------Getters---------------------------------------
+  //--------------------------------Getters-&-Setters-----------------------------------
   
   _Mesh get ref => _memory!.pointer.ref;
+
   int get vertexCount => ref.vertexCount;
   int get triangleCount => ref.triagleCoung;
-
-  // Vertex attributes data
-  Pointer<Float> get vertices => ref.vertices;
-  Pointer<Float> get texcoords => ref.texcoords;
-  Pointer<Float> get texcoords2 => ref.texcoords2;
-  Pointer<Float> get normals => ref.normals;
-  Pointer<Float> get tangents => ref.tangents;
-  Pointer<Uint8> get colors => ref.colors;
-  Pointer<Uint16> get indices => ref.indices;
-
-  // Animation vertex data
-  Pointer<Float> get animVertices => ref.animVertices;
-  Pointer<Float> get animNormals => ref.animNormals;
-  Pointer<Uint8> get boneIds => ref.boneIds;
-  Pointer<Float> get boneWeights => ref.boneWeights;
-  Pointer<_Matrix> get boneMatrices => ref.boneMatrices;
+  int get vaoID => ref.vaoID;
   int get boneCount => ref.boneCount;
 
-  int get vaoID => ref.vaoID;
-  Pointer<Int32> get vboId => ref.vboId;
+  // Vertex attributes data
+  late final Float32List vertices;
+  late final Float32List texcoords;
+  late final Float32List texcoords2;
+  late final Float32List normals;
+  late final Float32List tangents;
+  late final Uint8List colors;
+  late final Uint16List indices;
 
+  late final Float32List animVertices;
+  late final Float32List animNormals;
+  late final Uint8List boneIds;
+  late final Float32List boneWeights;
+  late final Matrix boneMatrices;
+  late final Int32List vboId;
+
+  /* 
+  // Pointer<Float> get vertices => ref.vertices;
+  Float32List get vertices => ref.vertices.asTypedList(vertexCount);
+  // Pointer<Float> get texcoords => ref.texcoords;
+  Float32List get texcoords => ref.texcoords.asTypedList(vertexCount * 2);
+  // Pointer<Float> get texcoords2 => ref.texcoords2;
+  Float32List get texcoords2 => ref.texcoords2.asTypedList(vertexCount * 2);
+  // Pointer<Float> get normals => ref.normals;
+  Float32List get normals => ref.normals.asTypedList(vertexCount * 3);
+  // Pointer<Float> get tangents => ref.tangents;
+  Float32List get tangents => ref.tangents.asTypedList(vertexCount * 4);
+  // Pointer<Uint8> get colors => ref.colors;
+  Uint8List get colors => ref.colors.asTypedList(vertexCount * 4);
+  // Pointer<Uint16> get indices => ref.indices;
+  Uint16List get indices => ref.indices.asTypedList(vertexCount * 3);
+
+  int get boneCount => ref.boneCount;
+  Float32List get animVertices => ref.animVertices.asTypedList(vertexCount * 3);
+  // Pointer<Float> get animVertices => ref.animVertices;
+  Float32List get animNormals => ref.animNormals.asTypedList(vertexCount * 3);
+  // Pointer<Float> get animNormals => ref.animNormals;
+  Uint8List get boneIds => ref.boneIds.asTypedList(vertexCount * 4);
+  // Pointer<Uint8> get boneIds => ref.boneIds;
+  Float32List get boneWeights => ref.boneWeights.asTypedList(vertexCount * 4);
+  // Pointer<Float> get boneWeights => ref.boneWeights;
+  // Pointer<_Matrix> get boneMatrices => ref.boneMatrices;
+  // Pointer<Int32> get vboId => ref.vboId;
+  */
   //----------------------------------Constructors--------------------------------------
 
   /// Generate polygonal mesh

@@ -1,8 +1,8 @@
 // ignore_for_file: unused_import
 
-import '../libs/raylib/raylib.dart';
-import 'haybale.dart';
-import 'buttons.dart';
+import 'package:target_engine/raylib/raylib.dart';
+import 'package:target_engine/haybale/haybale.dart';
+import 'package:target_engine/haybale/buttons.dart';
 
 bool ListenTerminal() {
   if (Key.IsDown(Keyboard.KEY_LEFT_CONTROL))

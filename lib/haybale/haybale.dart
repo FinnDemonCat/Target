@@ -1,4 +1,4 @@
-import '../libs/raylib/raylib.dart';
+import 'package:target_engine/raylib/raylib.dart';
 import 'dart:math' as math;
 import 'package:meta/meta.dart';
 
@@ -766,8 +766,15 @@ class Interactible extends Widget
 
     final widgets = list.whereType<Interactible>().toList();
 
-    for (Interactible widget in widgets)
-      if (widget.UpdateState()) break;
+    bool skip = false;
+    for (Interactible widget in widgets) {
+      if (skip) {
+        widget.state = .Idle;
+        continue;
+      }
+      else if (widget.UpdateState())
+        skip = true;
+    }
   }
 
   @override
@@ -976,7 +983,9 @@ class Grid extends Widget
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
     Draw.WithScissorMode(rect: this, renderLogic: () {
-      for (int row = (math.max(0.0, _scroll) / _rowStride).floor(); row < _rows; row++) {
+      for (int row = (math.max(0.0, _scroll) / _rowStride).floor(); row < _rows; row++)
+      {
+        bool skip = false;
         for (int col = 0; col < _cols; col++) {
           int index = (row * _cols) + col;
           if (index >= widgets.length) break;
@@ -987,8 +996,17 @@ class Grid extends Widget
           );
 
           widgets[index].DrawWidget();
+
+          if (widgets[index] case Interactible widget)
+          {
+            if (skip)
+              widget.state = .Idle;
+            else
+              skip = widget.UpdateState();
+          }
         }
 
+        /*
         for (int col = 0; col < _cols; col++) {
           int index = (row * _cols) + col;
           if (index >= widgets.length) break;
@@ -998,6 +1016,7 @@ class Grid extends Widget
           if (widget is Interactible)
             if (widget.UpdateState()) break;
         }
+        */
       }
     });
 

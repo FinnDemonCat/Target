@@ -1,4 +1,4 @@
-import '../libs/raylib/raylib.dart';
+import 'package:target_engine/raylib/raylib.dart';
 import 'haybale.dart';
 
 class Button extends Interactible

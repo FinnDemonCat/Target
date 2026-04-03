@@ -103,7 +103,7 @@ class Font implements Disposeable
       packMethod
     );
 
-    return Image._internal(image);
+    return Image._recieve(image);
   }
 
   /// Generate image font atlas using chars info

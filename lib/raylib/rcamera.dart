@@ -63,7 +63,7 @@ class Camera3D implements Disposeable
   _Vector3 get target => _memory!.pointer.ref.target;
   _Vector3 get up => _memory!.pointer.ref.up;
   double get fovy => _memory!.pointer.ref.fovy;
-  int get projection => _memory!.pointer.ref.projection;
+  CameraProjection get projection => CameraProjection.values[_memory!.pointer.ref.projection];
 
   set position(Vector3 value) => ref.position = value.ref;
   set target(Vector3 value) => ref.target = value.ref;
@@ -76,7 +76,7 @@ class Camera3D implements Disposeable
     required Vector3 target,
     required Vector3 up,
     required double fovy,
-    required int projection
+    required CameraProjection projection
   }) {
     Pointer<_Camera3D> pointer = malloc.allocate<_Camera3D>(sizeOf<_Camera3D>());
     pointer.ref
@@ -84,7 +84,7 @@ class Camera3D implements Disposeable
     ..target = target.ref
     ..up = up.ref
     ..fovy = fovy
-    ..projection = projection;
+    ..projection = projection.index;
 
     this._memory = NativeResource<_Camera3D>(pointer);
     _finalizer.attach(this, pointer, detach: this);

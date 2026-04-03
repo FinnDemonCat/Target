@@ -67,13 +67,9 @@ class Model implements Disposeable
   NativeResource<_Model>? _memory;
 
   _Model get ref => _memory!.pointer.ref;
-  Pointer<Int32> get meshMaterial => ref.meshMaterial;
-
-  late final Mesh meshes;
-  late final Material materials;
-  late final BoneInfo bones;
-  late final Transform bindPose;
-  late final BoundingBox bounds = _GetBoundingBox();
+  int get meshCount => ref.meshCount;
+  int get boneCount => ref.boneCount;
+  int get materialCount => ref.materialCount;
 
   void _setmemory(_Model result)
   {
@@ -81,14 +77,22 @@ class Model implements Disposeable
     pointer.ref = result;
 
     _memory = NativeResource<_Model>(pointer);
-
-    meshes    = Mesh._internal(pointer.ref.meshes, length: pointer.ref.meshCount);
-    materials = Material._internal(pointer.ref.materials, length: pointer.ref.materialCount);
-    bones     = BoneInfo._internal(pointer.ref.bones, length: pointer.ref.boneCount);
-    bindPose  = Transform._internal(pointer.ref.bindPose, length: pointer.ref.boneCount);
-
     _finalizer.attach(this, pointer, detach: this);
+
+    meshes    = Mesh._internal(pointer.ref.meshes, length: meshCount, owner: false);
+    materials = Material._internal(pointer.ref.materials, length: materialCount, owner: false);
+    bones     = BoneInfo._internal(pointer.ref.bones, length: boneCount, owner: false);
+    bindPose  = Transform._internal(pointer.ref.bindPose, length: boneCount, owner: false);
+    bounds    = _GetBoundingBox();
+    meshMaterial = ref.meshMaterial.asTypedList(meshCount);
   }
+  
+  late final Mesh meshes;
+  late final Material materials;
+  late final BoneInfo bones;
+  late final Transform bindPose;
+  late final BoundingBox bounds;
+  late final Int32List meshMaterial;
 
 //----------------------------------Constructors-------------------------------------
   
@@ -189,6 +193,7 @@ class Model implements Disposeable
     if (_memory != null && !_memory!.isDisposed)
     {
       _finalizer.detach(this);
+      bounds.Dispose();
       _unloadModel(_memory!.pointer.ref);
       _memory!.Dispose();
     }

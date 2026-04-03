@@ -1,4 +1,4 @@
-name: TargetEngine
+name: target_engine
 description: Target is a simple toolbox to build Games, UI and etc.
 version: 0.1.0
 environment:
@@ -7,6 +7,7 @@ dependencies:
   ffi: ^2.1.5
   collection: ^1.19.1
   meta: ^1.18.2
+  path: ^1.9.1
 dev_dependencies:
   ffigen: ^20.1.1
   lints: ^6.1.0
