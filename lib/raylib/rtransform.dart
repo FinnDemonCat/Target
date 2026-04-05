@@ -7,9 +7,14 @@ part of 'raylib.dart';
 class Transform implements Disposeable
 {
   NativeResource<_Transform>? _memory;
-
   final int _length;
   int get length => _length;
+
+  _Transform get ref => _memory!.pointer.ref;
+
+  late final Vector3 translation;
+  late final Quaternion rotation;
+  late final Vector3 scale;
 
   // ignore: unused_element
   void _setmemory(_Transform result)
@@ -19,6 +24,18 @@ class Transform implements Disposeable
 
     _memory = NativeResource<_Transform>(pointer);
     _finalizer.attach(this, pointer, detach: this);
+    _setReferences(pointer);
+  }
+
+  void _setReferences(Pointer<_Transform> pointer) {
+    int address = pointer.address;
+    this.translation = Vector3._internal(.fromAddress(address), owner: false);
+
+    address += sizeOf<_Vector3>();
+    this.rotation = Quaternion._internal(.fromAddress(address), owner: false);
+
+    address += sizeOf<_Quaternion>();
+    this.scale = Vector3._internal(.fromAddress(address), owner: false);
   }
 
   Transform._internal(Pointer<_Transform> pointer,{ int length = 1, bool owner = true }) : _length = length
@@ -28,6 +45,8 @@ class Transform implements Disposeable
 
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
+
+    _setReferences(pointer);
   }
 
   Transform(Vector3 translation, Quaternion rotation, Vector3 scale) : _length = 1
@@ -40,6 +59,8 @@ class Transform implements Disposeable
 
     _finalizer.attach(this, pointer, detach: this);
     _memory = NativeResource<_Transform>(pointer);
+
+    _setReferences(pointer);
   }
 
   Transform operator [](int index)

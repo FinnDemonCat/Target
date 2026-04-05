@@ -5,8 +5,8 @@ import 'package:target_engine/haybale/haybale.dart';
 import 'package:target_engine/haybale/buttons.dart';
 
 bool ListenTerminal() {
-  if (Key.IsDown(Keyboard.KEY_LEFT_CONTROL))
-    if (Key.IsPressed(Keyboard.KEY_R))
+  if (Keyboard.IsDown(Key.LEFT_CONTROL))
+    if (Keyboard.IsPressed(Key.R))
       return true;
   
   return false;

@@ -18,7 +18,10 @@ class Mesh implements Disposeable
 
     _memory = NativeResource<_Mesh>(pointer);
     _finalizer.attach(this, pointer, detach: this);
+    _setReferences();
+  }
 
+  void _setReferences() {
     vertices = ref.vertices.asTypedList(vertexCount);
     texcoords = ref.texcoords.asTypedList(vertexCount * 2);
     texcoords2 = ref.texcoords2.asTypedList(vertexCount * 2);
@@ -41,6 +44,8 @@ class Mesh implements Disposeable
 
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
+
+    _setReferences();
   }
 
   //--------------------------------Getters-&-Setters-----------------------------------
@@ -276,7 +281,8 @@ class Shader implements Disposeable
   NativeResource<_Shader>? _memory;
   _Shader get ref => _memory!.pointer.ref;
   int get id => ref.id;
-  Pointer<Int32> get locs => ref.locs;
+  // Pointer<Int32> get locs => ref.locs;
+  late final Int32List locs;
 
   void _setmemory(_Shader result)
   {
@@ -285,6 +291,20 @@ class Shader implements Disposeable
 
     _memory = NativeResource<_Shader>(pointer);
     _finalizer.attach(this, pointer, detach: this);
+    _setReferences();
+  }
+
+  void _setReferences() {
+    locs = ref.locs.asTypedList(32);
+  }
+
+  Shader._internal(Pointer<_Shader> pointer,{ bool owner = true }) {
+    _memory = NativeResource(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+    
+    _setReferences();
   }
 
   /// Load shader from files and bind default locations
@@ -365,6 +385,48 @@ class Shader implements Disposeable
 }
 
 //------------------------------------------------------------------------------------
+//                                 MaterialMap
+//------------------------------------------------------------------------------------
+
+class MaterialMap implements Disposeable
+{
+  NativeResource<_MaterialMap>? _memory;
+  final int _length;
+  int get length => _length;
+
+  _MaterialMap get ref => _memory!.pointer.ref;
+  late final Texture texture;
+  late final Color color;
+  double get value => ref.value;
+
+  void setReferences(Pointer<_MaterialMap> pointer) {
+    int address = pointer.address;
+    texture = Texture._internal(.fromAddress(address));
+
+    address += sizeOf<_Color>();
+    color = Color._internal(.fromAddress(address));
+  }
+
+  MaterialMap._internal(Pointer<_MaterialMap> pointer,{ bool owner = true, int length = 1 }) : _length = length
+  {
+    _memory = NativeResource(pointer, IsOwner: owner);
+    
+    if(owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_MaterialMap>>((pointer) {
+    malloc.free(pointer);
+  });
+
+  @override
+  void Dispose() {
+    _finalizer.detach(this);
+    _memory!.Dispose();
+  }
+}
+
+//------------------------------------------------------------------------------------
 //                                   Material
 //------------------------------------------------------------------------------------
 
@@ -375,6 +437,9 @@ class Material implements Disposeable
   int get length => _length;
 
   _Material get ref => _memory!.pointer.ref;
+  late final Shader shader;
+  late final MaterialMap materialMap;
+  Float32List get params => ref.params.elements;
 
   // ------------------------------Memory management------------------------------
 
@@ -387,6 +452,18 @@ class Material implements Disposeable
 
     _finalizer.attach(this, pointer, detach: this);
     _memory = NativeResource(pointer);
+
+    _setReferences();
+  }
+
+  // Continue Transform and other functions `final late` member encapsulations fix
+
+  void _setReferences() {
+    int address = _memory!.pointer.address;
+    shader = Shader._internal(.fromAddress(address));
+
+    address += sizeOf<_Shader>();
+    materialMap = MaterialMap._internal(.fromAddress(address));
   }
 
   Material._internal(Pointer<_Material> pointer,{ int length = 1, bool owner = true }) : _length = length
@@ -396,6 +473,8 @@ class Material implements Disposeable
     _memory = NativeResource(pointer, IsOwner: owner);
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
+
+    _setReferences();
   }
 
   // --------------------------Constructors--------------------------------------

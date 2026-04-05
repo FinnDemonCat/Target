@@ -47,18 +47,18 @@ abstract class Gestures
 //------------------------------------------------------------------------------------
 
 /// Keyboard related functions
-abstract class Key
+abstract class Keyboard
 {
   /// Check if a key has been pressed once
-  static bool IsPressed(int key) => _isKeyPressed(key);
+  static bool IsPressed(Key key) => _isKeyPressed(key.value);
   /// Check if a key has been pressed again
-  static bool IsPressedRepeat(int key) => _isKeyPressedRepeat(key);
+  static bool IsPressedRepeat(Key key) => _isKeyPressedRepeat(key.value);
   /// Check if a key is being pressed
-  static bool IsDown(int key) => _isKeyDown(key);
+  static bool IsDown(Key key) => _isKeyDown(key.value);
   /// Check if a key is NOT being pressed
-  static bool IsUp(int key) => _isKeyUp(key);
+  static bool IsUp(Key key) => _isKeyUp(key.value);
   /// Check if a key has been released once
-  static bool IsReleased(int key) => _isKeyReleased(key);
+  static bool IsReleased(Key key) => _isKeyReleased(key.value);
   /// Get key pressed (keycode), call it multiple times for keys queued, returns 0 when the queue is empty
   static int Get() => _getKeyPressed();
   /// Get char pressed (unicode), call it multiple times for chars queued, returns 0 when the queue is empty
@@ -106,15 +106,15 @@ abstract class Gamepad
   /// Get gamepad internal name id
   static String GetName(int gamepad) => _getGamepadName(gamepad).toDartString();
   /// Check if a gamepad button is being pressed
-  static bool IsButtonDown(int gamepad, int button) => _isGamepadButtonDown(gamepad, button);
+  static bool IsButtonDown(int gamepad, GamepadButton button) => _isGamepadButtonDown(gamepad, button.index);
   /// Check if a gamepad button is NOT being pressed
-  static bool IsButtonUp(int gamepad, int button) => _isGamepadButtonUp(gamepad, button);
+  static bool IsButtonUp(int gamepad, GamepadButton button) => _isGamepadButtonUp(gamepad, button.index);
   /// Check if a gamepad button has been pressed once
-  static bool IsButtonPressed(int gamepad, int button) => _isGamepadButtonPressed(gamepad, button);
+  static bool IsButtonPressed(int gamepad, GamepadButton button) => _isGamepadButtonPressed(gamepad, button.index);
   /// Get the last gamepad button pressed
   static int GetButtonPressed() => _getGamepadButtonPressed();
   /// Check if a gamepad button is being pressed
-  static bool IsButtonReleased(int gamepad, int button) => _isGamepadButtonReleased(gamepad, button);
+  static bool IsButtonReleased(int gamepad, GamepadButton button) => _isGamepadButtonReleased(gamepad, button.index);
   /// Get axis count for a gamepad
   static int GetAxisCount(int gamepad) => _getGamepadAxisCount(gamepad);
   /// Get movement value for a gamepad axis

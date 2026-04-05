@@ -745,6 +745,11 @@ extension MatrixMath on Matrix
     return result;
   }
 
+  Matrix operator [](int index) {
+    if (index < 0 || index >= _length) throw RangeError(index);
+    return Matrix._internal(_memory!.pointer + index, owner: false);
+  }
+
   /// Invert provided matrix
   void Invert()
   {

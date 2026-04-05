@@ -10,6 +10,18 @@ class BoneInfo implements Disposeable
   final int _length;
   int get length => _length;
 
+  _BoneInfo get ref => _memory!.pointer.ref;
+  late final String name;
+  int get parent => ref.parent;
+
+  void _setReferences() {
+    List<int> stringList = [];
+    for (int x = 0; ref.name[x] != 0; x++)
+      stringList.add(ref.name[x]);
+
+    name = String.fromCharCodes(stringList);
+  }
+
   BoneInfo._internal(Pointer<_BoneInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
     if (_memory != null) Dispose();
@@ -17,6 +29,8 @@ class BoneInfo implements Disposeable
 
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
+    
+    _setReferences();
   }
 
   BoneInfo operator [](int index)
@@ -71,6 +85,15 @@ class Model implements Disposeable
   int get boneCount => ref.boneCount;
   int get materialCount => ref.materialCount;
 
+  void _setReferences(Pointer<_Model> pointer) {
+    meshes    = Mesh._internal(pointer.ref.meshes, length: meshCount, owner: false);
+    materials = Material._internal(pointer.ref.materials, length: materialCount, owner: false);
+    bones     = BoneInfo._internal(pointer.ref.bones, length: boneCount, owner: false);
+    bindPose  = Transform._internal(pointer.ref.bindPose, length: boneCount, owner: false);
+    bounds    = _GetBoundingBox();
+    meshMaterial = ref.meshMaterial.asTypedList(meshCount);
+  }
+
   void _setmemory(_Model result)
   {
     Pointer<_Model> pointer = malloc.allocate<_Model>(sizeOf<_Model>());
@@ -79,12 +102,7 @@ class Model implements Disposeable
     _memory = NativeResource<_Model>(pointer);
     _finalizer.attach(this, pointer, detach: this);
 
-    meshes    = Mesh._internal(pointer.ref.meshes, length: meshCount, owner: false);
-    materials = Material._internal(pointer.ref.materials, length: materialCount, owner: false);
-    bones     = BoneInfo._internal(pointer.ref.bones, length: boneCount, owner: false);
-    bindPose  = Transform._internal(pointer.ref.bindPose, length: boneCount, owner: false);
-    bounds    = _GetBoundingBox();
-    meshMaterial = ref.meshMaterial.asTypedList(meshCount);
+    _setReferences(pointer);
   }
   
   late final Mesh meshes;

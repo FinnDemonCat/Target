@@ -520,7 +520,16 @@ class Vector3 implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Vector3._recieve(_Vector3 result) { _setmemory(result); }
+  Vector3._internal(Pointer<_Vector3> pointer,{ bool owner = true }) {
+    _memory = NativeResource(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Vector3._recieve(_Vector3 result) {
+    _setmemory(result);
+  }
 
   /// Vector with components value 0.0f
   factory Vector3.Zero() => Vector3();
@@ -1141,10 +1150,12 @@ class Vector4 implements Disposeable
 
   Vector4._recieve(_Vector4 result) { _setmemory(result); }
 
-  Vector4._internal(Pointer<_Vector4> pointer)
+  Vector4._internal(Pointer<_Vector4> pointer,{ bool owner = false })
   {
-    _memory = NativeResource(pointer);
-    _finalizer.attach(this, pointer, detach: this);
+    _memory = NativeResource(pointer, IsOwner: owner);
+
+    if (owner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   _Vector4 get ref => _memory!.pointer.ref;
@@ -1404,7 +1415,7 @@ extension Vector4Math on Vector4
 
 class Quaternion extends Vector4
 {
-  Quaternion._internal(super.pointer) : super._internal();
+  Quaternion._internal(super.pointer,{ super.owner }) : super._internal();
 
   factory Quaternion([double x = 0.0, double y = 0.0, double z = 0.0, double w = 1.0])
   {

@@ -239,18 +239,18 @@ final class _Shader extends Struct
 }
 
 // MaterialMap
-final class MaterialMap extends Struct
+final class _MaterialMap extends Struct
 {
   external _Texture2D texture;          // Material shader
   external _Color color;                // Material map color
-  @Float() external double value;      // Material map value
+  @Float() external double value;       // Material map value
 }
 
 // Material, includes shader and maps
 final class _Material extends Struct
 {
   external _Shader shader;              // Material shader
-  external Pointer<MaterialMap> maps;  // Material maps array (MAX_MATERIAL_MAPS)
+  external Pointer<_MaterialMap> maps;  // Material maps array (MAX_MATERIAL_MAPS)
   @Array(4) external Array<Float> params; // Material generic parameters (if required)
 }
 
@@ -471,122 +471,124 @@ enum TraceLogLevel {
 /// Keyboard keys (US keyboard layout)
 /// 
 /// NOTE: Use GetKeyPressed() to allow redefining required keys for alternative layouts
-abstract class Keyboard
-{
-  static const int KEY_NULL            = 0;        // Key: NULL, used for no key pressed
+enum Key {
+  NULL(0),
   // Alphanumeric keys
-  static const int KEY_APOSTROPHE      = 39;       // Key: '
-  static const int KEY_COMMA           = 44;       // Key: ,
-  static const int KEY_MINUS           = 45;       // Key: -
-  static const int KEY_PERIOD          = 46;       // Key: .
-  static const int KEY_SLASH           = 47;       // Key: /
-  static const int KEY_ZERO            = 48;       // Key: 0
-  static const int KEY_ONE             = 49;       // Key: 1
-  static const int KEY_TWO             = 50;       // Key: 2
-  static const int KEY_THREE           = 51;       // Key: 3
-  static const int KEY_FOUR            = 52;       // Key: 4
-  static const int KEY_FIVE            = 53;       // Key: 5
-  static const int KEY_SIX             = 54;       // Key: 6
-  static const int KEY_SEVEN           = 55;       // Key: 7
-  static const int KEY_EIGHT           = 56;       // Key: 8
-  static const int KEY_NINE            = 57;       // Key: 9
-  static const int KEY_SEMICOLON       = 59;       // Key: ;
-  static const int KEY_EQUAL           = 61;       // Key: =
-  static const int KEY_A               = 65;       // Key: A | a
-  static const int KEY_B               = 66;       // Key: B | b
-  static const int KEY_C               = 67;       // Key: C | c
-  static const int KEY_D               = 68;       // Key: D | d
-  static const int KEY_E               = 69;       // Key: E | e
-  static const int KEY_F               = 70;       // Key: F | f
-  static const int KEY_G               = 71;       // Key: G | g
-  static const int KEY_H               = 72;       // Key: H | h
-  static const int KEY_I               = 73;       // Key: I | i
-  static const int KEY_J               = 74;       // Key: J | j
-  static const int KEY_K               = 75;       // Key: K | k
-  static const int KEY_L               = 76;       // Key: L | l
-  static const int KEY_M               = 77;       // Key: M | m
-  static const int KEY_N               = 78;       // Key: N | n
-  static const int KEY_O               = 79;       // Key: O | o
-  static const int KEY_P               = 80;       // Key: P | p
-  static const int KEY_Q               = 81;       // Key: Q | q
-  static const int KEY_R               = 82;       // Key: R | r
-  static const int KEY_S               = 83;       // Key: S | s
-  static const int KEY_T               = 84;       // Key: T | t
-  static const int KEY_U               = 85;       // Key: U | u
-  static const int KEY_V               = 86;       // Key: V | v
-  static const int KEY_W               = 87;       // Key: W | w
-  static const int KEY_X               = 88;       // Key: X | x
-  static const int KEY_Y               = 89;       // Key: Y | y
-  static const int KEY_Z               = 90;       // Key: Z | z
-  static const int KEY_LEFT_BRACKET    = 91;       // Key: [
-  static const int KEY_BACKSLASH       = 92;       // Key: '\'
-  static const int KEY_RIGHT_BRACKET   = 93;       // Key: ]
-  static const int KEY_GRAVE           = 96;       // Key: `
+  APOSTROPHE(39),                       // Key: '
+  COMMA(44),                            // Key: ,
+  MINUS(45),                            // Key: -
+  PERIOD(46),                           // Key: .
+  SLASH(47),                            // Key: /
+  ZERO(48),                             // Key: 0
+  ONE(49),                              // Key: 1
+  TWO(50),                              // Key: 2
+  THREE(51),                            // Key: 3
+  FOUR(52),                             // Key: 4
+  FIVE(53),                             // Key: 5
+  SIX(54),                              // Key: 6
+  SEVEN(55),                            // Key: 7
+  EIGHT(56),                            // Key: 8
+  NINE(57),                             // Key: 9
+  SEMICOLON(59),                        // Key: ,
+  EQUAL(61),                            // Key: =
+  A(65),                                // Key: A | a
+  B(66),                                // Key: B | b
+  C(67),                                // Key: C | c
+  D(68),                                // Key: D | d
+  E(69),                                // Key: E | e
+  F(70),                                // Key: F | f
+  G(71),                                // Key: G | g
+  H(72),                                // Key: H | h
+  I(73),                                // Key: I | i
+  J(74),                                // Key: J | j
+  K(75),                                // Key: K | k
+  L(76),                                // Key: L | l
+  M(77),                                // Key: M | m
+  N(78),                                // Key: N | n
+  O(79),                                // Key: O | o
+  P(80),                                // Key: P | p
+  Q(81),                                // Key: Q | q
+  R(82),                                // Key: R | r
+  S(83),                                // Key: S | s
+  T(84),                                // Key: T | t
+  U(85),                                // Key: U | u
+  V(86),                                // Key: V | v
+  W(87),                                // Key: W | w
+  X(88),                                // Key: X | x
+  Y(89),                                // Key: Y | y
+  Z(90),                                // Key: Z | z
+  LEFT_BRACKET(91),                     // Key: [
+  BACKSLASH(92),                        // Key: '\'
+  RIGHT_BRACKET(93),                    // Key: ]
+  GRAVE(96),                            // Key: `
   // Function keys
-  static const int KEY_SPACE           = 32;       // Key: Space
-  static const int KEY_ESCAPE          = 256;      // Key: Esc
-  static const int KEY_ENTER           = 257;      // Key: Enter
-  static const int KEY_TAB             = 258;      // Key: Tab
-  static const int KEY_BACKSPACE       = 259;      // Key: Backspace
-  static const int KEY_INSERT          = 260;      // Key: Ins
-  static const int KEY_DELETE          = 261;      // Key: Del
-  static const int KEY_RIGHT           = 262;      // Key: Cursor right
-  static const int KEY_LEFT            = 263;      // Key: Cursor left
-  static const int KEY_DOWN            = 264;      // Key: Cursor down
-  static const int KEY_UP              = 265;      // Key: Cursor up
-  static const int KEY_PAGE_UP         = 266;      // Key: Page up
-  static const int KEY_PAGE_DOWN       = 267;      // Key: Page down
-  static const int KEY_HOME            = 268;      // Key: Home
-  static const int KEY_END             = 269;      // Key: End
-  static const int KEY_CAPS_LOCK       = 280;      // Key: Caps lock
-  static const int KEY_SCROLL_LOCK     = 281;      // Key: Scroll down
-  static const int KEY_NUM_LOCK        = 282;      // Key: Num lock
-  static const int KEY_PRINT_SCREEN    = 283;      // Key: Print screen
-  static const int KEY_PAUSE           = 284;      // Key: Pause
-  static const int KEY_F1              = 290;      // Key: F1
-  static const int KEY_F2              = 291;      // Key: F2
-  static const int KEY_F3              = 292;      // Key: F3
-  static const int KEY_F4              = 293;      // Key: F4
-  static const int KEY_F5              = 294;      // Key: F5
-  static const int KEY_F6              = 295;      // Key: F6
-  static const int KEY_F7              = 296;      // Key: F7
-  static const int KEY_F8              = 297;      // Key: F8
-  static const int KEY_F9              = 298;      // Key: F9
-  static const int KEY_F10             = 299;      // Key: F10
-  static const int KEY_F11             = 300;      // Key: F11
-  static const int KEY_F12             = 301;      // Key: F12
-  static const int KEY_LEFT_SHIFT      = 340;      // Key: Shift left
-  static const int KEY_LEFT_CONTROL    = 341;      // Key: Control left
-  static const int KEY_LEFT_ALT        = 342;      // Key: Alt left
-  static const int KEY_LEFT_SUPER      = 343;      // Key: Super left
-  static const int KEY_RIGHT_SHIFT     = 344;      // Key: Shift right
-  static const int KEY_RIGHT_CONTROL   = 345;      // Key: Control right
-  static const int KEY_RIGHT_ALT       = 346;      // Key: Alt right
-  static const int KEY_RIGHT_SUPER     = 347;      // Key: Super right
-  static const int KEY_KB_MENU         = 348;      // Key: KB menu
+  SPACE(32),                            // Key: Space
+  ESCAPE(25),                           // Key: Esc
+  ENTER(25),                            // Key: Enter
+  TAB(25),                              // Key: Tab
+  BACKSPACE(25),                        // Key: Backspace
+  INSERT(26),                           // Key: Ins
+  DELETE(26),                           // Key: Del
+  RIGHT(26),                            // Key: Cursor right
+  LEFT(26),                             // Key: Cursor left
+  DOWN(26),                             // Key: Cursor down
+  UP(26),                               // Key: Cursor up
+  PAGE_UP(26),                          // Key: Page up
+  PAGE_DOWN(26),                        // Key: Page down
+  HOME(26),                             // Key: Home
+  END(26),                              // Key: End
+  CAPS_LOCK(28),                        // Key: Caps lock
+  SCROLL_LOCK(28),                      // Key: Scroll down
+  NUM_LOCK(28),                         // Key: Num lock
+  PRINT_SCREEN(28),                     // Key: Print screen
+  PAUSE(28),                            // Key: Pause
+  F1(29),                               // Key: F1
+  F2(29),                               // Key: F2
+  F3(29),                               // Key: F3
+  F4(29),                               // Key: F4
+  F5(29),                               // Key: F5
+  F6(29),                               // Key: F6
+  F7(29),                               // Key: F7
+  F8(29),                               // Key: F8
+  F9(29),                               // Key: F9
+  F10(29),                              // Key: F10
+  F11(30),                              // Key: F11
+  F12(30),                              // Key: F12
+  LEFT_SHIFT(34),                       // Key: Shift left
+  LEFT_CONTROL(34),                     // Key: Control left
+  LEFT_ALT(34),                         // Key: Alt left
+  LEFT_SUPER(34),                       // Key: Super left
+  RIGHT_SHIFT(34),                      // Key: Shift right
+  RIGHT_CONTROL(34),                    // Key: Control right
+  RIGHT_ALT(34),                        // Key: Alt right
+  RIGHT_SUPER(34),                      // Key: Super right
+  KB_MENU(34),                          // Key: KB menu
   // Keypad keys
-  static const int KEY_KP_0            = 320;      // Key: Keypad 0
-  static const int KEY_KP_1            = 321;      // Key: Keypad 1
-  static const int KEY_KP_2            = 322;      // Key: Keypad 2
-  static const int KEY_KP_3            = 323;      // Key: Keypad 3
-  static const int KEY_KP_4            = 324;      // Key: Keypad 4
-  static const int KEY_KP_5            = 325;      // Key: Keypad 5
-  static const int KEY_KP_6            = 326;      // Key: Keypad 6
-  static const int KEY_KP_7            = 327;      // Key: Keypad 7
-  static const int KEY_KP_8            = 328;      // Key: Keypad 8
-  static const int KEY_KP_9            = 329;      // Key: Keypad 9
-  static const int KEY_KP_DECIMAL      = 330;      // Key: Keypad .
-  static const int KEY_KP_DIVIDE       = 331;      // Key: Keypad /
-  static const int KEY_KP_MULTIPLY     = 332;      // Key: Keypad *
-  static const int KEY_KP_SUBTRACT     = 333;      // Key: Keypad -
-  static const int KEY_KP_ADD          = 334;      // Key: Keypad +
-  static const int KEY_KP_ENTER        = 335;      // Key: Keypad Enter
-  static const int KEY_KP_EQUAL        = 336;      // Key: Keypad =
+  KP_0(32),                             // Key: Keypad 0
+  KP_1(32),                             // Key: Keypad 1
+  KP_2(32),                             // Key: Keypad 2
+  KP_3(32),                             // Key: Keypad 3
+  KP_4(32),                             // Key: Keypad 4
+  KP_5(32),                             // Key: Keypad 5
+  KP_6(32),                             // Key: Keypad 6
+  KP_7(32),                             // Key: Keypad 7
+  KP_8(32),                             // Key: Keypad 8
+  KP_9(32),                             // Key: Keypad 9
+  KP_DECIMAL(33),                       // Key: Keypad .
+  KP_DIVIDE(33),                        // Key: Keypad /
+  KP_MULTIPLY(33),                      // Key: Keypad *
+  KP_SUBTRACT(33),                      // Key: Keypad -
+  KP_ADD(33),                           // Key: Keypad +
+  KP_ENTER(33),                         // Key: Keypad Enter
+  KP_EQUAL(33),                         // Key: Keypad =
   // Android key buttons
-  static const int KEY_BACK            = 4;        // Key: Android back button
-  static const int KEY_MENU            = 5;        // Key: Android menu button
-  static const int KEY_VOLUME_UP       = 24;       // Key: Android volume up button
-  static const int KEY_VOLUME_DOWN     = 25;       // Key: Android volume down button
+  BACK(4),                              // Key: Android back button
+  MENU(5),                              // Key: Android menu button
+  VOLUME_UP(24),                        // Key: Android volume up button
+  VOLUME_DOWN(25);                      // Key: Android volume down button
+
+  final int value;
+  const Key(this.value);
 }
 
 /// Add backwards compatibility support for deprecated names
@@ -622,24 +624,24 @@ enum MouseCursor {
 
 /// Gamepad buttons
 enum GamepadButton {
-  UNKNOWN,            // Unknown button, just for error checking
-  LEFT_FACE_UP,       // Gamepad left DPAD up button
-  LEFT_FACE_RIGHT,    // Gamepad left DPAD right button
-  LEFT_FACE_DOWN,     // Gamepad left DPAD down button
-  LEFT_FACE_LEFT,     // Gamepad left DPAD left button
-  RIGHT_FACE_UP,      // Gamepad right button up (i.e. PS3: Triangle, Xbox: Y)
-  RIGHT_FACE_RIGHT,   // Gamepad right button right (i.e. PS3: Circle, Xbox: B)
-  RIGHT_FACE_DOWN,    // Gamepad right button down (i.e. PS3: Cross, Xbox: A)
-  RIGHT_FACE_LEFT,    // Gamepad right button left (i.e. PS3: Square, Xbox: X)
-  LEFT_TRIGGER_1,     // Gamepad top/back trigger left (first), it could be a trailing button
-  LEFT_TRIGGER_2,     // Gamepad top/back trigger left (second), it could be a trailing button
-  RIGHT_TRIGGER_1,    // Gamepad top/back trigger right (first), it could be a trailing button
-  RIGHT_TRIGGER_2,    // Gamepad top/back trigger right (second), it could be a trailing button
-  MIDDLE_LEFT,        // Gamepad center buttons, left one (i.e. PS3: Select)
-  MIDDLE,             // Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX)
-  MIDDLE_RIGHT,       // Gamepad center buttons, right one (i.e. PS3: Start)
-  LEFT_THUMB,         // Gamepad joystick pressed button left
-  RIGHT_THUMB         // Gamepad joystick pressed button right
+  UNKNOWN,              // Unknown button, just for error checking
+  LEFT_FACE_UP,         // Gamepad left DPAD up button
+  LEFT_FACE_RIGHT,      // Gamepad left DPAD right button
+  LEFT_FACE_DOWN,       // Gamepad left DPAD down button
+  LEFT_FACE_LEFT,       // Gamepad left DPAD left button
+  RIGHT_FACE_UP,        // Gamepad right button up (i.e. PS3: Triangle, Xbox: Y)
+  RIGHT_FACE_RIGHT,     // Gamepad right button right (i.e. PS3: Circle, Xbox: B)
+  RIGHT_FACE_DOWN,      // Gamepad right button down (i.e. PS3: Cross, Xbox: A)
+  RIGHT_FACE_LEFT,      // Gamepad right button left (i.e. PS3: Square, Xbox: X)
+  LEFT_TRIGGER_1,       // Gamepad top/back trigger left (first), it could be a trailing button
+  LEFT_TRIGGER_2,       // Gamepad top/back trigger left (second), it could be a trailing button
+  RIGHT_TRIGGER_1,      // Gamepad top/back trigger right (first), it could be a trailing button
+  RIGHT_TRIGGER_2,      // Gamepad top/back trigger right (second), it could be a trailing button
+  MIDDLE_LEFT,          // Gamepad center buttons, left one (i.e. PS3: Select)
+  MIDDLE,               // Gamepad center buttons, middle one (i.e. PS3: PS, Xbox: XBOX)
+  MIDDLE_RIGHT,         // Gamepad center buttons, right one (i.e. PS3: Start)
+  LEFT_THUMB,           // Gamepad joystick pressed button left
+  RIGHT_THUMB           // Gamepad joystick pressed button right
 }
 
 /// Gamepad axes
