@@ -1,0 +1,47 @@
+Some code suggestions by Github Copilot that I planned and intend to implement later
+
+// NativeResource Upgrade
+abstract class NativeWrapper<T extends NativeType> implements Disposeable {
+  NativeResource<T>? _memory;
+  final int _length;
+  
+  int get length => _length;
+  T get ref => _checkDisposed()._memory!.pointer.ref;
+  bool get isDisposed => _memory?.isDisposed ?? true;
+  
+  NativeWrapper(Pointer<T> pointer, { int length = 1, bool owner = true }) 
+    : _length = length {
+    _memory = NativeResource<T>(pointer, IsOwner: owner);
+    if (owner) attachFinalizer(pointer);
+  }
+  
+  NativeWrapper _checkDisposed() {
+    if (isDisposed) throw StateError('Wrapper is disposed');
+    return this;
+  }
+  
+  @protected
+  void attachFinalizer(Pointer<T> pointer);
+  
+  @override
+  void Dispose() {
+    if (isDisposed) return;
+    detachFinalizer();
+    _memory!.Dispose();
+  }
+  
+  @protected
+  void detachFinalizer();
+}
+
+String _cStringToString(Pointer<Int8> cString, [int maxLen = 32]) {
+  if (cString.address == 0) return "";
+  
+  List<int> codes = [];
+  for (int i = 0; i < maxLen; i++) {
+    int byte = cString[i];
+    if (byte == 0) break;
+    codes.add(byte);
+  }
+  return String.fromCharCodes(codes);
+}

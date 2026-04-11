@@ -17,17 +17,17 @@ class Rectangle implements Disposeable
   double get width => _memory!.pointer.ref.width;
   double get height => _memory!.pointer.ref.height;
 
-  set width(double value)  => _memory!.pointer.ref.width  = value;
-  set height(double value) => _memory!.pointer.ref.height = value;
   set x(double value) => _memory!.pointer.ref.x = value;
   set y(double value) => _memory!.pointer.ref.y = value;
+  set width(double value)  => _memory!.pointer.ref.width  = value;
+  set height(double value) => _memory!.pointer.ref.height = value;
 
-  void Set({double x = -1, double y = -1, double width = -1, double height = -1})
+  void Set({double? x, double? y, double? width, double? height})
   {
-    if (x != -1) this.x = x;
-    if (y != -1) this.y = y;
-    if (width != -1) this.width = width;
-    if (height != -1) this.height = height;
+    this.x = x ?? this.x;
+    this.y = y ?? this.y;
+    this.width = width ?? this.width;
+    this.height = height ?? this.height;
   }
 
   // ignore: unused_element
@@ -45,6 +45,7 @@ class Rectangle implements Disposeable
   // ignore: unused_element
   Rectangle._internal(Pointer<_Rectangle> pointer,{ bool owner = true, int length = 1 }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Rectangle is NULL!");
     if (_memory != null) Dispose();
 
     _memory = NativeResource<_Rectangle>(pointer, IsOwner: owner);

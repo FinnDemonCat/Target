@@ -851,7 +851,7 @@ class Canvas extends Widget
   @override
   void DrawWidget() {
     if (!blockInteraction)
-      Interactible.MousePosition.Set(Mouse.GetX() * scale, Mouse.GetY() * scale);
+      Interactible.MousePosition.Set(x: Mouse.GetX() * scale, y: Mouse.GetY() * scale);
 
     Draw.WithTextureMode(renderLogic: () {
       Draw.ClearBackground(.BLANK);

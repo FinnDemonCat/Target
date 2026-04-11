@@ -26,11 +26,14 @@ class Vector2 implements Disposeable
   set y (double value) { _memory!.pointer.ref.y = value; }
 
   _Vector2 get ref => _memory!.pointer.ref;
-  set ref (_Vector2 value) => ref = value;
+  set ref (_Vector2 value) => _memory!.pointer.ref = value;
   Pointer<_Vector2> get _ptr => _memory!.pointer;
 
   /// Set `x` and `y`  at once
-  void Set(double x, double y) { this.x = x; this.y = y; }
+  void Set({double? x, double? y}) {
+     this.x = x ?? this.x;
+     this.y = y ?? this.y;
+  }
 
 //--------------------------------Constructors----------------------------------------
 
@@ -154,160 +157,6 @@ class Vector2 implements Disposeable
     }
   }
 }
-
-/*
-class Vector2 implements Disposeable
-{
-	NativeResource<_Vector2>? _memory;
-
-	void _setmemory(_Vector2 result, {bool owner = true})
-	{
-    if (_memory != null) Dispose();
-
-    Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
-    pointer.ref = result;
-    
-    _memory = NativeResource(pointer, IsOwner: owner);
-
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-
-  double get x { return _memory!.pointer.ref.x; }
-  double get y { return _memory!.pointer.ref.y; }
-  set x (double value) { _memory!.pointer.ref.x = value; }
-  set y (double value) { _memory!.pointer.ref.y = value; }
-
-  _Vector2 get ref => _memory!.pointer.ref;
-  set ref (_Vector2 value) => ref = value;
-  Pointer<_Vector2> get _ptr => _memory!.pointer;
-
-  /// Set `x` and `y`  at once
-  void Set(double x, double y) { this.x = x; this.y = y; }
-
-//--------------------------------Constructors----------------------------------------
-
-  /// Vector with components of value x and y. Defaults to 0.0 and 0.0
-  Vector2([double x = 0.0, double y = 0.0])
-  {
-    Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
-
-    pointer.ref
-    ..x = x
-    ..y = y;
-
-    _memory = NativeResource<_Vector2>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-  }
-
-  Vector2._recieve(_Vector2 result, {bool owner = true}) {_setmemory(result, owner: owner); }
-
-  /// Vector with components value 0.0f
-  factory Vector2.Zero() => Vector2();
-
-  /// Vector with components value 1.0f
-  factory Vector2.One() => Vector2(1.0, 1.0);
-
-//--------------------------------Methods---------------------------------------------
-
-  /// Get max value for each pair of components
-  /// 
-  /// Developer Note: This method returns a new instance of Vecto2
-  static Vector2 Max(Vector2 v1, Vector2 v2) => Vector2(math.max(v1.x, v2.x));
-
-  /// Calculate two vectors dot product
-  static double Dot(Vector2 v1, Vector2 v2) => (v1.x * v2.x) + (v1.y * v2.y);
-
-  /// Calculate two vectors cross product
-  static double Cross(Vector2 v1, Vector2 v2) => (v1.x * v2.x) - (v1.y * v2.y); 
-
-  /// Calculate reflected vector to normal
-  static Vector2 Reflect(Vector2 v, Vector2 normal)
-  {
-    double dotProduct = (v.x * normal.x) + (v.y * normal.y);
-
-    return Vector2(
-      v.x - (2.0 * normal.x) * dotProduct,
-      v.y - (2.0 * normal.y) * dotProduct
-    );
-  }
-  
-  /// Check whether two given vectors are almost equal
-  static bool Equals(Vector2 p, Vector2 q)
-  {
-    return ((p.x - q.x).abs() <= (EPSILON * math.max(1.0, math.max(p.x.abs(), q.x.abs())))) &&
-                ((p.y - q.y).abs() <= (EPSILON * math.max(1.0, math.max(p.y.abs(), q.y.abs()))));
-  }
-
-  /// Compute the direction of a refracted ray
-  /// 
-  /// v: normalized direction of the incoming ray
-  /// 
-  /// n: normalized normal vector of the interface of two optical media
-  /// 
-  /// r: ratio of the refractive index of the medium from where the ray comes
-  /// 
-  /// to the refractive index of the medium on the other side of the surface
-  Vector2 Refract(Vector2 v, Vector2 n, double r)
-  {
-    Vector2 result = Vector2.Zero();
-
-    double dot = (v.x * v.x) + (v.y * v.y);
-    double d = 1.0 - r * r * (1.0 - dot * dot);
-
-    if (d >= 0)
-    {
-      d = math.sqrt(d);
-      result.x = r * v.x - (r * dot + d) * n.x;
-      result.y = r * v.y - (r * dot + d) * n.y;
-    }
-
-    return result;
-  }
-
-  /// Get (evaluate) spline point: Linear
-  void GetSplinePointLinear(Vector2 startPos, Vector2 endPos, double t) {
-    ref = _getSplinePointLinear(startPos.ref, endPos.ref, t);
-  }
-
-  /// Get (evaluate) spline point: B-Spline
-  void GetSplinePointBasis(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, double t) {
-    ref = _getSplinePointBasis(p1.ref, p2.ref, p3.ref, p4.ref, t);
-  }
-
-  /// Get (evaluate) spline point: Catmull-Rom
-  void GetSplinePointCatmullRom(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, double t) {
-    ref = _getSplinePointCatmullRom(p1.ref, p2.ref, p3.ref, p4.ref, t);
-  }
-
-  /// Get (evaluate) spline point: Quadratic Bezier
-  void GetSplinePointBezierQuad(Vector2 p1, Vector2 c2, Vector2 p3, double t) {
-    ref = _getSplinePointBezierQuad(p1.ref, c2.ref, p3.ref, t);
-  }
-
-  /// Get (evaluate) spline point: Cubic Bezier
-  void GetSplinePointBezierCubic(Vector2 p1, Vector2 c2, Vector2 c3, Vector2 p4, double t) {
-    ref = _getSplinePointBezierCubic(p1.ref, c2.ref, c3.ref, p4.ref, t);
-  }
-
-//------------------------------------Deconstrutor------------------------------------
-  
-  static final Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
-    if (pointer.address == 0) return;
-
-    malloc.free(pointer);
-  });
-  
-  @override
-  void Dispose() {
-    if(_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
-  }
-}
-*/
 
 /// **Performance Note:** Performed *in-place* to prevent GC pressure 
 /// and avoid redundant `malloc` calls in the loop.
@@ -473,6 +322,10 @@ class Vector3 implements Disposeable
 {
   NativeResource<_Vector3>? _memory;
 
+  Pointer<_Vector3> get _ptr => _memory!.pointer;
+  _Vector3 get ref => _memory!.pointer.ref;
+  set ref (_Vector3 value) => _memory!.pointer.ref = value;
+
   // ignore: unused_element
   void _setmemory(_Vector3 result)
   {
@@ -485,9 +338,6 @@ class Vector3 implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  _Vector3 get ref => _memory!.pointer.ref;
-  Pointer<_Vector3> get _ptr => _memory!.pointer;
-
   double get x => ref.x;
   double get y => ref.y;
   double get z => ref.z;
@@ -497,11 +347,11 @@ class Vector3 implements Disposeable
   set z (double value) => _memory!.pointer.ref.z = value;
 
   ///Set all values in a single call
-  void Set(double x, double y, double z)
+  void Set({double? x, double? y, double? z})
   {
-    this.x = x;
-    this.y = y;
-    this.z = z;
+    this.x = x ?? this.x;
+    this.y = y ?? this.y;
+    this.z = z ?? this.z;
   }
 
 //----------------------------------Constructors------------------------------------
@@ -1137,6 +987,8 @@ extension Vector3Math on Vector3
 class Vector4 implements Disposeable
 {
   NativeResource<_Vector4>? _memory;
+  _Vector4 get ref => _memory!.pointer.ref;
+  set ref (_Vector4 v) => _memory!.pointer.ref = v;
 
   // ignore: unused_element
   void _setmemory(_Vector4 result)
@@ -1152,15 +1004,13 @@ class Vector4 implements Disposeable
 
   Vector4._internal(Pointer<_Vector4> pointer,{ bool owner = false })
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Vector4 is NULL!");
+    if (_memory != null) Dispose();
     _memory = NativeResource(pointer, IsOwner: owner);
 
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
   }
-
-  _Vector4 get ref => _memory!.pointer.ref;
-
-  set ref (_Vector4 v) => _memory!.pointer.ref = v;
 
   double get x => _memory!.pointer.ref.x;
   double get y => _memory!.pointer.ref.y;
@@ -1172,13 +1022,12 @@ class Vector4 implements Disposeable
   set z(double value) => _memory!.pointer.ref.z = value;
   set w(double value) => _memory!.pointer.ref.w = value;
 
-  void Set([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0])
+  void Set([double? x, double? y, double? z, double? w])
   {
-    this.ref
-    ..x = x
-    ..y = y
-    ..z = z
-    ..w = w;
+    this.x = x ?? this.x;
+    this.y = y ?? this.y;
+    this.z = z ?? this.z;
+    this.w = w ?? this.w;
   }
 
   Vector4([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0])
@@ -1639,7 +1488,7 @@ class Quaternion extends Vector4
       resAxisX = 1.0;
     }
 
-    outAxis.Set(resAxisX, resAxisY, resAxisZ);
+    outAxis.Set(x: resAxisX, y: resAxisY, z: resAxisZ);
     return resAngle;
   }
 

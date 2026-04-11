@@ -11,6 +11,8 @@ class BoneInfo implements Disposeable
   int get length => _length;
 
   _BoneInfo get ref => _memory!.pointer.ref;
+  set ref (_BoneInfo value) => _memory!.pointer.ref = value;
+
   late final String name;
   int get parent => ref.parent;
 
@@ -24,6 +26,7 @@ class BoneInfo implements Disposeable
 
   BoneInfo._internal(Pointer<_BoneInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded model BoneInfo is NULL!");
     if (_memory != null) Dispose();
     _memory = NativeResource<_BoneInfo>(pointer, IsOwner: owner);
 
@@ -88,10 +91,19 @@ class Model implements Disposeable
   void _setReferences(Pointer<_Model> pointer) {
     meshes    = Mesh._internal(pointer.ref.meshes, length: meshCount, owner: false);
     materials = Material._internal(pointer.ref.materials, length: materialCount, owner: false);
-    bones     = BoneInfo._internal(pointer.ref.bones, length: boneCount, owner: false);
-    bindPose  = Transform._internal(pointer.ref.bindPose, length: boneCount, owner: false);
-    bounds    = _GetBoundingBox();
+    _bounds    = _GetBoundingBox();
     meshMaterial = ref.meshMaterial.asTypedList(meshCount);
+    _transform = Matrix._internal(.fromAddress(pointer.address));
+
+    if (pointer.ref.bones.IsNotNull())
+      _bones = BoneInfo._internal(pointer.ref.bones, length: boneCount, owner: false);
+    else
+      _bones = null;
+    
+    if (pointer.ref.bindPose.IsNotNull())
+      _bindPose = Transform._internal(pointer.ref.bindPose, length: boneCount, owner: false);
+    else
+      _bindPose = null;
   }
 
   void _setmemory(_Model result)
@@ -105,12 +117,33 @@ class Model implements Disposeable
     _setReferences(pointer);
   }
   
+  late final Matrix _transform;
   late final Mesh meshes;
   late final Material materials;
-  late final BoneInfo bones;
-  late final Transform bindPose;
-  late final BoundingBox bounds;
+  late final BoneInfo? _bones;
+  late final Transform? _bindPose;
+  late final BoundingBox _bounds;
   late final Int32List meshMaterial;
+
+  Matrix get transform => _transform;
+  set transform(Matrix value) => this._transform.ref = value.ref;
+
+  BoneInfo? get bones => _bones;
+  set bones(BoneInfo? value) {
+    if (value != null && _bones != null) {
+      _bones.ref = value.ref;
+    }
+  }
+
+  BoundingBox get bounds => _bounds;
+  set bounds(BoundingBox value) => this._bounds.ref = value.ref;
+  
+  Transform? get bindPose => _bindPose;
+  set bindPose(Transform? value) {
+    if (value != null && _bindPose != null) {
+      _bindPose.ref = value.ref;
+    }
+  }
 
 //----------------------------------Constructors-------------------------------------
   
@@ -134,10 +167,12 @@ class Model implements Disposeable
 
   /// Compute model bounding box limits (considers all meshes)
   BoundingBox _GetBoundingBox() => BoundingBox._internal(_getModelBoundingBox(ref));
+
   /// Check if a model is valid (loaded in GPU, VAO/VBOs)
   bool IsValid() => _isModelValid(ref);
+
   /// Draw a model (with texture if set)
-  static void Draw(Model model, Vector3 position,{ double scale = 0.0, Color? tint })
+  static void Draw(Model model, Vector3 position,{ double scale = 1.0, Color? tint })
   {
     tint ??= Color.WHITE;
     _drawModel(model.ref, position.ref, scale, tint.ref);
@@ -156,7 +191,7 @@ class Model implements Disposeable
   /// Draw a model wires (with texture if set)
   static void DrawWires(
     Model model, Vector3 position,
-   {double scale = 0.0, Color? tint}
+   {double scale = 1.0, Color? tint}
   ) {
     tint ??= Color.WHITE;
     _drawModelWires(model.ref, position.ref, scale, tint.ref);
@@ -164,7 +199,8 @@ class Model implements Disposeable
 
   /// Draw a model wires (with texture if set) with extended parameters
   static void DrawWiresEx(
-    Model model, Vector3 position, Vector3 rotationAxis, double rotationAngle,
+    Model model, Vector3 position,
+    Vector3 rotationAxis, double rotationAngle,
    {Vector3? scale, Color? tint}
   ) {
     scale ??= Vector3.One();
@@ -173,15 +209,18 @@ class Model implements Disposeable
   }
 
   /// Draw a model as points
-  static void DrawPoints(Model model, Vector3 position,{ double scale = 0.0, Color? tint })
-  {
+  static void DrawPoints(
+    Model model, Vector3 position,
+    {double scale = 1.0, Color? tint }
+  ) {
     tint ??= Color.WHITE;
     _drawModelPoints(model.ref, position.ref, scale, tint.ref);
   }
 
   /// Draw a model as points with extended parameters
   static void DrawPointsEx(
-    Model model, Vector3 position, Vector3 rotationAxis, double rotationAngle,
+    Model model, Vector3 position,
+    Vector3 rotationAxis, double rotationAngle,
    {Vector3? scale, Color? tint}
   ) {
     scale ??= Vector3.One();
@@ -190,7 +229,7 @@ class Model implements Disposeable
   }
 
   /// Draw bounding box (wires)
-  static void DrawBoundingBox({required Model model, required Color color}) => _drawBoundingBox(model.bounds.ref, color.ref);
+  static void DrawBoundingBox({required Model model, required Color color}) => _drawBoundingBox(model._bounds.ref, color.ref);
 //----------------------------------Method--------------------------------------------
 
   /// Set material for a mesh
@@ -206,15 +245,19 @@ class Model implements Disposeable
   });
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      bounds.Dispose();
-      _unloadModel(_memory!.pointer.ref);
-      _memory!.Dispose();
-    }
+  void Dispose() {
+    if (_memory == null || _memory!.isDisposed) return;
+    
+    _finalizer.detach(this);
+    
+    meshes.Dispose();
+    materials.Dispose();
+    _bones?.Dispose();
+    _bindPose?.Dispose();
+    _bounds.Dispose();
+    
+    _unloadModel(_memory!.pointer.ref);
+    _memory!.Dispose();
   }
 }
 

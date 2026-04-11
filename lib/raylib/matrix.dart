@@ -22,6 +22,7 @@ class Matrix implements Disposeable
 //--------------------------------Getters-&-Setters-----------------------------------
 
   _Matrix get ref => _memory!.pointer.ref;
+  set ref (_Matrix value) => _memory!.pointer.ref = value;
 
   double get m0 => ref.m0;
   double get m1 => ref.m1;
@@ -86,6 +87,9 @@ class Matrix implements Disposeable
 
   Matrix._internal(Pointer<_Matrix> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Matrix is NULL!");
+    if (_memory != null) Dispose();
+    
     _memory = NativeResource<_Matrix>(pointer, IsOwner: owner);
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
@@ -566,7 +570,7 @@ class Matrix implements Disposeable
     }
 
     // Set Scale
-    scale.Set(sclX * stabilizer, sclY * stabilizer, sclZ * stabilizer);
+    scale.Set(x: sclX * stabilizer, y: sclY * stabilizer, z: sclZ * stabilizer);
 
     // Main matcolums diagonal
     // m0  -> matcolums[0]

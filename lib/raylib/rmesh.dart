@@ -409,6 +409,7 @@ class MaterialMap implements Disposeable
 
   MaterialMap._internal(Pointer<_MaterialMap> pointer,{ bool owner = true, int length = 1 }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded MaterialMap is NULL!");
     _memory = NativeResource(pointer, IsOwner: owner);
     
     if(owner)
@@ -468,6 +469,7 @@ class Material implements Disposeable
 
   Material._internal(Pointer<_Material> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Material is NULL!");
     if (_memory != null) Dispose();
 
     _memory = NativeResource(pointer, IsOwner: owner);

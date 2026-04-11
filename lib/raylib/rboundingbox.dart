@@ -9,9 +9,7 @@ class BoundingBox implements Disposeable
   NativeResource<_BoundingBox>? _memory;
 
   _BoundingBox get ref => _memory!.pointer.ref;
-  // _Vector3 get min => ref.min;
-  // _Vector3 get max => ref.max;
-
+  set ref (_BoundingBox value) => _memory!.pointer.ref = value;
   late final Vector3 min;
   late final Vector3 max;
 

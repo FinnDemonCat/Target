@@ -6,6 +6,8 @@ part of 'raylib.dart';
 class Color implements Disposeable
 {
   NativeResource<_Color>? _memory;
+  _Color get ref => _memory!.pointer.ref;
+  set ref(_Color result) => _memory!.pointer.ref = result;
 
   // Creates a new pointer in heap and copies the value  
   void _setMemory(_Color result)
@@ -16,9 +18,6 @@ class Color implements Disposeable
     _finalizer.attach(this, pointer, detach: this);
     _memory = NativeResource<_Color>(pointer);
   }
-
-  _Color get ref => _memory!.pointer.ref;
-  set ref(_Color result) => _memory!.pointer.ref = result;
 
   static final Color LIGHTGRAY  = Color(200, 200, 200);
   static final Color GRAY       = Color(130, 130, 130);
@@ -47,6 +46,7 @@ class Color implements Disposeable
   
   Color._internal(Pointer<_Color> pointer,{ bool owner = true })
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Color is NULL!");
     if (_memory != null) Dispose();
 
     _memory = NativeResource<_Color>(pointer, IsOwner: owner);

@@ -245,7 +245,9 @@ class GlyphInfo implements Disposeable
 
   GlyphInfo._internal(Pointer<_GlyphInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded GlyphInfo is NULL!");
     if (_memory != null) Dispose();
+  
     _memory = NativeResource<_GlyphInfo>(pointer, IsOwner: owner);
 
     if (owner)

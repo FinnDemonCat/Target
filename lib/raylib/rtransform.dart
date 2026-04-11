@@ -11,6 +11,7 @@ class Transform implements Disposeable
   int get length => _length;
 
   _Transform get ref => _memory!.pointer.ref;
+  set ref (_Transform value) => _memory!.pointer.ref = value;
 
   late final Vector3 translation;
   late final Quaternion rotation;
@@ -40,6 +41,7 @@ class Transform implements Disposeable
 
   Transform._internal(Pointer<_Transform> pointer,{ int length = 1, bool owner = true }) : _length = length
   {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Transform is NULL!");
     if (_memory != null) Dispose();
     _memory = NativeResource<_Transform>(pointer, IsOwner: owner);
 

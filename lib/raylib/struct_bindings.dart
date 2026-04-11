@@ -1,5 +1,17 @@
 part of 'raylib.dart';
 
+extension PointerCompare on Pointer {
+  bool IsNull() {
+    if (this.address == 0) return true;
+    else return false;
+  }
+
+  bool IsNotNull() {
+    if (this.address != 0) return true;
+    else return false;
+  }
+}
+
 abstract interface class Disposeable {
   void Dispose();
 }
@@ -53,6 +65,7 @@ String FromCharArray(Array<Uint8> name, int size) {
 
   return String.fromCharCodes(array);
 }
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -305,8 +318,8 @@ final class _Ray extends Struct
 
 final class _RayCollision extends Struct
 {
-  @Bool() external bool hit;           // Did the ray hit something?
-  @Float() external double distance;   // Distance to the nearest hit
+  @Bool() external bool hit;            // Did the ray hit something?
+  @Float() external double distance;    // Distance to the nearest hit
   external _Vector3 point;              // Point of the nearest hit
   external _Vector3 normal;             // Surface normal of hit
 }
@@ -489,7 +502,7 @@ enum Key {
   SEVEN(55),                            // Key: 7
   EIGHT(56),                            // Key: 8
   NINE(57),                             // Key: 9
-  SEMICOLON(59),                        // Key: ,
+  SEMICOLON(59),                        // Key: ;
   EQUAL(61),                            // Key: =
   A(65),                                // Key: A | a
   B(66),                                // Key: B | b
@@ -523,64 +536,64 @@ enum Key {
   GRAVE(96),                            // Key: `
   // Function keys
   SPACE(32),                            // Key: Space
-  ESCAPE(25),                           // Key: Esc
-  ENTER(25),                            // Key: Enter
-  TAB(25),                              // Key: Tab
-  BACKSPACE(25),                        // Key: Backspace
-  INSERT(26),                           // Key: Ins
-  DELETE(26),                           // Key: Del
-  RIGHT(26),                            // Key: Cursor right
-  LEFT(26),                             // Key: Cursor left
-  DOWN(26),                             // Key: Cursor down
-  UP(26),                               // Key: Cursor up
-  PAGE_UP(26),                          // Key: Page up
-  PAGE_DOWN(26),                        // Key: Page down
-  HOME(26),                             // Key: Home
-  END(26),                              // Key: End
-  CAPS_LOCK(28),                        // Key: Caps lock
-  SCROLL_LOCK(28),                      // Key: Scroll down
-  NUM_LOCK(28),                         // Key: Num lock
-  PRINT_SCREEN(28),                     // Key: Print screen
-  PAUSE(28),                            // Key: Pause
-  F1(29),                               // Key: F1
-  F2(29),                               // Key: F2
-  F3(29),                               // Key: F3
-  F4(29),                               // Key: F4
-  F5(29),                               // Key: F5
-  F6(29),                               // Key: F6
-  F7(29),                               // Key: F7
-  F8(29),                               // Key: F8
-  F9(29),                               // Key: F9
-  F10(29),                              // Key: F10
-  F11(30),                              // Key: F11
-  F12(30),                              // Key: F12
-  LEFT_SHIFT(34),                       // Key: Shift left
-  LEFT_CONTROL(34),                     // Key: Control left
-  LEFT_ALT(34),                         // Key: Alt left
-  LEFT_SUPER(34),                       // Key: Super left
-  RIGHT_SHIFT(34),                      // Key: Shift right
-  RIGHT_CONTROL(34),                    // Key: Control right
-  RIGHT_ALT(34),                        // Key: Alt right
-  RIGHT_SUPER(34),                      // Key: Super right
-  KB_MENU(34),                          // Key: KB menu
+  ESCAPE(256),                          // Key: Esc
+  ENTER(257),                           // Key: Enter
+  TAB(258),                             // Key: Tab
+  BACKSPACE(259),                       // Key: Backspace
+  INSERT(260),                          // Key: Ins
+  DELETE(261),                          // Key: Del
+  RIGHT(262),                           // Key: Cursor right
+  LEFT(263),                            // Key: Cursor left
+  DOWN(264),                            // Key: Cursor down
+  UP(265),                              // Key: Cursor up
+  PAGE_UP(266),                         // Key: Page up
+  PAGE_DOWN(267),                       // Key: Page down
+  HOME(268),                            // Key: Home
+  END(269),                             // Key: End
+  CAPS_LOCK(280),                       // Key: Caps lock
+  SCROLL_LOCK(281),                     // Key: Scroll down
+  NUM_LOCK(282),                        // Key: Num lock
+  PRINT_SCREEN(283),                    // Key: Print screen
+  PAUSE(284),                           // Key: Pause
+  F1(290),                              // Key: F1
+  F2(291),                              // Key: F2
+  F3(292),                              // Key: F3
+  F4(293),                              // Key: F4
+  F5(294),                              // Key: F5
+  F6(295),                              // Key: F6
+  F7(296),                              // Key: F7
+  F8(297),                              // Key: F8
+  F9(298),                              // Key: F9
+  F10(299),                             // Key: F10
+  F11(300),                             // Key: F11
+  F12(301),                             // Key: F12
+  LEFT_SHIFT(340),                      // Key: Shift left
+  LEFT_CONTROL(341),                    // Key: Control left
+  LEFT_ALT(342),                        // Key: Alt left
+  LEFT_SUPER(343),                      // Key: Super left
+  RIGHT_SHIFT(344),                     // Key: Shift right
+  RIGHT_CONTROL(345),                   // Key: Control right
+  RIGHT_ALT(346),                       // Key: Alt right
+  RIGHT_SUPER(347),                     // Key: Super right
+  KB_MENU(348),                         // Key: KB menu
   // Keypad keys
-  KP_0(32),                             // Key: Keypad 0
-  KP_1(32),                             // Key: Keypad 1
-  KP_2(32),                             // Key: Keypad 2
-  KP_3(32),                             // Key: Keypad 3
-  KP_4(32),                             // Key: Keypad 4
-  KP_5(32),                             // Key: Keypad 5
-  KP_6(32),                             // Key: Keypad 6
-  KP_7(32),                             // Key: Keypad 7
-  KP_8(32),                             // Key: Keypad 8
-  KP_9(32),                             // Key: Keypad 9
-  KP_DECIMAL(33),                       // Key: Keypad .
-  KP_DIVIDE(33),                        // Key: Keypad /
-  KP_MULTIPLY(33),                      // Key: Keypad *
-  KP_SUBTRACT(33),                      // Key: Keypad -
-  KP_ADD(33),                           // Key: Keypad +
-  KP_ENTER(33),                         // Key: Keypad Enter
-  KP_EQUAL(33),                         // Key: Keypad =
+  KP_0(320),                            // Key: Keypad 0
+  KP_1(321),                            // Key: Keypad 1
+  KP_2(322),                            // Key: Keypad 2
+  KP_3(323),                            // Key: Keypad 3
+  KP_4(324),                            // Key: Keypad 4
+  KP_5(325),                            // Key: Keypad 5
+  KP_6(326),                            // Key: Keypad 6
+  KP_7(327),                            // Key: Keypad 7
+  KP_8(328),                            // Key: Keypad 8
+  KP_9(329),                            // Key: Keypad 9
+  KP_DECIMAL(330),                      // Key: Keypad .
+  KP_DIVIDE(331),                       // Key: Keypad /
+  KP_MULTIPLY(332),                     // Key: Keypad *
+  KP_SUBTRACT(333),                     // Key: Keypad -
+  KP_ADD(334),                          // Key: Keypad +
+  KP_ENTER(335),                        // Key: Keypad Enter
+  KP_EQUAL(336),                        // Key: Keypad =
   // Android key buttons
   BACK(4),                              // Key: Android back button
   MENU(5),                              // Key: Android menu button

@@ -31,6 +31,7 @@ class Texture2D implements Disposeable
   //--------------------------------Constructors----------------------------------------
 
   Texture2D._internal(Pointer<_Texture> pointer, {bool owner = true}) {
+    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Texture2D is NULL!");
     if (_memory != null) Dispose();
 
     _memory = NativeResource<_Texture>(pointer, IsOwner: owner);
