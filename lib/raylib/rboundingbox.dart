@@ -32,7 +32,7 @@ class BoundingBox implements Disposeable
     _setReferences(pointer);
   }
 
-  BoundingBox._internal(_BoundingBox result)
+  BoundingBox._recieve(_BoundingBox result)
   {
     Pointer<_BoundingBox> pointer = malloc.allocate<_BoundingBox>(sizeOf<_BoundingBox>());
     pointer.ref = result;

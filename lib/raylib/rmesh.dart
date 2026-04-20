@@ -22,20 +22,60 @@ class Mesh implements Disposeable
   }
 
   void _setReferences() {
-    vertices = ref.vertices.asTypedList(vertexCount);
-    texcoords = ref.texcoords.asTypedList(vertexCount * 2);
-    texcoords2 = ref.texcoords2.asTypedList(vertexCount * 2);
-    normals = ref.normals.asTypedList(vertexCount * 3);
-    tangents = ref.tangents.asTypedList(vertexCount * 4);
-    colors = ref.colors.asTypedList(vertexCount * 4);
-    indices = ref.indices.asTypedList(vertexCount * 3);
+    // Be aware that it may be vertexCount * 3
+    vertices = ref.vertices.IsNotNull() 
+      ? ref.vertices.asTypedList(vertexCount) 
+      : Float32List(vertexCount);
 
-    animVertices = ref.animVertices.asTypedList(vertexCount * 3);
-    animNormals = ref.animNormals.asTypedList(vertexCount * 3);
-    boneIds = ref.boneIds.asTypedList(vertexCount * 4);
-    boneWeights = ref.boneWeights.asTypedList(vertexCount * 4);
-    boneMatrices = Matrix._internal(ref.boneMatrices, owner: false, length: boneCount);
-    vboId = ref.vboId.asTypedList(7);
+    texcoords = ref.texcoords.IsNotNull() 
+      ? ref.texcoords.asTypedList(vertexCount * 2) 
+      : Float32List(vertexCount * 2);
+
+    texcoords2 = ref.texcoords2.IsNotNull() 
+      ? ref.texcoords2.asTypedList(vertexCount * 2) 
+      : Float32List(vertexCount * 2);
+
+    normals = ref.normals.IsNotNull() 
+      ? ref.normals.asTypedList(vertexCount * 3) 
+      : Float32List(vertexCount * 3);
+
+    tangents = ref.tangents.IsNotNull() 
+      ? ref.tangents.asTypedList(vertexCount * 4) 
+      : Float32List(vertexCount * 4);
+
+    colors = ref.colors.IsNotNull() 
+      ? ref.colors.asTypedList(vertexCount * 4) 
+      : Uint8List(vertexCount * 4);
+
+    // Índices são baseados na contagem de triângulos
+    indices = ref.indices.IsNotNull() 
+      ? ref.indices.asTypedList(triangleCount * 3) 
+      : Uint16List(triangleCount * 3);
+
+    animVertices = ref.animVertices.IsNotNull() 
+      ? ref.animVertices.asTypedList(vertexCount * 3) 
+      : Float32List(vertexCount * 3);
+
+    animNormals = ref.animNormals.IsNotNull() 
+      ? ref.animNormals.asTypedList(vertexCount * 3) 
+      : Float32List(vertexCount * 3);
+
+    boneIds = ref.boneIds.IsNotNull() 
+      ? ref.boneIds.asTypedList(vertexCount * 4) 
+      : Uint8List(vertexCount * 4);
+
+    boneWeights = ref.boneWeights.IsNotNull() 
+      ? ref.boneWeights.asTypedList(vertexCount * 4) 
+      : Float32List(vertexCount * 4);
+
+    if (ref.boneMatrices.IsNotNull() && boneCount > 0)
+      boneMatrices = Matrix._internal(ref.boneMatrices, owner: false, length: boneCount);
+    else
+      boneMatrices = Matrix();
+
+    vboId = ref.vboId.IsNotNull() 
+      ? ref.vboId.asTypedList(16) 
+      : Int32List(16);
   }
 
   Mesh._internal(Pointer<_Mesh> pointer,{ bool owner = false, int length = 1 }) : _length = length
@@ -219,7 +259,7 @@ class Mesh implements Disposeable
   BoundingBox GetBoundingBox()
   {
     _BoundingBox result = _getMeshBoundingBox(this.ref);
-    return BoundingBox._internal(result);
+    return BoundingBox._recieve(result);
   }
 
   /// Compute mesh tangents

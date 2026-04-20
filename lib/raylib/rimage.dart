@@ -382,29 +382,38 @@ static Image GenText(int width, int height, String text)
 
   Uint8List ExportToMemory(String fileType)
   {
-    return using ((Arena arena) {
-      final cFiletype = fileType.toNativeUtf8(allocator: arena);
-      final cFileSize = arena.allocate<Int32>(sizeOf<Int32>());
+    Pointer<Uint8> data = nullptr;
+    int size = 0;
 
-      final Pointer<Uint8> data = _exportImageToMemory(
-        _memory!.pointer.ref,
-        cFiletype,
-        cFileSize
-      ).cast<Uint8>();
+    try {
+      using ((Arena arena) {
+        final cFiletype = fileType.toNativeUtf8(allocator: arena);
+        final cFileSize = arena.allocate<Int32>(sizeOf<Int32>());
 
-      if (data.address == 0) return Uint8List(0);
+        data = _exportImageToMemory(
+          _memory!.pointer.ref,
+          cFiletype,
+          cFileSize
+        ).cast<Uint8>();
 
-      try {
-        fileSize = cFileSize.value;
-        final Uint8List result = Uint8List.fromList(data.asTypedList(fileSize));
-        return result;
-      } finally {
-        malloc.free(cFiletype);
-        malloc.free(cFileSize);
-        // Not yet implemented
-        // _unloadFileData(data);
-      }
-    });
+        size = cFileSize.value;
+      });
+
+      if (data.IsNull() || size == 0)
+        return Uint8List(0);
+      
+      fileSize = size;
+      final result = Uint8List.fromList(data.asTypedList(fileSize));
+      return result;
+    }
+    catch (e) {
+      print("[Dart Error]: Erro ao exportar imagem para memória: $e");
+      return Uint8List(0);
+    }
+    finally {
+      if (data.IsNotNull())
+        malloc.free(data);
+    }
   }
 
   bool ExportAsCode(String fileName)

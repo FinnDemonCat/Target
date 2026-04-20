@@ -18,7 +18,7 @@ class BoneInfo implements Disposeable
 
   void _setReferences() {
     List<int> stringList = [];
-    for (int x = 0; ref.name[x] != 0; x++)
+    for (int x = 0; x < 32 && ref.name[x] != 0; x++)
       stringList.add(ref.name[x]);
 
     name = String.fromCharCodes(stringList);
@@ -87,42 +87,12 @@ class Model implements Disposeable
   int get meshCount => ref.meshCount;
   int get boneCount => ref.boneCount;
   int get materialCount => ref.materialCount;
-
-  void _setReferences(Pointer<_Model> pointer) {
-    meshes    = Mesh._internal(pointer.ref.meshes, length: meshCount, owner: false);
-    materials = Material._internal(pointer.ref.materials, length: materialCount, owner: false);
-    _bounds    = _GetBoundingBox();
-    meshMaterial = ref.meshMaterial.asTypedList(meshCount);
-    _transform = Matrix._internal(.fromAddress(pointer.address));
-
-    if (pointer.ref.bones.IsNotNull())
-      _bones = BoneInfo._internal(pointer.ref.bones, length: boneCount, owner: false);
-    else
-      _bones = null;
-    
-    if (pointer.ref.bindPose.IsNotNull())
-      _bindPose = Transform._internal(pointer.ref.bindPose, length: boneCount, owner: false);
-    else
-      _bindPose = null;
-  }
-
-  void _setmemory(_Model result)
-  {
-    Pointer<_Model> pointer = malloc.allocate<_Model>(sizeOf<_Model>());
-    pointer.ref = result;
-
-    _memory = NativeResource<_Model>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-
-    _setReferences(pointer);
-  }
   
   late final Matrix _transform;
-  late final Mesh meshes;
-  late final Material materials;
+  late final Mesh? meshes;
+  late final Material? materials;
   late final BoneInfo? _bones;
   late final Transform? _bindPose;
-  late final BoundingBox _bounds;
   late final Int32List meshMaterial;
 
   Matrix get transform => _transform;
@@ -135,14 +105,46 @@ class Model implements Disposeable
     }
   }
 
-  BoundingBox get bounds => _bounds;
-  set bounds(BoundingBox value) => this._bounds.ref = value.ref;
-  
   Transform? get bindPose => _bindPose;
   set bindPose(Transform? value) {
     if (value != null && _bindPose != null) {
       _bindPose.ref = value.ref;
     }
+  }
+
+  void _setReferences(Pointer<_Model> pointer) {
+    _transform = Matrix._internal(.fromAddress(pointer.address));
+    
+    meshes = ref.meshes.IsNotNull()
+      ? Mesh._internal(ref.meshes, length: meshCount, owner: false)
+      : null;
+
+    materials = ref.materials.IsNotNull()
+      ? Material._internal(ref.materials, length: materialCount, owner: false)
+      : null;
+    
+    _bones = ref.bones.IsNotNull()
+      ? BoneInfo._internal(ref.bones, length: boneCount, owner: false)
+      : null;
+
+    _bindPose = ref.bindPose.IsNotNull()
+      ? Transform._internal(ref.bindPose, length: boneCount, owner: false)
+      : null;
+
+    meshMaterial = ref.meshMaterial.IsNotNull()
+      ? ref.meshMaterial.asTypedList(meshCount)
+      : Int32List(meshCount);
+  }
+
+  void _setmemory(_Model result)
+  {
+    Pointer<_Model> pointer = malloc.allocate<_Model>(sizeOf<_Model>());
+    pointer.ref = result;
+
+    _memory = NativeResource<_Model>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+
+    _setReferences(pointer);
   }
 
 //----------------------------------Constructors-------------------------------------
@@ -166,7 +168,7 @@ class Model implements Disposeable
   }
 
   /// Compute model bounding box limits (considers all meshes)
-  BoundingBox _GetBoundingBox() => BoundingBox._internal(_getModelBoundingBox(ref));
+  BoundingBox GetBoundingBox() => BoundingBox._recieve(_getModelBoundingBox(ref));
 
   /// Check if a model is valid (loaded in GPU, VAO/VBOs)
   bool IsValid() => _isModelValid(ref);
@@ -229,7 +231,7 @@ class Model implements Disposeable
   }
 
   /// Draw bounding box (wires)
-  static void DrawBoundingBox({required Model model, required Color color}) => _drawBoundingBox(model._bounds.ref, color.ref);
+  static void DrawBoundingBox({required BoundingBox bounds, required Color color}) => _drawBoundingBox(bounds.ref, color.ref);
 //----------------------------------Method--------------------------------------------
 
   /// Set material for a mesh
@@ -250,11 +252,10 @@ class Model implements Disposeable
     
     _finalizer.detach(this);
     
-    meshes.Dispose();
-    materials.Dispose();
+    meshes?.Dispose();
+    materials?.Dispose();
     _bones?.Dispose();
     _bindPose?.Dispose();
-    _bounds.Dispose();
     
     _unloadModel(_memory!.pointer.ref);
     _memory!.Dispose();
@@ -268,28 +269,22 @@ class Model implements Disposeable
 class ModelAnimation implements Disposeable
 {
   NativeResource<_ModelAnimation>? _memory;
+  final int _length;
+
   _ModelAnimation get ref => _memory!.pointer.ref;
 
-  final int _length;
-  late final String? _name;
-  String get animName {
-    _name ??= FromCharArray(ref.name, 32);
-    return _name!;
-  }
+  late final String? name;
+  late final BoneInfo? bones;
   int get length => _length;
   int get frameCount => ref.frameCount;
   int get boneCount => ref.boneCount;
 
-  BoneInfo get bones
+  Transform? framePoses({ required int frameIndex })
   {
-    if (ref.bones.address == 0) throw Exception("No bones were found");
-    return BoneInfo._internal(ref.bones, length: boneCount, owner: false);
-  }
-
-  Transform framePoses({ required int frameIndex })
-  {
-    if (frameIndex < 0 || frameIndex >= frameCount) throw RangeError(frameIndex);
-    return Transform._internal(ref.framePoses[frameIndex], length: boneCount, owner: false);
+    if (frameIndex < 0 || frameIndex >= frameCount)
+      throw RangeError(frameIndex);
+    else
+      return Transform._internal(ref.framePoses[frameIndex], length: boneCount, owner: false);
   }
   /* 
   // ignore: unused_element
@@ -309,6 +304,11 @@ class ModelAnimation implements Disposeable
     if (pointer.address == 0) return;
 
     _memory = NativeResource<_ModelAnimation>(pointer);
+    bones = ref.bones.IsNotNull()
+      ? bones = BoneInfo._internal(ref.bones, length: boneCount, owner: false)
+      : null;
+    
+    name = FromCharArray(ref.name, 32);
     
     if (owner)
       _finalizer.attach(this, {'ptr': pointer, 'len': length}, detach: this);
@@ -374,10 +374,22 @@ class Ray implements Disposeable
 {
   NativeResource<_Ray>? _memory;
   _Ray get ref => _memory!.pointer.ref;
-  _Vector3 get position => ref.position;
-  _Vector3 get direction => ref.direction;
-  set position(_Vector3 value) => position = value;
-  set direction(_Vector3 value) => direction = value;
+  // _Vector3 get position => ref.position;
+  // _Vector3 get direction => ref.direction;
+  // set position(_Vector3 value) => position = value;
+  // set direction(_Vector3 value) => direction = value;
+
+  late final Vector3 position;
+  late final Vector3 direction;
+
+  void _setReferences()
+  {
+    int address = _memory!.pointer.address;
+    position = Vector3._internal(.fromAddress(address), owner: false);
+
+    address += sizeOf<_Vector3>();
+    direction = Vector3._internal(.fromAddress(address), owner: false);
+  }
 
   void _setmemory(_Ray result)
   {
@@ -386,13 +398,11 @@ class Ray implements Disposeable
     Pointer<_Ray> pointer = malloc.allocate<_Ray>(sizeOf<_Ray>());
     pointer.ref = result;
 
+    _setReferences();
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Ray._recieve(_Ray result)
-  {
-    _setmemory(result);
-  }
+  Ray._recieve(_Ray result) { _setmemory(result); }
 
   Ray(Vector3 position, Vector3 direction)
   {
@@ -403,6 +413,7 @@ class Ray implements Disposeable
     ..position = position.ref
     ..direction = direction.ref;
 
+    _setReferences();
     _finalizer.attach(this, pointer, detach: this);
   }
 
@@ -425,10 +436,23 @@ class RayCollision implements Disposeable
 {
   NativeResource<_RayCollision>? _memory;
   _RayCollision get ref => _memory!.pointer.ref;
+  // _Vector3 get point => ref.point;
+  // _Vector3 get normal => ref.normal;
+
   bool get hit => ref.hit;
   double get distance => ref.distance;
-  _Vector3 get point => ref.point;
-  _Vector3 get normal => ref.normal;
+  late final Vector3 point;
+  late final Vector3 normal;
+
+  void _setReferences()
+  {
+    int address = _memory!.pointer.address;
+    address += sizeOf<Bool>() + sizeOf<Float>();
+    point = Vector3._internal(.fromAddress(address), owner: false);
+
+    address += sizeOf<_Vector3>();
+    normal = Vector3._internal(.fromAddress(address), owner: false);
+  }
 
   void _setmemory(_RayCollision result)
   {
@@ -437,13 +461,11 @@ class RayCollision implements Disposeable
     Pointer<_RayCollision> pointer = malloc.allocate<_RayCollision>(sizeOf<_RayCollision>());
     pointer.ref = result;
 
+    _setReferences();
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  RayCollision._recieve(_RayCollision result)
-  {
-    _setmemory(result);
-  }
+  RayCollision._recieve(_RayCollision result) { _setmemory(result); }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_RayCollision>>((pointer) {
     malloc.free(pointer);
