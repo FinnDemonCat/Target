@@ -1,5 +1,11 @@
 part of 'raylib.dart';
 
+// Implement NativeResource so classes extends it
+// NativeResource should implement [ref], [pointer] and [[index]] getters for _memory
+// Implement RayArena and constructor option for temporary allocation
+// Tweak functions to recieve [num] instead of int to auto cast
+// Make Deg2Rad e Rad2Deg extensions of [num]
+
 extension PointerCompare on Pointer {
   bool IsNull() {
     if (this.address == 0) return true;
@@ -40,7 +46,7 @@ const int RAYLIB_VERSION_PATCH = 0;
 const String RAYLIB_VERSION = '5.6-dev';
 
 const double PI = 3.14159265358979323846;
-const double DEG2RAG = (PI/180.0);
+const double DEG2RAD = (PI/180.0);
 const double RAD2DEG = (180.0/PI);
 const double EPSILON = 0.000001;
 

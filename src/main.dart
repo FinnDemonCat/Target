@@ -14,9 +14,7 @@ bool ListenTerminal() {
 
 Widget PageOne() {
   return Canvas(
-    sizing: .Grow(),
     child: Center(
-      sizing: .Grow(),
       widget: Column(
         sizing: .FullHeight(width: 400),
         spacing: 5.0,
@@ -48,9 +46,7 @@ Widget PageOne() {
 
 Widget PageTwo() {
   return Canvas(
-    sizing: .Grow(),
     child: Center(
-      sizing: .Grow(),
       widget: Column(
         sizing: .FullHeight(width: 400),
         spacing: 5.0,
@@ -82,9 +78,7 @@ Widget PageTwo() {
 
 Widget HomePage() {
   return Canvas(
-    sizing: .Grow(),
     child: Center(
-      sizing: .Grow(),
       widget: Column(
         sizing: .FullHeight(width: 400),
         spacing: 5.0,

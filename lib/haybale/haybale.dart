@@ -66,7 +66,7 @@ class HaySize
   static const double ExpandHeight = -1;
 
   const HaySize({required this.width, required this.height});
-  const HaySize.Grow() : width = ExpandWidth, height = ExpandHeight;
+  const HaySize.Expand() : width = ExpandWidth, height = ExpandHeight;
   const HaySize.FullWidth({required this.height}) : width = ExpandWidth;
   const HaySize.FullHeight({required this.width}) : height = ExpandHeight;
 }
@@ -141,6 +141,10 @@ class Widget extends Rectangle
 {
   final HaySize sizing;
 
+  // Implement -> Iterable<Widget> get children => const []; ✅
+  // And apply to all existinging widgets
+  // Define Center and other widgets sizing defaults
+
   Widget({
     required this.sizing
   }) :
@@ -157,6 +161,8 @@ class Widget extends Rectangle
     else this.height = sizing.height;
   }
 
+  Iterable<Widget> get children => const [];
+
   @mustCallSuper
   @override
   void Dispose() {
@@ -169,14 +175,17 @@ class Center extends Widget
   Widget widget;
 
   Center({
-    required super.sizing,
+    super.sizing = const .Expand(),
     required this.widget,
   });
+  
+  @override
+  Iterable<Widget> get children => [widget];
 
   @override
   void Mount() {
     widget.SetSizing(width, height);
-    widget.Set(x: (width - widget.width) / 2, y: (height - widget.height) / 2);
+    widget.Set(x: (width - widget.width) / 2 + x, y: (height - widget.height) / 2 + y);
 
     widget.Mount();
   }
@@ -250,15 +259,18 @@ class Column extends Widget
   double spacing;
 
   Column({
-    required super.sizing,
+    super.sizing = const .Expand(),
     List<Widget>? children,
     this.spacing = 0.0,
     HayYAxisAlign? mainAxis,
     HayXAxisAlign? crossAxis,
   }) : 
-    widgets = children ?? [],
+    widgets = children ?? const [],
     MainAxis = mainAxis ?? HayYAxisAlign.TOP,
     CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
+  
+  @override
+  Iterable<Widget> get children => widgets;
 
   @override
   void DrawWidget()
@@ -380,7 +392,7 @@ class Row extends Widget
   double spacing;
 
   Row({
-    required super.sizing,
+    super.sizing = const .Expand(),
     List<Widget>? children,
     this.spacing = 0.0,
     HayYAxisAlign? mainAxis,
@@ -389,6 +401,9 @@ class Row extends Widget
     widgets = children ?? [],
     MainAxis = mainAxis ?? HayYAxisAlign.TOP,
     CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
+
+  @override
+  Iterable<Widget> get children => widgets;
 
   @override
   void Mount()
@@ -529,7 +544,7 @@ class TextBox extends Widget
     text = TextCodepoint.fromString(text),
     color = color ?? Color.WHITE,
     font = font ?? Font.Default(),
-    super(sizing: .Grow());
+    super(sizing: .Expand());
 
   @override
   void Mount()
@@ -826,17 +841,20 @@ class Canvas extends Widget
   bool blockInteraction = false;
 
   Canvas({
-    required super.sizing,
+    super.sizing = const .Expand(),
     required Widget child,
     this.scale = 1.0
   }) :
     widget = child,
     _renderTexture = RenderTexture2D(10, 10);
+  
+  @override
+  Iterable<Widget> get children => [widget];
 
   @override
   void Mount() {
     SetSizing(Window.Width().toDouble(), Window.Height().toDouble());
-    widget.SetSizing(width, height);
+    widget.SetSizing(width * scale, height * scale);
     widget.Mount();
 
     if (
@@ -942,7 +960,7 @@ class Grid extends Widget
   double get height => super.height - padding.bottom - padding.top;
 
   Grid({
-    required super.sizing,
+    super.sizing = const .Expand(),
     required this.cellSize,
     this.spacing = 0.0,
     HayPadding? padding,
@@ -953,6 +971,9 @@ class Grid extends Widget
     padding = padding ?? .All(0.0) {
     this.sensitivity = sensitivity;
   }
+  
+  @override
+  Iterable<Widget> get children => widgets;
 
   @override
   void Mount() {
@@ -973,6 +994,21 @@ class Grid extends Widget
     for (Widget widget in widgets)
       widget.Set(width: cellSize.x, height: cellSize.y);
 
+    for (int row = 0; row < _rows; row++) {
+      for (int col = 0; col < _cols; col++) {
+          int index = (row * _cols) + col;
+          if (index >= widgets.length) break;
+
+          widgets[index].Set(
+            x: x + col * _colStride,
+            y: y + (row * _rowStride) - _scroll
+          );
+      }
+    }
+    
+    for (Widget widget in widgets)
+      widget.Mount();
+    
     super.Mount();
   }
 
@@ -1090,7 +1126,7 @@ class ListView extends Widget
   double get height => super.height - padding.bottom - padding.top;
 
   ListView({
-    required super.sizing,
+    super.sizing = const .Expand(),
     this.aligment = .LEFT,
     HayPadding? padding,
     List<Widget>? children,
@@ -1101,7 +1137,9 @@ class ListView extends Widget
     this.padding = padding ?? .All(0.0) {
     this.sensitivity = sensitivity;
   }
-    
+  
+  @override
+  Iterable<Widget> get children => widgets;
 
   @override
   void Mount() {
@@ -1183,17 +1221,21 @@ class Stack extends Widget
 {
   List<Widget> widgets;
   Stack({
-    required super.sizing,
+    super.sizing = const .Expand(),
     required List<Widget> children
   }) : 
     widgets = children;
+  
+  @override
+  Iterable<Widget> get children => widgets;
 
   @override
   void Mount() {
-    for (Widget widget in widgets) {
+    for (Widget widget in widgets)
       widget.SetSizing(width, height);
+    
+    for (Widget widget in widgets)
       widget.Mount();
-    }
   }
 
   @override
