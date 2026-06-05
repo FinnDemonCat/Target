@@ -1,0 +1,28 @@
+version: 1
+transforms:
+  - title: 'Update Camera3D name to Camera'
+    date: 2026-06-01 # DD/MM/YYYYx
+    element:
+      uris:
+        - 'rayib/structs/vectors.dart'
+      class: 'Camera3D'
+    changes:
+      - kind: 'rename'
+        newName: 'Camera'
+  - title: 'Update Texture2D name to Texture'
+    date: 2026-06-04
+    element: 
+      uris: ['rayib/structs/rtexture.dart']
+      class: 'Texture2D'
+    changes:
+      - kind: 'rename' 
+        newName: 'Texture'
+  - title: 'Update Dispose to Free'
+    date: 2026-06-04
+    element: 
+      uris: ['haybale/haybale.dart']
+      inClass: 'Disposeable'
+      method: 'Dispose'
+    changes:
+      - kind: 'rename' 
+        newName: 'Free'

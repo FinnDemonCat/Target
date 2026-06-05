@@ -1,23 +1,25 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 //                                   Color
 //------------------------------------------------------------------------------------
-class Color implements Disposeable
+class Color extends NativeWrapper<_Color>
 {
-  NativeResource<_Color>? _memory;
-  _Color get ref => _memory!.pointer.ref;
-  set ref(_Color result) => _memory!.pointer.ref = result;
+  // NativeWrapper<_Color>? _memory;
+  _Color get ref => pointer.ref;
+  set ref(_Color result) => pointer.ref = result;
 
   // Creates a new pointer in heap and copies the value  
+  /*
   void _setMemory(_Color result)
   {
     Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
     pointer.ref = result;
 
     _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeResource<_Color>(pointer);
+    _memory = NativeWrapper<_Color>(pointer);
   }
+  */
 
   static final Color LIGHTGRAY  = Color(200, 200, 200);
   static final Color GRAY       = Color(130, 130, 130);
@@ -44,53 +46,45 @@ class Color implements Disposeable
   static final Color BLANK      = Color(  0,   0,   0,  0); // Transparent
   static final Color RAYWHITE   = Color(245, 245, 245);
   
-  Color._internal(Pointer<_Color> pointer,{ bool owner = true })
-  {
-    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Color is NULL!");
-    if (_memory != null) Dispose();
-
-    _memory = NativeResource<_Color>(pointer, IsOwner: owner);
-    if (owner)
+  // ignore: unused_element_parameter
+  Color._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    if (IsOwner)
       _finalizer.attach(this, pointer, detach: this);
   }
  
-  Color._recieve(_Color result) { _setMemory(result); }
+  Color._Recieve(_Color result) : super(sizeOf<_Color>()) {
+    ref = result;
+    _finalizer.attach(this, pointer, detach: this);
+  }
 
-  Color(int r, int g, int b,[ int a = 255 ])
-  {
-    Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
-    pointer.ref
-    ..r = r
-    ..g = g
-    ..b = b
-    ..a = a;
+  Color(int r, int g, int b,[ int a = 255 ]) : super(sizeOf<_Color>()) {
+    ref
+      ..r = r
+      ..g = g
+      ..b = b
+      ..a = a;
 
-    _memory = NativeResource<_Color>(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
   /// Get Color from normalized values [0..1]
-  Color.FromNormalized(Vector4 normalized)
-  {
-    _Color result = _colorFromNormalized(normalized.ref);
-    _setMemory(result);
+  factory Color.FromNormalized(Vector4 normalized) {
+    final result = _colorFromNormalized(normalized.ref);
+    return Color._Recieve(result);
   }
   /// Get a Color from HSV values, hue [0..360], saturation/value [0..1]
-  Color.FromHSV(double hue, double saturation, double value)
-  {
-    _Color result = _colorFromHSV(hue, saturation, value);
-    _setMemory(result);
+  factory Color.FromHSV(double hue, double saturation, double value) {
+    final result = _colorFromHSV(hue, saturation, value);
+    return Color._Recieve(result);
   }
   /// Get Color structure from hexadecimal value
-  Color.FromHex(int hex)
-  {
-    _Color result = _getColor(hex);
-    _setMemory(result);
+  factory Color.FromHex(int hex) {
+    final result = _getColor(hex);
+    return Color._Recieve(result);
   }
   /// Get Color from a source pixel pointer of certain format
-  Color.FromPointer(Pointer<Void> srcPtr, int format)
-  {
-    _Color result = _getPixelColor(srcPtr, format);
-    _setMemory(result);
+  factory Color.FromPointer(Pointer<Void> srcPtr, int format) {
+    final result = _getPixelColor(srcPtr, format);
+    return Color._Recieve(result);
   }
   /// Set color formatted into destination pixel pointer
   static void SetPixelColor(Pointer<Void> dstPtr, Color color, int format) => _setPixelColor(dstPtr, color.ref, format);
@@ -104,9 +98,9 @@ class Color implements Disposeable
   /// Get hexadecimal value for a Color (0xRRGGBBAA)
   int ToInt() => _colorToInt(ref);
   /// Get Color normalized as float [0..1]
-  Vector4 Normalize() => Vector4._recieve(_colorNormalize(ref));
+  Vector4 Normalize() => Vector4._Recieve(_colorNormalize(ref));
   /// Get HSV values for a Color, hue [0..360], saturation/value [0..1]
-  Vector3 ToHSV() => Vector3._recieve(_colorToHSV(ref));
+  Vector3 ToHSV() => Vector3._Recieve(_colorToHSV(ref));
   /// Get color multiplied with another color
   void Tint(Color color, Color tint)
   {
@@ -144,21 +138,29 @@ class Color implements Disposeable
     ref = result;
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Color>>((pointer)
-  {
-    if (pointer.address != 0)
-    {
-      malloc.free(pointer);
-    }
+  Color operator[](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Color._Encapsulate(pointer + index, IsOwner: false);
+  }
+
+  void operator []=(Color value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
+
+  @override
+  Iterable<Color> get values sync* {
+    for (int x = 0; x < length; x++)
+      yield this[x];
+  }
+
+  static final Finalizer _finalizer = Finalizer<Pointer<_Color>>((pointer) {
+    malloc.free(pointer);
   });
   
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }

@@ -1,17 +1,12 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 //                                   BoneInfo
 //------------------------------------------------------------------------------------
 
-class BoneInfo implements Disposeable
-{
-  NativeResource<_BoneInfo>? _memory;
-  final int _length;
-  int get length => _length;
-
-  _BoneInfo get ref => _memory!.pointer.ref;
-  set ref (_BoneInfo value) => _memory!.pointer.ref = value;
+class BoneInfo extends NativeWrapper<_BoneInfo> {
+  _BoneInfo get ref => pointer.ref;
+  set ref (_BoneInfo value) => pointer.ref = value;
 
   late final String name;
   int get parent => ref.parent;
@@ -24,22 +19,20 @@ class BoneInfo implements Disposeable
     name = String.fromCharCodes(stringList);
   }
 
-  BoneInfo._internal(Pointer<_BoneInfo> pointer,{ int length = 1, bool owner = true }) : _length = length
-  {
-    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded model BoneInfo is NULL!");
-    if (_memory != null) Dispose();
-    _memory = NativeResource<_BoneInfo>(pointer, IsOwner: owner);
-
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-    
+  // ignore: unused_element_parameter
+  BoneInfo._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
   }
 
-  BoneInfo operator [](int index)
-  {
-    if (index < 0 || index >= _length) throw RangeError(index);
-    return BoneInfo._internal(_memory!.pointer + index, owner: false);
+  BoneInfo operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return BoneInfo._Encapsulate(pointer + index, IsOwner: false);
+  }
+
+  @override
+  Iterable<BoneInfo> get values sync* {
+    for(int x = 0; x < length; x++)
+      yield this[x]; 
   }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_BoneInfo>>((pointer) {
@@ -47,13 +40,9 @@ class BoneInfo implements Disposeable
   });
   
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
@@ -79,96 +68,133 @@ class BoneInfo implements Disposeable
 /// If you need to interface with external C libraries or custom shaders, 
 /// use the `.ptr` property on [meshes], [materials], or the [Model] itself 
 /// to get the underlying memory address.
-class Model implements Disposeable
-{
-  NativeResource<_Model>? _memory;
+class Model extends NativeWrapper<_Model> {
+  _Model get ref => pointer.ref;
+  set ref(_Model value) => pointer.ref = value;
 
-  _Model get ref => _memory!.pointer.ref;
   int get meshCount => ref.meshCount;
   int get boneCount => ref.boneCount;
   int get materialCount => ref.materialCount;
   
-  late final Matrix _transform;
-  late final Mesh? meshes;
-  late final Material? materials;
-  late final BoneInfo? _bones;
-  late final Transform? _bindPose;
-  late final Int32List meshMaterial;
+  late Matrix _transform;
+  late Mesh? _meshes;
+  late Material? _materials;
+  late BoneInfo? _bones;
+  late Transform? _bindPose;
+  late Int32List meshMaterial;
 
   Matrix get transform => _transform;
-  set transform(Matrix value) => this._transform.ref = value.ref;
+  set transform(Matrix value) => _transform.ref = value.ref;
+
+  Mesh? get meshes => _meshes;
+  set meshes(Mesh? value) {
+    if (_meshes == null)
+      _meshes = value;
+    else if (value != null)
+      _meshes!.ref = value.ref;
+  }
+
+  Material? get materials => _materials;
+  set materials(Material? value) {
+    if (_materials == null)
+      _materials = value;
+    else if (value != null)
+      _materials!.ref = value.ref;
+  }
 
   BoneInfo? get bones => _bones;
   set bones(BoneInfo? value) {
-    if (value != null && _bones != null) {
-      _bones.ref = value.ref;
-    }
+    if (_bones == null)
+      _bones = value;
+    else if (value != null)
+      _bones!.ref = value.ref;
   }
 
   Transform? get bindPose => _bindPose;
   set bindPose(Transform? value) {
-    if (value != null && _bindPose != null) {
-      _bindPose.ref = value.ref;
-    }
+    if (_bindPose == null)
+      _bindPose = value;
+    else if (value != null)
+      _bindPose!.ref = value.ref;
   }
 
-  void _setReferences(Pointer<_Model> pointer) {
-    _transform = Matrix._internal(.fromAddress(pointer.address));
+  void _setReferences() {
+    _transform = Matrix._Encapsulate(Pointer<_Matrix>.fromAddress(pointer.address));
     
-    meshes = ref.meshes.IsNotNull()
-      ? Mesh._internal(ref.meshes, length: meshCount, owner: false)
+    _meshes = ref.meshes.IsNotNull
+      ? Mesh._Encapsulate(ref.meshes, length: meshCount, IsOwner: false)
       : null;
 
-    materials = ref.materials.IsNotNull()
-      ? Material._internal(ref.materials, length: materialCount, owner: false)
+    _materials = ref.materials.IsNotNull
+      ? Material._Encapsulate(ref.materials, length: materialCount, IsOwner: false)
       : null;
     
-    _bones = ref.bones.IsNotNull()
-      ? BoneInfo._internal(ref.bones, length: boneCount, owner: false)
+    _bones = ref.bones.IsNotNull
+      ? BoneInfo._Encapsulate(ref.bones, length: boneCount, IsOwner: false)
       : null;
 
-    _bindPose = ref.bindPose.IsNotNull()
-      ? Transform._internal(ref.bindPose, length: boneCount, owner: false)
+    _bindPose = ref.bindPose.IsNotNull
+      ? Transform._Encapsulate(ref.bindPose, length: boneCount, IsOwner: false)
       : null;
 
-    meshMaterial = ref.meshMaterial.IsNotNull()
+    meshMaterial = ref.meshMaterial.IsNotNull
       ? ref.meshMaterial.asTypedList(meshCount)
       : Int32List(meshCount);
   }
 
-  void _setmemory(_Model result)
+  /* void _setmemory(_Model result)
   {
     Pointer<_Model> pointer = malloc.allocate<_Model>(sizeOf<_Model>());
     pointer.ref = result;
 
-    _memory = NativeResource<_Model>(pointer);
+    _memory = NativeWrapper<_Model>(pointer);
     _finalizer.attach(this, pointer, detach: this);
 
     _setReferences(pointer);
-  }
+  } */
 
 //----------------------------------Constructors-------------------------------------
+
+  // ignore: unused_element_parameter, unused_element
+  Model._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    _setReferences();
+    if(IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Model._Recieve(_Model result) : super(sizeOf<_Model>()) {
+    ref = result;
+    _setReferences();
+    if(IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
   
   /// Load model from files (meshes and materials)
-  Model(String fileName)
-  {
-    using ((Arena arena) {
-      Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
+  factory Model(String fileName) {
+    Pointer<Utf8> cfileName = fileName.toNativeUtf8();
+    _Model result;
 
-      _Model result = _loadModel(cfileName);
-      _setmemory(result);
-    });
+    try {
+      result = _loadModel(cfileName);
+    }
+    catch (error) {
+      rethrow;
+    }
+    finally {
+      malloc.free(cfileName);
+    }
+
+    return Model._Recieve(result);
   }
 
   /// Load model from generated mesh (default material)
-  Model.FromMesh(Mesh mesh)
-  {
+  factory Model.FromMesh(Mesh mesh) {
     _Model result = _loadModelFromMesh(mesh.ref);
-    _setmemory(result);
+    return Model._Recieve(result);
   }
 
   /// Compute model bounding box limits (considers all meshes)
-  BoundingBox GetBoundingBox() => BoundingBox._recieve(_getModelBoundingBox(ref));
+  BoundingBox GetBoundingBox() => BoundingBox._Recieve(_getModelBoundingBox(ref));
 
   /// Check if a model is valid (loaded in GPU, VAO/VBOs)
   bool IsValid() => _isModelValid(ref);
@@ -235,30 +261,28 @@ class Model implements Disposeable
 //----------------------------------Method--------------------------------------------
 
   /// Set material for a mesh
-  void SetMeshMaterial(int meshId, int materialId) => _setModelMeshMaterial(_memory!.pointer, meshId, materialId);
+  void SetMeshMaterial(int meshId, int materialId) => _setModelMeshMaterial(pointer, meshId, materialId);
 
 //-----------------------------Memory Management--------------------------------------
   
   /// Unload model (including meshes) from memory (RAM and/or VRAM)
-  void Unload() => Dispose();
+  void Unload() => Free();
 
   static final Finalizer _finalizer = Finalizer<Pointer<_Model>>((pointer) {
     malloc.free(pointer);
   });
 
   @override
-  void Dispose() {
-    if (_memory == null || _memory!.isDisposed) return;
+  void Free() {
+    transform.Free();
+    meshes?.Free();
+    materials?.Free();
+    bones?.Free();
+    bindPose?.Free();
     
     _finalizer.detach(this);
-    
-    meshes?.Dispose();
-    materials?.Dispose();
-    _bones?.Dispose();
-    _bindPose?.Dispose();
-    
-    _unloadModel(_memory!.pointer.ref);
-    _memory!.Dispose();
+    _unloadModel(pointer.ref);
+    super.Free();
   }
 }
 
@@ -266,26 +290,35 @@ class Model implements Disposeable
 //                                ModelAnimation
 //------------------------------------------------------------------------------------
 
-class ModelAnimation implements Disposeable
-{
-  NativeResource<_ModelAnimation>? _memory;
-  final int _length;
+class ModelAnimation extends NativeWrapper<_ModelAnimation> {
+  _ModelAnimation get ref => pointer.ref;
+  set ref (_ModelAnimation value) => pointer.ref = value;
 
-  _ModelAnimation get ref => _memory!.pointer.ref;
-
-  late final String? name;
+  late final String name;
   late final BoneInfo? bones;
-  int get length => _length;
+  late final List<Transform?> framePoses;
+  late final int animationCount;
   int get frameCount => ref.frameCount;
   int get boneCount => ref.boneCount;
 
-  Transform? framePoses({ required int frameIndex })
-  {
-    if (frameIndex < 0 || frameIndex >= frameCount)
-      throw RangeError(frameIndex);
-    else
-      return Transform._internal(ref.framePoses[frameIndex], length: boneCount, owner: false);
+  void _setReferences() {
+    bones = ref.bones.IsNotNull
+      ? bones = BoneInfo._Encapsulate(ref.bones, length: boneCount, IsOwner: false)
+      : null;
+    
+    name = FromCharArray(ref.name, 32);
+    
+    for(int x = 0; x < frameCount; x++) {
+      framePoses.add(Transform._Encapsulate(ref.framePoses[x], length: boneCount, IsOwner: false));
+    }
   }
+
+  // Transform? framePoses({ required int frameIndex }) {
+  //   if (frameIndex < 0 || frameIndex >= frameCount)
+  //     throw RangeError(frameIndex);
+  //   else
+  //     return Transform._internal(ref.framePoses[frameIndex], length: boneCount, owner: false);
+  // }
   /* 
   // ignore: unused_element
   void _setmemory(_ModelAnimation result)
@@ -298,39 +331,41 @@ class ModelAnimation implements Disposeable
     _memory = NativeResource<_ModelAnimation>(pointer);
   }
  */
-  ModelAnimation._recieve(Pointer<_ModelAnimation> pointer,{ int length = 1, bool owner = true }) : _length = length
-  {
-    if (_memory != null) Dispose();
-    if (pointer.address == 0) return;
+  // ignore: unused_element_parameter
+  ModelAnimation._Encapsulate(super.pointer, int animationCount,{ super.IsOwner, super.length }) : super.fromAddress() {
+    _setReferences();
+    
+    if (IsOwner)
+      _finalizer.attach(this, {'ptr': pointer, 'len': animationCount}, detach: this);
+  }
 
-    _memory = NativeResource<_ModelAnimation>(pointer);
-    bones = ref.bones.IsNotNull()
-      ? bones = BoneInfo._internal(ref.bones, length: boneCount, owner: false)
-      : null;
-    
-    name = FromCharArray(ref.name, 32);
-    
-    if (owner)
-      _finalizer.attach(this, {'ptr': pointer, 'len': length}, detach: this);
+  // ignore: unused_element
+  ModelAnimation._Recieve(_ModelAnimation result, int animationCount) : super(sizeOf<_ModelAnimation>()) {
+    ref = result;
+    _setReferences();
+    _finalizer.attach(this, {'ptr': pointer, 'len': animationCount}, detach: this);
   }
 
   /// Load model animations from file
-  static ModelAnimation Load(String fileName)
-  {
-    int animCount = 1;
-    Pointer<_ModelAnimation>? ptr;
+  factory ModelAnimation.Load(String fileName) {
+    Pointer<_ModelAnimation> ptr;
+    int animCount = 0;
+    final Pointer<Utf8> cfileName = fileName.toNativeUtf8();
+    final Pointer<Int32> canimCount = malloc.allocate<Int32>(sizeOf<Int32>());
 
-    using ((Arena arena) {
-      final Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
-      final Pointer<Int32> canimCount = arena.allocate<Int32>(sizeOf<Int32>());
-
+    try {
       ptr = _loadModelAnimations(cfileName, canimCount);
       animCount = canimCount.value;
-    });
+    }
+    catch (error) {
+      rethrow;
+    }
+    finally {
+      malloc.free(cfileName);
+      malloc.free(canimCount);
+    }
 
-    if (ptr == null) throw Exception("Couldn't load animations");
-
-    return ModelAnimation._recieve(ptr!, length: animCount);
+    return ModelAnimation._Encapsulate(ptr, animCount);
   }
 
   void IsValid(Model model) => _isModelAnimationValid(model.ref, ref);
@@ -340,9 +375,9 @@ class ModelAnimation implements Disposeable
   void UpdateAnimationBones(Model model, int frame) => _updateModelAnimationBones(model.ref, ref, frame);
 
   ModelAnimation operator [](int index) {
-    if (index < 0 || index >= _length) throw RangeError(index);
+    if (index < 0 || index >= length) throw RangeError(index);
 
-    return ModelAnimation._recieve(_memory!.pointer + index, owner: false);
+    return ModelAnimation._Encapsulate(pointer + index, 1);
   }
 
   static final Finalizer<Map<String, dynamic>> _finalizer = Finalizer((data) {
@@ -351,17 +386,13 @@ class ModelAnimation implements Disposeable
     _unloadModelAnimations(ptr, len);
   });
 
-  void Unload() => Dispose();
+  void Unload() => Free();
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _unloadModelAnimations(_memory!.pointer, _length);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _unloadModelAnimations(pointer, animationCount);
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
@@ -370,48 +401,46 @@ class ModelAnimation implements Disposeable
 //                                      Ray
 //------------------------------------------------------------------------------------
 
-class Ray implements Disposeable
-{
-  NativeResource<_Ray>? _memory;
-  _Ray get ref => _memory!.pointer.ref;
-  // _Vector3 get position => ref.position;
-  // _Vector3 get direction => ref.direction;
-  // set position(_Vector3 value) => position = value;
-  // set direction(_Vector3 value) => direction = value;
-
+class Ray extends NativeWrapper<_Ray> {
+  _Ray get ref => pointer.ref;
+  set ref (_Ray value) => pointer.ref = value;
   late final Vector3 position;
   late final Vector3 direction;
 
-  void _setReferences()
-  {
-    int address = _memory!.pointer.address;
-    position = Vector3._internal(.fromAddress(address), owner: false);
+  void _setReferences() {
+    int address = pointer.address;
+    position = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    direction = Vector3._internal(.fromAddress(address), owner: false);
+    direction = Vector3._Encapsulate(.fromAddress(address));
   }
 
-  void _setmemory(_Ray result)
-  {
-    if (_memory != null) Dispose();
+  /* void _setmemory(_Ray result) {
+    if (_memory != null) Free();
 
     Pointer<_Ray> pointer = malloc.allocate<_Ray>(sizeOf<_Ray>());
     pointer.ref = result;
 
     _setReferences();
     _finalizer.attach(this, pointer, detach: this);
+  } */
+
+  // ignore: unused_element_parameter, unused_element
+  Ray._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    _setReferences();
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
-  Ray._recieve(_Ray result) { _setmemory(result); }
+  Ray._Recieve(_Ray result) : super(sizeOf<_Ray>()) {
+    ref = result;
+    _finalizer.attach(this, pointer, detach: this);
+  }
 
-  Ray(Vector3 position, Vector3 direction)
-  {
-    if (_memory != null) Dispose();
-
-    Pointer<_Ray> pointer = malloc.allocate<_Ray>(sizeOf<_Ray>());
-    pointer.ref
-    ..position = position.ref
-    ..direction = direction.ref;
+  Ray(Vector3 position, Vector3 direction) : super(sizeOf<_Ray>()) {
+    ref
+      ..position = position.ref
+      ..direction = direction.ref;
 
     _setReferences();
     _finalizer.attach(this, pointer, detach: this);
@@ -422,62 +451,50 @@ class Ray implements Disposeable
   });
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
-class RayCollision implements Disposeable
-{
-  NativeResource<_RayCollision>? _memory;
-  _RayCollision get ref => _memory!.pointer.ref;
-  // _Vector3 get point => ref.point;
-  // _Vector3 get normal => ref.normal;
+class RayCollision extends NativeWrapper<_RayCollision> {
+  _RayCollision get ref => pointer.ref;
+  set ref(_RayCollision value) => pointer.ref = value;
 
   bool get hit => ref.hit;
   double get distance => ref.distance;
   late final Vector3 point;
   late final Vector3 normal;
 
-  void _setReferences()
-  {
-    int address = _memory!.pointer.address;
+  void _setReferences() {
+    int address = pointer.address;
     address += sizeOf<Bool>() + sizeOf<Float>();
-    point = Vector3._internal(.fromAddress(address), owner: false);
+    point = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    normal = Vector3._internal(.fromAddress(address), owner: false);
+    normal = Vector3._Encapsulate(.fromAddress(address));
   }
 
-  void _setmemory(_RayCollision result)
-  {
-    if (_memory != null) Dispose();
+  // ignore: unused_element_parameter, unused_element
+  RayCollision._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    _setReferences();
+    if(IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
 
-    Pointer<_RayCollision> pointer = malloc.allocate<_RayCollision>(sizeOf<_RayCollision>());
-    pointer.ref = result;
-
+  RayCollision._Recieve(_RayCollision result) : super(sizeOf<_RayCollision>()) {
+    ref = result;
     _setReferences();
     _finalizer.attach(this, pointer, detach: this);
   }
-
-  RayCollision._recieve(_RayCollision result) { _setmemory(result); }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_RayCollision>>((pointer) {
     malloc.free(pointer);
   });
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }

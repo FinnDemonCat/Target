@@ -1,49 +1,72 @@
 part of 'raylib.dart';
 
 // Implement NativeResource so classes extends it
-// NativeResource should implement [ref], [pointer] and [[index]] getters for _memory
+// NativeResource should implement [ref], [pointer] and [[index]] getters for _memory ✅
 // Implement RayArena and constructor option for temporary allocation
 // Tweak functions to recieve [num] instead of int to auto cast
-// Make Deg2Rad e Rad2Deg extensions of [num]
+// Make Deg2Rad e Rad2Deg extensions of [num] ✅
 
 extension PointerCompare on Pointer {
-  bool IsNull() {
+  bool get IsNull {
     if (this.address == 0) return true;
     else return false;
   }
 
-  bool IsNotNull() {
+  bool get IsNotNull {
     if (this.address != 0) return true;
     else return false;
   }
 }
 
+extension MathConvert on double {
+  /// Convert [this] to radians
+  double get asRad => this * math.pi / 180.0;
+  /// Convert [this] to degrees
+  double get asDeg => this * 180.0/math.pi;
+}
+
 abstract interface class Disposeable {
-  void Dispose();
+  void Free();
 }
 
 // C memory resourcers manager class
-class NativeResource<T extends NativeType> implements Disposeable {
+class NativeWrapper<T extends NativeType> {
   final Pointer<T> pointer;
+  final int length;
+
   bool _disposed = false;
-  bool get isDisposed => _disposed;
+  bool get IsDisposed => _disposed;
   bool IsOwner = true;
 
-  NativeResource(this.pointer, {this.IsOwner = true});
+  Iterable<NativeWrapper<T>> get values => [this];
 
-  @override
-  void Dispose() {
-    if (!isDisposed && IsOwner) {
-      _disposed = true;
-      malloc.free(this.pointer);
-    }
+  NativeWrapper(int size,{ this.IsOwner = true, this.length = 1 }) :
+    pointer = malloc.allocate<T>(size * length);
+  
+  NativeWrapper.fromAddress(Pointer<T> pointer,{ this.IsOwner = false, this.length = 1}) :
+    pointer = .fromAddress(pointer.address);
+
+  @mustCallSuper
+  void Free() {
+    if (IsDisposed)
+      return;
+    if (!IsOwner)
+      return;
+    
+    _disposed = true;
+    malloc.free(this.pointer);
+
+    // if (!isDisposed && IsOwner) {
+    //   _disposed = true;
+    //   malloc.free(this.pointer);
+    // }
   }
 }
 
 const int RAYLIB_VERSION_MAJOR = 5;
 const int RAYLIB_VERSION_MINOR = 6;
 const int RAYLIB_VERSION_PATCH = 0;
-const String RAYLIB_VERSION = '5.6-dev';
+const String RAYLIB_VERSION = '5.6';
 
 const double PI = 3.14159265358979323846;
 const double DEG2RAD = (PI/180.0);
@@ -692,37 +715,68 @@ final int MATERIAL_MAP_DIFFUSE = MaterialMapIndex.ALBEDO.index;
 final int MATERIAL_MAP_SPECULAR = MaterialMapIndex.METALNESS.index;
 
 /// Shader location index
+/// Shader location index
 enum ShaderLocationIndex {
-  VERTEX_POSITION,     // Shader location: vertex attribute: position
-  VERTEX_TEXCOORD01,   // Shader location: vertex attribute: texcoord01
-  VERTEX_TEXCOORD02,   // Shader location: vertex attribute: texcoord02
-  VERTEX_NORMAL,       // Shader location: vertex attribute: normal
-  VERTEX_TANGENT,      // Shader location: vertex attribute: tangent
-  VERTEX_COLOR,        // Shader location: vertex attribute: color
-  MATRIX_MVP,          // Shader location: matrix uniform: model-view-projection
-  MATRIX_VIEW,         // Shader location: matrix uniform: view (camera transform)
-  MATRIX_PROJECTION,   // Shader location: matrix uniform: projection
-  MATRIX_MODEL,        // Shader location: matrix uniform: model (transform)
-  MATRIX_NORMAL,       // Shader location: matrix uniform: normal
-  VECTOR_VIEW,         // Shader location: vector uniform: view
-  COLOR_DIFFUSE,       // Shader location: vector uniform: diffuse color
-  COLOR_SPECULAR,      // Shader location: vector uniform: specular color
-  COLOR_AMBIENT,       // Shader location: vector uniform: ambient color
-  MAP_ALBEDO,          // Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE)
-  MAP_METALNESS,       // Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR)
-  MAP_NORMAL,          // Shader location: sampler2d texture: normal
-  MAP_ROUGHNESS,       // Shader location: sampler2d texture: roughness
-  MAP_OCCLUSION,       // Shader location: sampler2d texture: occlusion
-  MAP_EMISSION,        // Shader location: sampler2d texture: emission
-  MAP_HEIGHT,          // Shader location: sampler2d texture: height
-  MAP_CUBEMAP,         // Shader location: samplerCube texture: cubemap
-  MAP_IRRADIANCE,      // Shader location: samplerCube texture: irradiance
-  MAP_PREFILTER,       // Shader location: samplerCube texture: prefilter
-  MAP_BRDF,            // Shader location: sampler2d texture: brdf
-  VERTEX_BONEIDS,      // Shader location: vertex attribute: boneIds
-  VERTEX_BONEWEIGHTS,  // Shader location: vertex attribute: boneWeights
-  BONE_MATRICES,       // Shader location: array of matrices uniform: boneMatrices
-  VERTEX_INSTANCE_TX   // Shader location: vertex attribute: instanceTransform
+  /// Shader location: vertex attribute: position
+  VERTEX_POSITION,
+  /// Shader location: vertex attribute: texcoord01
+  VERTEX_TEXCOORD01,
+  /// Shader location: vertex attribute: texcoord02
+  VERTEX_TEXCOORD02,
+  /// Shader location: vertex attribute: normal
+  VERTEX_NORMAL,
+  /// Shader location: vertex attribute: tangent
+  VERTEX_TANGENT,
+  /// Shader location: vertex attribute: color
+  VERTEX_COLOR,
+  /// Shader location: matrix uniform: model-view-projection
+  MATRIX_MVP,
+  /// Shader location: matrix uniform: view (camera transform)
+  MATRIX_VIEW,
+  /// Shader location: matrix uniform: projection
+  MATRIX_PROJECTION,
+  /// Shader location: matrix uniform: model (transform)
+  MATRIX_MODEL,
+  /// Shader location: matrix uniform: normal
+  MATRIX_NORMAL,
+  /// Shader location: vector uniform: view
+  VECTOR_VIEW,
+  /// Shader location: vector uniform: diffuse color
+  COLOR_DIFFUSE,
+  /// Shader location: vector uniform: specular color
+  COLOR_SPECULAR,
+  /// Shader location: vector uniform: ambient color
+  COLOR_AMBIENT,
+  /// Shader location: sampler2d texture: albedo (same as: SHADER_LOC_MAP_DIFFUSE)
+  MAP_ALBEDO,
+  /// Shader location: sampler2d texture: metalness (same as: SHADER_LOC_MAP_SPECULAR)
+  MAP_METALNESS,
+  /// Shader location: sampler2d texture: normal
+  MAP_NORMAL,
+  /// Shader location: sampler2d texture: roughness
+  MAP_ROUGHNESS,
+  /// Shader location: sampler2d texture: occlusion
+  MAP_OCCLUSION,
+  /// Shader location: sampler2d texture: emission
+  MAP_EMISSION,
+  /// Shader location: sampler2d texture: height
+  MAP_HEIGHT,
+  /// Shader location: samplerCube texture: cubemap
+  MAP_CUBEMAP,
+  /// Shader location: samplerCube texture: irradiance
+  MAP_IRRADIANCE,
+  /// Shader location: samplerCube texture: prefilter
+  MAP_PREFILTER,
+  /// Shader location: sampler2d texture: brdf
+  MAP_BRDF,
+  /// Shader location: vertex attribute: boneIds
+  VERTEX_BONEIDS,
+  /// Shader location: vertex attribute: boneWeights
+  VERTEX_BONEWEIGHTS,
+  /// Shader location: array of matrices uniform: boneMatrices
+  BONE_MATRICES,
+  /// Shader location: vertex attribute: instanceTransform
+  VERTEX_INSTANCE_TX
 }
 
 final int SHADER_LOC_MAP_DIFFUSE = ShaderLocationIndex.MAP_ALBEDO.index;
@@ -730,57 +784,57 @@ final int SHADER_LOC_MAP_SPECULAR = ShaderLocationIndex.MAP_METALNESS.index;
 
 /// Shader uniform data type
 enum ShaderUniformDataType {
-  FLOAT,           // Shader uniform type: float
-  VEC2,            // Shader uniform type: vec2 (2 float)
-  VEC3,            // Shader uniform type: vec3 (3 float)
-  VEC4,            // Shader uniform type: vec4 (4 float)
-  INT,             // Shader uniform type: int
-  IVEC2,           // Shader uniform type: ivec2 (2 int)
-  IVEC3,           // Shader uniform type: ivec3 (3 int)
-  IVEC4,           // Shader uniform type: ivec4 (4 int)
-  UINT,            // Shader uniform type: unsigned int
-  UIVEC2,          // Shader uniform type: uivec2 (2 unsigned int)
-  UIVEC3,          // Shader uniform type: uivec3 (3 unsigned int)
-  UIVEC4,          // Shader uniform type: uivec4 (4 unsigned int)
-  SAMPLER2D        // Shader uniform type: sampler2d
+  FLOAT,                          // Shader uniform type: float
+  VEC2,                           // Shader uniform type: vec2 (2 float)
+  VEC3,                           // Shader uniform type: vec3 (3 float)
+  VEC4,                           // Shader uniform type: vec4 (4 float)
+  INT,                            // Shader uniform type: int
+  IVEC2,                          // Shader uniform type: ivec2 (2 int)
+  IVEC3,                          // Shader uniform type: ivec3 (3 int)
+  IVEC4,                          // Shader uniform type: ivec4 (4 int)
+  UINT,                           // Shader uniform type: unsigned int
+  UIVEC2,                         // Shader uniform type: uivec2 (2 unsigned int)
+  UIVEC3,                         // Shader uniform type: uivec3 (3 unsigned int)
+  UIVEC4,                         // Shader uniform type: uivec4 (4 unsigned int)
+  SAMPLER2D                       // Shader uniform type: sampler2d
 }
 
 /// Shader attribute data types
 enum ShaderAttributeDataType {
-  SHADER_ATTRIB_FLOAT,            // Shader attribute type: float
-  SHADER_ATTRIB_VEC2,             // Shader attribute type: vec2 (2 float)
-  SHADER_ATTRIB_VEC3,             // Shader attribute type: vec3 (3 float)
-  SHADER_ATTRIB_VEC4              // Shader attribute type: vec4 (4 float)
+  FLOAT,                          // Shader attribute type: float
+  VEC2,                           // Shader attribute type: vec2 (2 float)
+  VEC3,                           // Shader attribute type: vec3 (3 float)
+  VEC4                            // Shader attribute type: vec4 (4 float)
 }
 
 /// Pixel formats
 /// 
 /// NOTE: Support depends on OpenGL version and platform
-abstract class PixelFormat {
-  static const int UNCOMPRESSED_GRAYSCALE = 1;     // 8 bit per pixel (no alpha)
-  static const int UNCOMPRESSED_GRAY_ALPHA = 2;    // 8*2 bpp (2 channels)
-  static const int UNCOMPRESSED_R5G6B5 = 3;        // 16 bpp
-  static const int UNCOMPRESSED_R8G8B8 = 4;        // 24 bpp
-  static const int UNCOMPRESSED_R5G5B5A1 = 5;      // 16 bpp (1 bit alpha)
-  static const int UNCOMPRESSED_R4G4B4A4 = 6;      // 16 bpp (4 bit alpha)
-  static const int UNCOMPRESSED_R8G8B8A8 = 7;      // 32 bpp
-  static const int UNCOMPRESSED_R32 = 8;           // 32 bpp (1 channel - float)
-  static const int UNCOMPRESSED_R32G32B32 = 9;     // 32*3 bpp (3 channels - float)
-  static const int UNCOMPRESSED_R32G32B32A32 = 10; // 32*4 bpp (4 channels - float)
-  static const int UNCOMPRESSED_R16 = 11;          // 16 bpp (1 channel - half float)
-  static const int UNCOMPRESSED_R16G16B16 = 12;    // 16*3 bpp (3 channels - half float)
-  static const int UNCOMPRESSED_R16G16B16A16 = 13; // 16*4 bpp (4 channels - half float)
-  static const int COMPRESSED_DXT1_RGB = 14;       // 4 bpp (no alpha)
-  static const int COMPRESSED_DXT1_RGBA = 15;      // 4 bpp (1 bit alpha)
-  static const int COMPRESSED_DXT3_RGBA = 16;      // 8 bpp
-  static const int COMPRESSED_DXT5_RGBA = 17;      // 8 bpp
-  static const int COMPRESSED_ETC1_RGB = 18;       // 4 bpp
-  static const int COMPRESSED_ETC2_RGB = 19;       // 4 bpp
-  static const int COMPRESSED_ETC2_EAC_RGBA = 20;  // 8 bpp
-  static const int COMPRESSED_PVRT_RGB = 21;       // 4 bpp
-  static const int COMPRESSED_PVRT_RGBA = 22;      // 4 bpp
-  static const int COMPRESSED_ASTC_4x4_RGBA = 23;  // 8 bpp
-  static const int COMPRESSED_ASTC_8x8_RGBA = 24;  // 2 bpp
+enum PixelFormat {
+  UNCOMPRESSED_GRAYSCALE,         // 8 bit per pixel (no alpha)
+  UNCOMPRESSED_GRAY_ALPHA,        // 8*2 bpp (2 channels)
+  UNCOMPRESSED_R5G6B5,            // 16 bpp
+  UNCOMPRESSED_R8G8B8,            // 24 bpp
+  UNCOMPRESSED_R5G5B5A1,          // 16 bpp (1 bit alpha)
+  UNCOMPRESSED_R4G4B4A4,          // 16 bpp (4 bit alpha)
+  UNCOMPRESSED_R8G8B8A8,          // 32 bpp
+  UNCOMPRESSED_R32,               // 32 bpp (1 channel - float)
+  UNCOMPRESSED_R32G32B32,         // 32*3 bpp (3 channels - float)
+  UNCOMPRESSED_R32G32B32A32,      // 32*4 bpp (4 channels - float)
+  UNCOMPRESSED_R16,               // 16 bpp (1 channel - half float)
+  UNCOMPRESSED_R16G16B16,         // 16*3 bpp (3 channels - half float)
+  UNCOMPRESSED_R16G16B16A16,      // 16*4 bpp (4 channels - half float)
+  COMPRESSED_DXT1_RGB,            // 4 bpp (no alpha)
+  COMPRESSED_DXT1_RGBA,           // 4 bpp (1 bit alpha)
+  COMPRESSED_DXT3_RGBA,           // 8 bpp
+  COMPRESSED_DXT5_RGBA,           // 8 bpp
+  COMPRESSED_ETC1_RGB,            // 4 bpp
+  COMPRESSED_ETC2_RGB,            // 4 bpp
+  COMPRESSED_ETC2_EAC_RGBA,       // 8 bpp
+  COMPRESSED_PVRT_RGB,            // 4 bpp
+  COMPRESSED_PVRT_RGBA,           // 4 bpp
+  COMPRESSED_ASTC_4x4_RGBA,       // 8 bpp
+  COMPRESSED_ASTC_8x8_RGBA        // 2 bpp
 }
 
 /// Texture parameters: filter mode

@@ -1,28 +1,19 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 // Module Functions Definition - Matrix math
 //------------------------------------------------------------------------------------
 
-class Matrix implements Disposeable
+class Matrix extends NativeWrapper<_Matrix>
 {
-  NativeResource<_Matrix>? _memory;
-  final int _length;
-  int get length => _length;
-
-  // ignore: unused_element
-  void _setMemory(_Matrix result)
-  {
-    Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
-    pointer.ref = result;
-
-    _finalizer.attach(this, pointer, detach: this);
-  }
+  // NativeResource<_Matrix>? _memory;
+  // final int _length;
+  // int get length => _length;
 
 //--------------------------------Getters-&-Setters-----------------------------------
 
-  _Matrix get ref => _memory!.pointer.ref;
-  set ref (_Matrix value) => _memory!.pointer.ref = value;
+  _Matrix get ref => pointer.ref;
+  set ref (_Matrix value) => pointer.ref = value;
 
   double get m0 => ref.m0;
   double get m1 => ref.m1;
@@ -78,27 +69,12 @@ class Matrix implements Disposeable
     r.m12 = v.x; r.m13 = v.y; r.m14 = v.z; r.m15 = v.w;
   }
 
-  Vector4 get column1 => Vector4._internal((_memory!.pointer.cast<Float>() + 0).cast<_Vector4>());
-  Vector4 get column2 => Vector4._internal((_memory!.pointer.cast<Float>() + 4).cast<_Vector4>());
-  Vector4 get column3 => Vector4._internal((_memory!.pointer.cast<Float>() + 8).cast<_Vector4>());
-  Vector4 get column4 => Vector4._internal((_memory!.pointer.cast<Float>() + 12).cast<_Vector4>());
+  Vector4 get column1 => Vector4._Encapsulate((pointer.cast<Float>() + 0).cast<_Vector4>());
+  Vector4 get column2 => Vector4._Encapsulate((pointer.cast<Float>() + 4).cast<_Vector4>());
+  Vector4 get column3 => Vector4._Encapsulate((pointer.cast<Float>() + 8).cast<_Vector4>());
+  Vector4 get column4 => Vector4._Encapsulate((pointer.cast<Float>() + 12).cast<_Vector4>());
   
 //--------------------------------Constructors----------------------------------------
-
-  Matrix._internal(Pointer<_Matrix> pointer,{ int length = 1, bool owner = true }) : _length = length
-  {
-    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Matrix is NULL!");
-    if (_memory != null) Dispose();
-    
-    _memory = NativeResource<_Matrix>(pointer, IsOwner: owner);
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-
-  Matrix._recieve(_Matrix result) : _length = 1
-  {
-    _setMemory(result);
-  }
 
   Matrix([
     double m0 = 1.0, double m4 = 0.0, double m8 = 0.0, double m12 = 0.0,
@@ -106,22 +82,41 @@ class Matrix implements Disposeable
     double m2 = 0.0, double m6 = 0.0, double m10 = 1.0, double m14 = 0.0,
     double m3 = 0.0, double m7 = 0.0, double m11 = 0.0, double m15 = 1.0,
   ]) :
-    _length = 1
+    super(sizeOf<_Matrix>())
   {
-    Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
-    
-    pointer.ref
+    ref
       ..m0 = m0   ..m4 = m4   ..m8 = m8   ..m12 = m12
       ..m1 = m1   ..m5 = m5   ..m9 = m9   ..m13 = m13
       ..m2 = m2   ..m6 = m6   ..m10 = m10 ..m14 = m14
       ..m3 = m3   ..m7 = m7   ..m11 = m11 ..m15 = m15;
 
-    _memory = NativeResource<_Matrix>(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  }
+
+  Matrix._Encapsulate(super.pointer,{ super.length }) : super.fromAddress() {
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  /*
+  void _setMemory(_Matrix result)
+  {
+    Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
+    pointer.ref = result;
+
+    _finalizer.attach(this, pointer, detach: this);
+  }
+  */
+
+  Matrix._Recieve(_Matrix result,) : super(sizeOf<_Matrix>()) {
+    ref = result;
+
     _finalizer.attach(this, pointer, detach: this);
   }
   
   /// Get identity matrix
-  static final Matrix Identity = Matrix();
+  // static final Matrix Identity = Matrix();
+  factory Matrix.Identity() => Matrix();
 
   /// Get translation matrix
   static Matrix Translate({double x = 0.0, double y = 0.0, double z = 0.0})
@@ -637,18 +632,30 @@ class Matrix implements Disposeable
     }
   }
 
+  Matrix operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Matrix._Encapsulate(pointer + index);
+  }
+
+  void operator []=(Matrix value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
+
+  @override
+  Iterable<Matrix> get values sync* {
+    for (int x = 0; x < length; x++)
+      yield this[x];
+  }
+
   static final Finalizer _finalizer = Finalizer<Pointer<_Matrix>>((pointer) {
     malloc.free(pointer);
   });
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
@@ -747,11 +754,6 @@ extension MatrixMath on Matrix
     result.m15 = l12*r3 + l13*r7 + l14*r11 + l15*r15;
 
     return result;
-  }
-
-  Matrix operator [](int index) {
-    if (index < 0 || index >= _length) throw RangeError(index);
-    return Matrix._internal(_memory!.pointer + index, owner: false);
   }
 
   /// Invert provided matrix

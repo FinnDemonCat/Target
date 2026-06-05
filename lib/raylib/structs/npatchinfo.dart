@@ -1,26 +1,27 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 //                                 NPatchInfo
 //------------------------------------------------------------------------------------
 
 /// NPatchInfo, n-patch layout info
-class NPatchInfo implements Disposeable
+class NPatchInfo extends NativeWrapper<_NPatchInfo>
 {
-  NativeResource<_NPatchInfo>? _memory;
+  // NativeResource<_NPatchInfo>? _memory;
 
-  // ignore: unused_element
+  /*
   void _setmemory(_NPatchInfo result)
   {
-    if (_memory != null) Dispose();
+    if (_memory != null) Free();
     Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
     pointer.ref = result;
 
     this._memory = NativeResource<_NPatchInfo>(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
+  */
 
-  _NPatchInfo get ref => _memory!.pointer.ref;
+  _NPatchInfo get ref => pointer.ref;
   _Rectangle get source => ref.source;
   int get bottom => ref.bottom;
   int get top    => ref.top;
@@ -29,13 +30,13 @@ class NPatchInfo implements Disposeable
   int get layout => ref.layout;
 
   set source(_Rectangle value) => ref.source = value;
-  set bottom(int value) => ref.bottom = (value > 0) ? value : 0;
-  set top(int value) => ref.top = (value > 0) ? value : 0;
-  set left(int value) => ref.left = (value > 0) ? value : 0;
-  set right(int value) => ref.right = (value > 0) ? value : 0;
-  set layout(int value) => ref.layout = (value > 0) ? value : 0;
+  set bottom(int value) => ref.bottom = value.clamp(0.0, value).toInt();
+  set top(int value) => ref.top = value.clamp(0.0, value).toInt();
+  set left(int value) => ref.left = value.clamp(0.0, value).toInt();
+  set right(int value) => ref.right = value.clamp(0.0, value).toInt();
+  set layout(NPatchLayout layout) => ref.layout = layout.index;
 
-  void Set({ Rectangle? source, int? bottom, int? top, int? left, int? right, int? layout})
+  void Set({ Rectangle? source, int? bottom, int? top, int? left, int? right, NPatchLayout? layout})
   {
     if (source != null) this.source = source.ref;
     if (bottom != null) this.bottom = bottom;
@@ -45,10 +46,17 @@ class NPatchInfo implements Disposeable
     if (layout != null) this.layout = layout;
   }
 
-  NPatchInfo({ required Rectangle source, required int bottom, required int top, required int left, required int right, required NPatchLayout layout })
+  NPatchInfo({
+    required Rectangle source,
+    required int bottom,
+    required int top,
+    required int left,
+    required int right,
+    required NPatchLayout layout
+  }) : super(sizeOf<_NPatchInfo>())
   {
-    Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
-    pointer.ref
+    // Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
+    ref
     ..source = source.ref
     ..bottom = bottom
     ..top    = top
@@ -56,21 +64,17 @@ class NPatchInfo implements Disposeable
     ..right  = right
     ..layout = layout.index;
 
-    this._memory = NativeResource<_NPatchInfo>(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_NPatchInfo>>((pointer) {
     malloc.free(pointer);
   });
+
   
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }

@@ -1,31 +1,32 @@
 import 'dart:convert';
 import 'dart:ffi';
 import 'package:ffi/ffi.dart';
+import 'package:meta/meta.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:path/path.dart' as path;
 
 part 'struct_bindings.dart';
-part 'vectors.dart';
-part 'matrix.dart';
-part 'rectangle.dart';
-part 'rinput.dart';
-part 'rcolor.dart';
-part 'rimage.dart';
-part 'rtexture.dart';
-part 'npatchinfo.dart';
-part 'rfont.dart';
-part 'rtext.dart';
-part 'rcamera.dart';
-part 'rboundingbox.dart';
-part 'rmesh.dart';
-part 'rtransform.dart';
-part 'rmodel.dart';
-part 'rshapes.dart';
-part 'rsplines.dart';
-part 'rcollision.dart';
-part 'rvrstereo.dart';
+part 'structs/vectors.dart';
+part 'structs/matrix.dart';
+part 'structs/rectangle.dart';
+part 'structs/rinput.dart';
+part 'structs/rcolor.dart';
+part 'structs/rimage.dart';
+part 'structs/rtexture.dart';
+part 'structs/npatchinfo.dart';
+part 'structs/rfont.dart';
+part 'structs/rtext.dart';
+part 'structs/rcamera.dart';
+part 'structs/rboundingbox.dart';
+part 'structs/rmesh.dart';
+part 'structs/rtransform.dart';
+part 'structs/rmodel.dart';
+part 'structs/rshapes.dart';
+part 'structs/rsplines.dart';
+part 'structs/rcollision.dart';
+part 'structs/rvrstereo.dart';
 
 //------------------------------------------------------------------------------------
 //                                   Window
@@ -181,11 +182,8 @@ abstract class Window
   /// Get specified monitor position
   static int GetCurrentMonitor() => _getCurrentMonitor();
   /// Get specified monitor position
-  static Vector2 GetMonintorPosition(int monitor)
-  {
-    Vector2 position = Vector2();
-    position._setmemory(_getMonitorPosition(monitor));
-
+  static Vector2 GetMonintorPosition(int monitor) {
+    Vector2 position = Vector2._Recieve(_getMonitorPosition(monitor));
     return position;
   }
   /// Get specified monitor width (current video mode used by monitor)
@@ -199,19 +197,14 @@ abstract class Window
   /// Get specified monitor refresh rate
   static int GetMonitorRefreshRate(int monitor) => _getMonitorRefreshRate(monitor);
   /// Get window position XY on monitor
-  static Vector2 GetPosition()
-  {
-    Vector2 position = Vector2();
-    position._setmemory(_getWindowPosition());
+  static Vector2 GetPosition() {
+    Vector2 position = Vector2._Recieve(_getWindowPosition());
 
     return position;
   }
   /// Get window scale DPI factor
-  static Vector2 GetScaleDPI()
-  {
-    Vector2 position = Vector2();
-    position._setmemory(_getWindowScaleDPI());
-    
+  static Vector2 GetScaleDPI() {
+    Vector2 position = Vector2._Recieve(_getWindowScaleDPI());
     return position;
   }
   /// Get the human-readable, UTF-8 encoded name of the specified monitor
@@ -228,7 +221,7 @@ abstract class Window
   /// Get clipboard text content
   static String GetClipboardText() => _getClipboardText().toDartString();
   /// Get clipboard image content
-  static Image GetClipboardImage() => Image._recieve(_getClipboardImage());
+  static Image GetClipboardImage() => Image._Recieve(_getClipboardImage());
   /// Enable waiting for events on EndDrawing(), no automatic event polling
   static void EnableEventWaiting() => _enableEventWaiting();
   /// Disable waiting for events on EndDrawing(), automatic events polling
@@ -268,16 +261,15 @@ abstract class Frame
 //                                   FilePath List
 //------------------------------------------------------------------------------------
 
-class FilePathList implements Disposeable
-{
-  NativeResource<_FilePathList>? _memory;
-  _FilePathList get _ref => _memory!.pointer.ref;
-  final bool droppedFiles;
+class FilePathList extends NativeWrapper<_FilePathList> {
+  _FilePathList get ref => pointer.ref;
+  set ref (_FilePathList value) => pointer.ref = value;
 
+  int get count => ref.count;
+  bool droppedFiles = false;
   List<String> paths = [];
 
-  void _setmemory(_FilePathList result, bool dropped)
-  {
+  /* void _setmemory(_FilePathList result, bool dropped) {
     Pointer<_FilePathList> pointer = malloc.allocate<_FilePathList>(sizeOf<_FilePathList>());
     pointer.ref = result;
 
@@ -286,42 +278,63 @@ class FilePathList implements Disposeable
       paths.add(cstring);
     }
 
-    _memory = NativeResource<_FilePathList>(pointer);
+    _memory = NativeWrapper<_FilePathList>(pointer);
     _finalizer.attach(this, {'ptr': pointer, 'type': dropped}, detach: this);
-  }
-  /* 
-  FilePathList._recieve(_FilePathList result)
-  {
-    _setmemory(result);
-  }
-  */
-  /// Load directory filepaths
-  FilePathList(String dirPath) : droppedFiles = false
-  {
-    using ((Arena arena) {
-      final cdirPath = dirPath.toNativeUtf8(allocator: arena);
+  } */
+  
+  // ignore: unused_element_parameter
+  FilePathList._Recieve(_FilePathList result,{ this.droppedFiles = false }) : super(sizeOf<_FilePathList>()) {
+    ref = result;
 
-      _FilePathList result = _loadDirectoryFiles(cdirPath);
-      _setmemory(result, false);
-    });
+    for (int x = 0; x < pointer.ref.count; x++) {
+      final cstring = pointer.ref.paths[x].toDartString();
+      paths.add(cstring);
+    }
+    
+    _finalizer.attach(this, {'ptr': pointer, 'type': droppedFiles}, detach: this);
+  }
+ 
+  /// Load directory filepaths
+  factory FilePathList(String dirPath) {
+    final cdirPath = dirPath.toNativeUtf8();
+    _FilePathList result;
+
+    try {
+      result = _loadDirectoryFiles(cdirPath);
+    }
+    catch (error) {
+      rethrow;
+    }
+    finally {
+      malloc.free(cdirPath);
+    }
+
+    return FilePathList._Recieve(result);
   }
 
   /// Load directory filepaths with extension filtering and recursive directory scan. Use 'DIR' in the filter string to include directories in the result
-  FilePathList.Ex(String basePath, String filter, bool scanSubdirs) : droppedFiles = false
-  {
-    using ((Arena arena) {
-      final cbasePath = basePath.toNativeUtf8(allocator: arena);
-      final cfilter = filter.toNativeUtf8(allocator: arena);
+  factory FilePathList.Ex(String basePath, String filter, bool scanSubdirs) {
+    final cbasePath = basePath.toNativeUtf8();
+    final cfilter = filter.toNativeUtf8();
+    _FilePathList result;
 
-      _FilePathList result = _loadDirectoryFilesEx(cbasePath, cfilter, scanSubdirs);
-      _setmemory(result, false);
-    });
+    try {
+      result = _loadDirectoryFilesEx(cbasePath, cfilter, scanSubdirs);
+    }
+    catch (error) {
+      rethrow;
+    }
+    finally {
+      malloc.free(cbasePath);
+      malloc.free(cfilter);
+    }
+
+    return FilePathList._Recieve(result);
   }
 
-  FilePathList.Dropped() : droppedFiles = true
-  {
+  factory FilePathList.Dropped() {
     _FilePathList result = _loadDroppedFiles();
-    _setmemory(result, false);
+    return FilePathList._Recieve(result, droppedFiles: true);
   }
 
   /// Check if a file has been dropped into window
@@ -334,14 +347,12 @@ class FilePathList implements Disposeable
   });
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed) {
-      _finalizer.detach(this);
-      if (droppedFiles) _unloadDroppedFiles(_ref);
-      else _unloadDirectoryFiles(_ref);
-      _memory!.Dispose();
-    }
+  void Free() {
+    if (droppedFiles) _unloadDroppedFiles(ref);
+    else _unloadDirectoryFiles(ref);
+
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
@@ -352,21 +363,21 @@ class FilePathList implements Disposeable
 abstract class ScreenToWorld
 {
   /// Get a ray trace from screen position (i.e mouse)
-  static Ray GetRay(Vector2 position, Camera camera) => Ray._recieve(_getScreenToWorldRay(position.ref, camera.ref));
+  static Ray GetRay(Vector2 position, Camera camera) => Ray._Recieve(_getScreenToWorldRay(position.ref, camera.ref));
   /// Get a ray trace from screen position (i.e mouse) in a viewport
-  static Ray GetRayEx(Vector2 position, Camera camera,{ required int width, required int height }) => Ray._recieve(_getScreenToWorldRayEx(position.ref, camera.ref, width, height));
+  static Ray GetRayEx(Vector2 position, Camera camera,{ required int width, required int height }) => Ray._Recieve(_getScreenToWorldRayEx(position.ref, camera.ref, width, height));
   /// Get the screen space position for a 3d world space position
-  static Vector2 GetWorldToScreen(Vector3 position, Camera camera) => Vector2._recieve(_getWorldToScreen(position.ref, camera.ref));
+  static Vector2 GetWorldToScreen(Vector3 position, Camera camera) => Vector2._Recieve(_getWorldToScreen(position.ref, camera.ref));
   /// Get size position for a 3d world space position
-  static Vector2 GetWorldToScreenEx(Vector3 position, Camera camera,{ required int width, required int height }) => Vector2._recieve(_getWorldToScreenEx(position.ref, camera.ref, width, height));
+  static Vector2 GetWorldToScreenEx(Vector3 position, Camera camera,{ required int width, required int height }) => Vector2._Recieve(_getWorldToScreenEx(position.ref, camera.ref, width, height));
   /// Get the screen space position for a 2d camera world space position
-  static Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera) => Vector2._recieve(_getWorldToScreen2D(position.ref, camera.ref));
+  static Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera) => Vector2._Recieve(_getWorldToScreen2D(position.ref, camera.ref));
   /// Get the world space position for a 2d camera screen space position
-  static Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera) => Vector2._recieve(_getScreenToWorld2D(position.ref, camera.ref));
+  static Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera) => Vector2._Recieve(_getScreenToWorld2D(position.ref, camera.ref));
   /// Get camera transform matrix (view matrix)
-  static Matrix GetMatrix(Camera camera) => Matrix._recieve(_getCameraMatrix(camera.ref));
+  static Matrix GetMatrix(Camera camera) => Matrix._Recieve(_getCameraMatrix(camera.ref));
   /// Get camera 2d transform matrix
-  static Matrix GetCameraMatrix2D(Camera2D camera) => Matrix._recieve(_getCameraMatrix2D(camera.ref));
+  static Matrix GetCameraMatrix2D(Camera2D camera) => Matrix._Recieve(_getCameraMatrix2D(camera.ref));
 }
 
 //------------------------------------------------------------------------------------
@@ -410,7 +421,7 @@ abstract class Draw
   }
 
   /// Begin 3D mode with custom camera (3D)
-  static void Begin3DMode(Camera3D camera) => _beginMode3D(camera.ref);
+  static void Begin3DMode(Camera camera) => _beginMode3D(camera.ref);
   /// Ends 3D mode and returns to default 2D orthographic mode
   static void End3DMode() => _endMode3D();
   /// Update screen by calling `Begin3D()` `renderLogic()` and `End3D()` while also clearing the background
@@ -418,7 +429,7 @@ abstract class Draw
   /// Use this on the main loop to work with Hot Reload
   static void With3DMode({
     required void Function() renderLogic,
-    required Camera3D camera,
+    required Camera camera,
   }) {
     Begin3DMode(camera);
     renderLogic();

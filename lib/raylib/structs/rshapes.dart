@@ -1,4 +1,4 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 //                                   Shapes3D
@@ -24,7 +24,7 @@ abstract class Shapes3D
     using ((Arena arena) {
       Pointer<_Vector3> cpoints = arena.allocate<_Vector3>(sizeOf<_Vector3>() * points.length);
       for (int x = 0; x < points.length; x++) {
-        cpoints[x] = points[x]._ptr.ref;
+        cpoints[x] = points[x].pointer.ref;
       }
 
       _drawTriangleStrip3D(cpoints, points.length, color.ref);

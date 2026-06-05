@@ -1,27 +1,28 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 //                                   Texture
 //------------------------------------------------------------------------------------
 
-class Texture2D implements Disposeable
+class Texture2D extends NativeWrapper<_Texture2D>
 {
-	NativeResource<_Texture2D>? _memory;
+	// NativeWrapper<_Texture2D>? _memory;
 
-	void _setmemory(_Texture2D result)
+	/* void _setmemory(_Texture2D result)
 	{
 		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (_memory != null) Dispose();
+    if (_memory != null) Free();
 
     // Allocating memory in C heap
     Pointer<_Texture2D> pointer = malloc.allocate<_Texture2D>(sizeOf<_Texture2D>());
     pointer.ref = result;
-    this._memory = NativeResource<_Texture2D>(pointer);
+    this._memory = NativeWrapper<_Texture2D>(pointer);
 
     _finalizer.attach(this, pointer, detach: this);
 	}
-
-  _Texture2D get ref => _memory!.pointer.ref;
+ */
+  _Texture2D get ref => pointer.ref;
+  set ref (_Texture2D value) => pointer.ref = value;
   int get width => ref.width;
   int get heigth => ref.heigth;
   int get format => ref.format;
@@ -30,78 +31,81 @@ class Texture2D implements Disposeable
 
   //--------------------------------Constructors----------------------------------------
 
-  Texture2D._internal(Pointer<_Texture> pointer, {bool owner = true}) {
-    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Texture2D is NULL!");
-    if (_memory != null) Dispose();
-
-    _memory = NativeResource<_Texture>(pointer, IsOwner: owner);
-    if (owner)
+  // ignore: unused_element_parameter
+  Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    if (IsOwner)
       _finalizer.attach(this, pointer, detach: this);
   }
 
   // Used for TextureCubeMap constructor
-  Texture2D._recieve(_Texture struct) { _setmemory(struct); }
+  Texture2D._Recieve(_Texture value,{ super.IsOwner, super.length }) : super(sizeOf<_Texture2D>()) {
+    ref = value;
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
 
   /// Load texture from file into GPU memory (VRAM)
-  Texture2D(String fileName)
-  {
+  factory Texture2D(String fileName) {
     Pointer<Utf8> cFileName = fileName.toNativeUtf8();
+    _Texture2D result;
 
     try {
-      _Texture2D result = _loadTexture(cFileName);
-      _setmemory(result);
-    } finally {
+      result = _loadTexture(cFileName);
+    }
+    catch (error) {
+      rethrow;
+    } 
+    finally {
       malloc.free(cFileName);
     }
+
+    return Texture2D._Recieve(result);
   }
 
   /// Load texture from image data
-  Texture2D.FromImage(Image image)
-  {
-    if (image._memory == null) throw Exception("[Dart] Image passed is invalid!");
+  factory Texture2D.FromImage(Image image) {
+    _Texture2D result;
 
-    _Texture2D result = _loadTextureFromImage(image._memory!.pointer.ref);
-    _setmemory(result);
+    try {
+      result = _loadTextureFromImage(image.ref);
+    }
+    catch(error) {
+      rethrow;
+    }
+
+    return Texture2D._Recieve(result);
   }
 
   //---------------------------------Utilities-----------------------------------------
   /// Generate GPU mipmaps for a texture
-  void GenMipmaps() => _genTextureMipmaps(_memory!.pointer);
+  void GenMipmaps() => _genTextureMipmaps(pointer);
   /// Set texture scaling filter mode
   void SetFilter(TextureFilter filter) => _setTextureFilter(ref, filter.index);
   /// Set texture wrapping mode
   void SetWrap(TextureWrap wrap) => _setTextureWrap(ref, wrap.index);
 
   /// Check if a texture is valid (loaded in GPU)
-  bool isValid()
-  {
-    if (_memory == null) return false;
-    return _isTextureValid(_memory!.pointer.ref);
-  }
+  bool isValid() => _isTextureValid(pointer.ref);
 
   /// Update GPU texture with new data (pixels should be able to fill texture)
-  void Update(Pointer<Void> pixels)
-  {
+  void Update(Pointer<Void> pixels) {
     if (!isValid()) return;
     _updateTexture(ref, pixels);
   }
 
   /// Update GPU texture rectangle with new data (pixels and rec should fit in texture)
-  void UpdateRect(Rectangle rect, Pointer<Void> pixels)
-  {
+  void UpdateRect(Rectangle rect, Pointer<Void> pixels) {
     if (!isValid()) return;
     _updateTextureRec(ref, rect.ref, pixels);
   }
 
   /// Draw a Texture2D
-  static void Draw(Texture2D texture,{ int posX = 0, int posY = 0, Color? tint })
-  {
+  static void Draw(Texture2D texture,{ int posX = 0, int posY = 0, Color? tint }) {
     tint ??= Color.WHITE;
     _drawTexture(texture.ref, posX, posY, tint.ref);
   }
   /// Draw a Texture2D with position defined as Vector2
-  static void DrawV(Texture2D texture,{ required Vector2 position, Color? tint })
-  {
+  static void DrawV(Texture2D texture,{ required Vector2 position, Color? tint }) {
     tint ??= Color.WHITE;
     _drawTextureV(texture.ref, position.ref, tint.ref);
   }
@@ -168,40 +172,30 @@ class Texture2D implements Disposeable
   //--------------------------------Deconstructors--------------------------------------
 
   // Garbage collector setup
-  static final Finalizer<Pointer<_Texture>> _finalizer = Finalizer((ptr)
-  {
-    if(ptr.address == 0) return;
-
+  static final Finalizer<Pointer<_Texture>> _finalizer = Finalizer((ptr) {
     _unloadTexture(ptr.ref);
-
     malloc.free(ptr);
   });
 
   /// Unload texture from GPU memory (VRAM)
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _unloadTexture(_memory!.pointer.ref);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _unloadTexture(pointer.ref);
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
 typedef Texture = Texture2D;
 
-class TextureCubemap extends Texture2D
-{
-  TextureCubemap._recieve(super.texture) : super._recieve();
+class TextureCubemap extends Texture2D {
+  TextureCubemap._Recieve(super.texture) : super._Recieve();
 
   /// Load cubemap from image, multiple image cubemap layouts supported
-  factory TextureCubemap(Image image, int layout)
-  {
-    _TextureCubemap result = _loadTextureCubemap(image._memory!.pointer.ref, layout);
+  factory TextureCubemap(Image image, CubemapLayout layout) {
+    final result = _loadTextureCubemap(image.pointer.ref, layout.index);
 
-    return TextureCubemap._recieve(result);
+    return TextureCubemap._Recieve(result);
   }
 }
 
@@ -209,67 +203,84 @@ class TextureCubemap extends Texture2D
 //                                 RenderTexture2D
 //------------------------------------------------------------------------------------
 
-class RenderTexture2D implements Disposeable
+class RenderTexture2D extends NativeWrapper<_RenderTexture>
 {
-  NativeResource<_RenderTexture2D>? _memory;
+  // NativeWrapper<_RenderTexture2D>? _memory;
 
-  _RenderTexture2D get ref => _memory!.pointer.ref;
-  Texture get texture {
-    final int address = _memory!.pointer.address + sizeOf<Uint32>();
-    final ptr = Pointer<_Texture>.fromAddress(address);
+  _RenderTexture2D get ref => pointer.ref;
+  set ref (_RenderTexture2D value) => pointer.ref = value;
 
-    return Texture._internal(ptr, owner: false);
-  }
+  late final Texture texture;
+  late final Texture depth;
   int get width => ref.texture.width;
   int get height => ref.texture.heigth;
+  
+  // Texture get texture {
+  //   final address = pointer.address + sizeOf<Uint32>();
+  //   final ptr = Pointer<_Texture>.fromAddress(address);
 
-	void _setmemory(_RenderTexture2D result)
+  //   return Texture._Encapsulate(ptr, IsOwner: false);
+  // }
+
+	/*
+  void _setmemory(_RenderTexture2D result)
 	{
 		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (_memory != null) Dispose();
+    if (_memory != null) Free();
 
     // Allocating memory in C heap
+
     Pointer<_RenderTexture2D> pointer = malloc.allocate<_RenderTexture2D>(sizeOf<_RenderTexture2D>());
     pointer.ref = result;
-    this._memory = NativeResource<_RenderTexture2D>(pointer);
+    this._memory = NativeWrapper<_RenderTexture2D>(pointer);
 
     _finalizer.attach(this, pointer, detach: this);
-	}
+	} 
+  */
+
+  void _setReferences() {
+    int address = pointer.address + sizeOf<Int32>();
+    texture = Texture._Encapsulate(.fromAddress(address));
+
+    address += sizeOf<_Texture>();
+    depth = Texture._Encapsulate(.fromAddress(address));
+  }
+
+  // ignore: unused_element_parameter, unused_element
+  RenderTexture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    _setReferences();
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
+
+  RenderTexture2D._Recieve(_RenderTexture result) : super(sizeOf<_RenderTexture>()) {
+    ref = result;
+    _setReferences();
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
 
   /// Load texture for rendering (framebuffer)
-  RenderTexture2D(int width, int height)
-  {
-    _RenderTexture2D result = _loadRenderTexture(width, height);
-    _setmemory(result);
+  factory RenderTexture2D(int width, int height) {
+    final renderTexture2D = _loadRenderTexture(width, height);
+    return RenderTexture2D._Recieve(renderTexture2D);
   }
 
   /// Check if a render texture is valid (loaded in GPU)
-  bool isValid()
-  {
-    if(_memory == null) return false;
-    return _isRenderTextureValid(_memory!.pointer.ref);
-  }
+  bool isValid() => _isRenderTextureValid(ref);
   
   // Garbage collector setup
-  static final Finalizer<Pointer<_RenderTexture2D>> _finalizer = Finalizer((ptr)
-  {
-    if(ptr.address == 0) return;
-
+  static final Finalizer<Pointer<_RenderTexture2D>> _finalizer = Finalizer((ptr) {
     _unloadRenderTexture(ptr.ref);
-
     malloc.free(ptr);
   });
 
   /// Unload render texture from GPU memory (VRAM)
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _unloadRenderTexture(_memory!.pointer.ref);
-      _memory!.Dispose();
-    }
+  void Free() {
+    _finalizer.detach(this);
+    _unloadRenderTexture(pointer.ref);
+    super.Free();
   }
 }
 

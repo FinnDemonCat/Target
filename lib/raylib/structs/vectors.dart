@@ -1,56 +1,62 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
 //------------------------------------------------------------------------------------
 /// Module Functions Definition - Vector2 math
 //------------------------------------------------------------------------------------
-class Vector2 implements Disposeable
+class Vector2 extends NativeWrapper<_Vector2>
 {
-	NativeResource<_Vector2>? _memory;
-
+	// NativeWrapper<_Vector2>? _memory;
+  /* 
 	void _setmemory(_Vector2 result, {bool owner = true})
 	{
-    if (_memory != null) Dispose();
+    if (_memory != null) Free();
 
     Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
     pointer.ref = result;
     
-    _memory = NativeResource(pointer, IsOwner: owner);
+    _memory = NativeWrapper(pointer, IsOwner: owner);
 
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
   }
+ */
+  _Vector2 get ref => pointer.ref;
+  set ref (_Vector2 value) => pointer.ref = value;
+  Pointer<_Vector2> get _ptr => pointer;
 
-  double get x { return _memory!.pointer.ref.x; }
-  double get y { return _memory!.pointer.ref.y; }
-  set x (double value) { _memory!.pointer.ref.x = value; }
-  set y (double value) { _memory!.pointer.ref.y = value; }
-
-  _Vector2 get ref => _memory!.pointer.ref;
-  set ref (_Vector2 value) => _memory!.pointer.ref = value;
-  Pointer<_Vector2> get _ptr => _memory!.pointer;
+  double get x { return pointer.ref.x; }
+  double get y { return pointer.ref.y; }
+  set x (double value) { pointer.ref.x = value; }
+  set y (double value) { pointer.ref.y = value; }
 
   /// Set `x` and `y`  at once
-  void Set({double? x, double? y}) {
-     this.x = x ?? this.x;
-     this.y = y ?? this.y;
+  void Set({ double? x, double? y }) {
+    if (x != null) this.x = x;
+    if (y != null) this.y = y;
   }
 
 //--------------------------------Constructors----------------------------------------
 
   /// Vector with components of value x and y. Defaults to 0.0 and 0.0
-  Vector2([double x = 0.0, double y = 0.0])
-  {
-    Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
+  Vector2([double x = 0.0, double y = 0.0]) : super(sizeOf<_Vector2>()) {
+    // Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
 
-    pointer.ref
+    ref
     ..x = x
     ..y = y;
 
-    _memory = NativeResource<_Vector2>(pointer);
+    // _memory = NativeWrapper<_Vector2>(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Vector2._recieve(_Vector2 result, {bool owner = true}) {_setmemory(result, owner: owner); }
+  Vector2._Recieve(_Vector2 result) : super(sizeOf<_Vector2>()) {
+    x = result.x;
+    y = result.y;
+  }
+
+  // ignore: unused_element_parameter
+  Vector2._Encapsulate(super.pointer,{ super.length }) :
+    super.fromAddress();
 
   /// Vector with components value 0.0f
   factory Vector2.Zero() => Vector2();
@@ -147,15 +153,16 @@ class Vector2 implements Disposeable
 
     malloc.free(pointer);
   });
-  
+  /* 
   @override
-  void Dispose() {
-    if(_memory != null && !_memory!.isDisposed)
+  void Free() {
+    if(_memory != null && !_memory!.IsDisposed)
     {
       _finalizer.detach(this);
-      _memory!.Dispose();
+      _memory!.Free();
     }
   }
+  */
 }
 
 /// **Performance Note:** Performed *in-place* to prevent GC pressure 
@@ -318,67 +325,58 @@ extension Vector2Math on Vector2
 /// Module Functions Definition - Vector3 math
 //------------------------------------------------------------------------------------
 
-class Vector3 implements Disposeable
+class Vector3 extends NativeWrapper<_Vector3>
 {
-  NativeResource<_Vector3>? _memory;
+  // NativeWrapper<_Vector3>? _memory;
 
-  Pointer<_Vector3> get _ptr => _memory!.pointer;
-  _Vector3 get ref => _memory!.pointer.ref;
-  set ref (_Vector3 value) => _memory!.pointer.ref = value;
-
-  // ignore: unused_element
-  void _setmemory(_Vector3 result)
-  {
-    if (_memory != null) _memory!.Dispose();
-
-    Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
-    pointer.ref = result;
-
-    _memory = NativeResource(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-  }
+  _Vector3 get ref => pointer.ref;
+  set ref (_Vector3 value) => pointer.ref = value;
 
   double get x => ref.x;
   double get y => ref.y;
   double get z => ref.z;
 
-  set x (double value) => _memory!.pointer.ref.x = value;
-  set y (double value) => _memory!.pointer.ref.y = value;
-  set z (double value) => _memory!.pointer.ref.z = value;
+  set x (double value) => ref.x = value;
+  set y (double value) => ref.y = value;
+  set z (double value) => ref.z = value;
+
+  // ignore: unused_element
+  /* void _setmemory(_Vector3 result)
+  {
+    if (_memory != null) _memory!.Free();
+
+    Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
+    pointer.ref = result;
+
+    _memory = NativeWrapper(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  } */
 
   ///Set all values in a single call
-  void Set({double? x, double? y, double? z})
-  {
-    this.x = x ?? this.x;
-    this.y = y ?? this.y;
-    this.z = z ?? this.z;
+  void Set({double? x, double? y, double? z}) {
+    if (x != null) this.x = x;
+    if (y != null) this.y = y;
+    if (z != null) this.z = z;
   }
 
 //----------------------------------Constructors------------------------------------
 
-  Vector3([double x = 0.0, double y = 0.0, double z = 0.0])
-  {
-    if (_memory != null) _memory!.Dispose();
-
-    Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
+  Vector3([double x = 0.0, double y = 0.0, double z = 0.0]) : super(sizeOf<_Vector3>()) {
     pointer.ref
-    ..x = x
-    ..y = y
-    ..z = z;
+      ..x = x
+      ..y = y
+      ..z = z;
 
-    _memory = NativeResource(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Vector3._internal(Pointer<_Vector3> pointer,{ bool owner = true }) {
-    _memory = NativeResource(pointer, IsOwner: owner);
-
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-
-  Vector3._recieve(_Vector3 result) {
-    _setmemory(result);
+  // ignore: unused_element_parameter
+  Vector3._Encapsulate(super.pointer,{ super.IsOwner, super.length }) :
+    super.fromAddress();
+  
+  Vector3._Recieve(_Vector3 result) : super(sizeOf<_Vector3>()) {
+    ref = result;
+    _finalizer.attach(this, pointer, detach: this);
   }
 
   /// Vector with components value 0.0f
@@ -743,13 +741,9 @@ class Vector3 implements Disposeable
   }
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _memory!.Dispose();
-      _finalizer.detach(this);
-    }
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
@@ -984,62 +978,62 @@ extension Vector3Math on Vector3
 //----------------------------------------------------------------------------------
 /// Module Functions Definition - Vector4 math
 //----------------------------------------------------------------------------------
-class Vector4 implements Disposeable
+class Vector4 extends NativeWrapper<_Vector4>
 {
-  NativeResource<_Vector4>? _memory;
-  _Vector4 get ref => _memory!.pointer.ref;
-  set ref (_Vector4 v) => _memory!.pointer.ref = v;
+  // NativeWrapper<_Vector4>? _memory;
+  _Vector4 get ref => pointer.ref;
+  set ref (_Vector4 v) => pointer.ref = v;
 
   // ignore: unused_element
-  void _setmemory(_Vector4 result)
+  /* void _setmemory(_Vector4 result)
   {
     Pointer<_Vector4> pointer = malloc.allocate<_Vector4>(sizeOf<_Vector4>());
     pointer.ref = result;
 
-    _memory = NativeResource(pointer);
+    _memory = NativeWrapper(pointer);
+    _finalizer.attach(this, pointer, detach: this);
+  } */
+
+  Vector4._Recieve(_Vector4 result) : super(sizeOf<_Vector4>()) {
+    ref = result;
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Vector4._recieve(_Vector4 result) { _setmemory(result); }
-
-  Vector4._internal(Pointer<_Vector4> pointer,{ bool owner = false })
-  {
-    if (pointer.IsNull()) throw ArgumentError("[Target]: The loaded Vector4 is NULL!");
-    if (_memory != null) Dispose();
-    _memory = NativeResource(pointer, IsOwner: owner);
+  Vector4._Encapsulate(super.pointer,{ super.length }) :
+    super.fromAddress();
+  /* {
+    if (pointer.IsNull) throw ArgumentError("[Target]: The loaded Vector4 is NULL!");
+    if (_memory != null) Free();
+    _memory = NativeWrapper(pointer, IsOwner: owner);
 
     if (owner)
       _finalizer.attach(this, pointer, detach: this);
-  }
+  } */
 
-  double get x => _memory!.pointer.ref.x;
-  double get y => _memory!.pointer.ref.y;
-  double get z => _memory!.pointer.ref.z;
-  double get w => _memory!.pointer.ref.w;
+  double get x => ref.x;
+  double get y => ref.y;
+  double get z => ref.z;
+  double get w => ref.w;
 
-  set x(double value) => _memory!.pointer.ref.x = value;
-  set y(double value) => _memory!.pointer.ref.y = value;
-  set z(double value) => _memory!.pointer.ref.z = value;
-  set w(double value) => _memory!.pointer.ref.w = value;
+  set x(double value) => ref.x = value;
+  set y(double value) => ref.y = value;
+  set z(double value) => ref.z = value;
+  set w(double value) => ref.w = value;
 
-  void Set([double? x, double? y, double? z, double? w])
-  {
+  void Set([double? x, double? y, double? z, double? w]) {
     this.x = x ?? this.x;
     this.y = y ?? this.y;
     this.z = z ?? this.z;
     this.w = w ?? this.w;
   }
 
-  Vector4([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0])
-  {
-    Pointer<_Vector4> pointer = malloc.allocate<_Vector4>(sizeOf<_Vector4>());
-    pointer.ref
-    ..x = x
-    ..y = y
-    ..z = z
-    ..w = w;
+  Vector4([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0]) : super(sizeOf<_Vector4>()) {
+    ref
+      ..x = x
+      ..y = y
+      ..z = z
+      ..w = w;
 
-    _memory = NativeResource(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
 
@@ -1109,16 +1103,6 @@ class Vector4 implements Disposeable
   static final Finalizer _finalizer = Finalizer<Pointer<_Vector4>>((pointer) {
     malloc.free(pointer);
   });
-  
-  @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
-  }
 }
 
 extension Vector4Math on Vector4
@@ -1264,19 +1248,10 @@ extension Vector4Math on Vector4
 
 class Quaternion extends Vector4
 {
-  Quaternion._internal(super.pointer,{ super.owner }) : super._internal();
+  Quaternion([super.x, super.y, super.z, super.w]) : super();
 
-  factory Quaternion([double x = 0.0, double y = 0.0, double z = 0.0, double w = 1.0])
-  {
-    Pointer<_Quaternion> pointer = malloc.allocate<_Quaternion>(sizeOf<_Quaternion>());
-    pointer.ref
-    ..x = x
-    ..y = y
-    ..z = z
-    ..w = w;
-
-    return Quaternion._internal(pointer);
-  }
+  // ignore: unused_element_parameter
+  Quaternion._Encapsulate(super.pointer,{ super.length }) : super._Encapsulate();
 
   /// Calculate quaternion cubic spline interpolation using Cubic Hermite Spline algorithm
   /// as described in the GLTF 2.0 specification: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#interpolation-cubic

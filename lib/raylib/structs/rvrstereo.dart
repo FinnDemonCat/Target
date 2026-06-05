@@ -1,9 +1,9 @@
-part of 'raylib.dart';
+part of '../raylib.dart';
 
-class VrDeviceInfo implements Disposeable
-{
-  NativeResource<_VrDeviceInfo>? _memory;
-  _VrDeviceInfo get ref => _memory!.pointer.ref;
+class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
+  _VrDeviceInfo get ref => pointer.ref;
+  set ref (_VrDeviceInfo value) => pointer.ref = value;
+
   int get hResolution => ref.hResolution;
   int get vResolution => ref.vResolution;
   double get hScreenSize => ref.hScreenSize;
@@ -78,10 +78,8 @@ class VrDeviceInfo implements Disposeable
     double interpupillaryDistance = 0.0635,
     List<double>? lensDistortion,
     List<double>? chromaAb,
-  }) {
-    Pointer<_VrDeviceInfo> pointer = malloc.allocate<_VrDeviceInfo>(sizeOf<_VrDeviceInfo>());
-    
-    pointer.ref
+  }) : super(sizeOf<_VrDeviceInfo>()) {
+    ref
       ..hResolution = hResolution
       ..vResolution = vResolution
       ..hScreenSize = hScreenSize
@@ -101,7 +99,6 @@ class VrDeviceInfo implements Disposeable
     }
 
     _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeResource<_VrDeviceInfo>(pointer);
   }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_VrDeviceInfo>>((pointer) {
@@ -109,30 +106,24 @@ class VrDeviceInfo implements Disposeable
   });
 
   @override
-  void Dispose()
-  {
-    if (_memory != null && !_memory!.isDisposed) {
-      _finalizer.detach(this);
-      _memory!.Dispose();
-    }
+  void Free()   {
+    _finalizer.detach(this);
+    super.Free();
   }
 }
 
-class VrStereoConfig implements Disposeable
-{
-  NativeResource<_VrStereoConfig>? _memory;
-  _VrStereoConfig get ref => _memory!.pointer.ref;
+class VrStereoConfig extends NativeWrapper<_VrStereoConfig> {
+  _VrStereoConfig get ref => pointer.ref;
+  set ref (_VrStereoConfig value) => pointer.ref = value;
 
-  // --- Matrizes (Usa a classe sombra Matrix para expor os dados) ---
-  
   Matrix getProjection(int eyeIndex) {
     if (eyeIndex < 0 || eyeIndex >= 2) throw RangeError(eyeIndex);
-    return Matrix._recieve(ref.projection[eyeIndex]);
+    return Matrix._Recieve(ref.projection[eyeIndex]);
   }
 
   Matrix getViewOffset(int eyeIndex) {
     if (eyeIndex < 0 || eyeIndex >= 2) throw RangeError(eyeIndex);
-    return Matrix._recieve(ref.viewOffset[eyeIndex]);
+    return Matrix._Recieve(ref.viewOffset[eyeIndex]);
   }
 
   double getLeftLensCenter(int index) => ref.leftLensCenter[index];
@@ -153,13 +144,9 @@ class VrStereoConfig implements Disposeable
   double getScaleIn(int index) => ref.scaleIn[index];
   // void setScaleIn(int index, double value) => ref.scaleIn[index] = value;
 
-  VrStereoConfig(VrDeviceInfo device)
-  {
+  VrStereoConfig(VrDeviceInfo device) : super(sizeOf<_VrStereoConfig>()) {
     _VrStereoConfig result = _loadVrStereoConfig(device.ref);
-    Pointer<_VrStereoConfig> pointer = malloc.allocate<_VrStereoConfig>(sizeOf<_VrStereoConfig>());
-    pointer.ref = result;
-
-    _memory = NativeResource<_VrStereoConfig>(pointer);
+    ref = result;
     _finalizer.attach(this, pointer, detach: this);
   }
 
@@ -168,13 +155,12 @@ class VrStereoConfig implements Disposeable
     malloc.free(pointer);
   });
 
-  void Unload() => Dispose(); 
+  void Unload() => Free(); 
 
   @override
-  void Dispose()
-  {
+  void Free() {
+    _unloadVrStereoConfig(pointer.ref);
     _finalizer.detach(this);
-    _unloadVrStereoConfig(_memory!.pointer.ref);
-    _memory!.Dispose();
+    super.Free();
   }
 } 

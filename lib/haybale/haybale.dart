@@ -1,6 +1,9 @@
-import 'package:target_engine/raylib/raylib.dart';
-import 'dart:math' as math;
+import '../raylib/raylib.dart';
+export '../raylib/raylib.dart';
 import 'package:meta/meta.dart';
+import 'dart:math' as math;
+export 'package:meta/meta.dart';
+
 
 /// ## HayXAxisAlign Enum
 /// 
@@ -165,8 +168,8 @@ class Widget extends Rectangle
 
   @mustCallSuper
   @override
-  void Dispose() {
-    super.Dispose();
+  void Free() {
+    super.Free();
   }
 }
 
@@ -199,9 +202,9 @@ class Center extends Widget
   }
 
   @override
-  void Dispose() {
-    widget.Dispose();
-    super.Dispose();
+  void Free() {
+    widget.Free();
+    super.Free();
   }
 }
 
@@ -304,6 +307,8 @@ class Column extends Widget
         break;
     }
     
+    double totalHeight = 0.0;
+
     for (int index = 0; index < widgets.length; index++)
     {
       widgets[index].SetSizing(width, height);
@@ -323,17 +328,19 @@ class Column extends Widget
           break;
       }
 
-      widgets[index].y = startY + index*(widgets[index].height + spacing);
+      widgets[index].y = startY + totalHeight;
       widgets[index].Mount();
+
+      totalHeight += widgets[index].height + spacing;
     }
   }
 
   @override
-  void Dispose() {
+  void Free() {
     for (Widget widget in widgets)
-      widget.Dispose();
+      widget.Free();
     
-    super.Dispose();
+    super.Free();
   }
 }
 
@@ -426,6 +433,8 @@ class Row extends Widget
         break;
     }
 
+    double totalWidth = 0.0;
+
     for (int index = 0; index < widgets.length; index++)
     {
       widgets[index].SetSizing(width, height);
@@ -445,8 +454,10 @@ class Row extends Widget
           break;
       }
       
-      widgets[index].x = startX + index*(widgets[index].width + spacing);
+      widgets[index].x = startX + totalWidth;
       widgets[index].Mount();
+
+      totalWidth += widgets[index].width + spacing;
     }
   }
 
@@ -460,11 +471,11 @@ class Row extends Widget
   }
 
   @override
-  void Dispose() {
+  void Free() {
     for (Widget widget in widgets)
-      widget.Dispose();
+      widget.Free();
     
-    super.Dispose();
+    super.Free();
   }
 }
 
@@ -653,11 +664,11 @@ class TextBox extends Widget
   }
 
   @override
-  void Dispose() {
-    font.Dispose();
-    text.Dispose();
+  void Free() {
+    font.Free();
+    text.Free();
 
-    super.Dispose();
+    super.Free();
   }
 }
 
@@ -700,14 +711,26 @@ enum InteractState {
 class Interactible extends Widget
 {
   InteractState state;
-  MouseCursor cursor;
+  final MouseCursor cursor;
   static Interactible? PinnedWidget;
   static Vector2 MousePosition = Vector2.Zero();
+
+  /// Interact trigger function
   final void Function()? _OnPress;
+  void OnPress() => _OnPress?.call();
+  /// Function to determine when there is an interaction
+  /// 
+  /// Override this function to set a custom interact behavior
   final bool Function() _OnFocus;
+  /// Function to determine when the interaction has stopped
+  /// 
+  /// Override this function to set a custom stop interact behavior
   final bool Function() _OnUnfocus;
 
-  void OnPress() => _OnPress?.call();
+  /// Used in UpdateState to run the interaction area check.
+  /// 
+  /// Override this parameter to define a custom interaction area.
+  Rectangle get interactArea => this;
   
   Interactible({
     required super.sizing,
@@ -744,7 +767,7 @@ class Interactible extends Widget
       return true;
     }
 
-    if (!Collision.CheckPointRec(MousePosition, this)) {
+    if (!Collision.CheckPointRec(MousePosition, interactArea)) {
       if (state == .Selected) {
         Cursor.Set(.DEFAULT);
         state = .Idle;
@@ -793,13 +816,13 @@ class Interactible extends Widget
   }
 
   @override
-  void Dispose() {
+  void Free() {
     if (PinnedWidget != null && this == PinnedWidget) {
       state = .Idle;
       Cursor.Set(.DEFAULT);
     }
 
-    super.Dispose();
+    super.Free();
   }
 }
 
@@ -861,7 +884,7 @@ class Canvas extends Widget
       (_renderTexture.width - width).abs() > EPSILON
       || (_renderTexture.height - height).abs() > EPSILON
     ) {
-      _renderTexture.Dispose();
+      _renderTexture.Free();
       _renderTexture = RenderTexture2D((width * scale).toInt(), (height * scale).toInt());
     }
   }
@@ -886,11 +909,11 @@ class Canvas extends Widget
   }
 
   @override
-  void Dispose() {
-    widget.Dispose();
-    _renderTexture.Dispose();
-    _dest.Dispose();
-    super.Dispose();
+  void Free() {
+    widget.Free();
+    _renderTexture.Free();
+    _dest.Free();
+    super.Free();
   }
 }
 
@@ -1060,11 +1083,11 @@ class Grid extends Widget
   }
 
   @override
-  void Dispose() {
+  void Free() {
     for (Widget widget in widgets)
-      widget.Dispose();
+      widget.Free();
     
-    super.Dispose();
+    super.Free();
   }
 }
 
@@ -1193,11 +1216,11 @@ class ListView extends Widget
   }
 
   @override
-  void Dispose() {
+  void Free() {
     for (Widget widget in widgets)
-      widget.Dispose();
+      widget.Free();
     
-    super.Dispose();
+    super.Free();
   }
 }
 
@@ -1245,10 +1268,10 @@ class Stack extends Widget
   }
 
   @override
-  void Dispose() {
+  void Free() {
     for (Widget widget in widgets)
-      widget.Dispose();
-    super.Dispose();
+      widget.Free();
+    super.Free();
   }
 }
 
@@ -1406,8 +1429,8 @@ abstract class Router
   }
 
   static void Release() {
-    _activeWidget?.Dispose();
-    _destWidget?.Dispose();
+    _activeWidget?.Free();
+    _destWidget?.Free();
     // _activeOverlay?.Dispose();
   }
 
@@ -1420,7 +1443,7 @@ abstract class Router
       }
       else {
         elapsedTime = 0.0;
-        _activeWidget?.Dispose();
+        _activeWidget?.Free();
         _activeWidget = _destWidget;
         _destWidget = null;
       }
