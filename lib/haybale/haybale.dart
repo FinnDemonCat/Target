@@ -195,7 +195,7 @@ class Center extends Widget
 
   @override
   void DrawWidget() {
-    if (widget case Interactible interactible)
+    if (widget case IInteractible interactible)
       interactible.UpdateState();
     
     widget.DrawWidget();
@@ -283,7 +283,7 @@ class Column extends Widget
     for (Widget widget in widgets)
       widget.DrawWidget();
     
-    Interactible.UpdateWidgets(widgets);
+    IInteractible.UpdateWidgets(widgets);
   }
 
   @override
@@ -467,7 +467,7 @@ class Row extends Widget
     for (Widget widget in widgets)
       widget.DrawWidget();
 
-    Interactible.UpdateWidgets(widgets);
+    IInteractible.UpdateWidgets(widgets);
   }
 
   @override
@@ -708,33 +708,86 @@ enum InteractState {
 /// Interactible.MousePosition = currentMousePos;
 /// Interactible.UpdateWidgets(myWidgetList); 
 /// ```
-class Interactible extends Widget
+class IInteractible extends Widget
 {
+  /// Inner member which computer the interaction state of the active widget.
   InteractState state;
   final MouseCursor cursor;
-  static Interactible? PinnedWidget;
+  /// Static member used to lock onto a single widget on interaction and prevent conflicts;
+  static IInteractible? PinnedWidget;
+  /// Conveniency member used to compute mouse position in collision checks.
+  /// 
+  /// This member is automatically updated on [Canvas] widgets to correctly determine the
+  /// mouse position, independent of the canvas scale itself
   static Vector2 MousePosition = Vector2.Zero();
 
   /// Interact trigger function
   final void Function()? _OnPress;
   void OnPress() => _OnPress?.call();
+
+  final bool Function() _OnFocus;
   /// Function to determine when there is an interaction
   /// 
   /// Override this function to set a custom interact behavior
-  final bool Function() _OnFocus;
+  /// 
+  /// ### Example
+  /// ***
+  /// ```
+  /// 
+  /// bool OnFocus() {
+  ///   if (Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT))
+  ///     return true;
+  ///   else
+  ///     return false;
+  /// }
+  /// ```
+  bool OnFocus() => _OnFocus.call();
+
+  final bool Function() _OnUnfocus;
   /// Function to determine when the interaction has stopped
   /// 
   /// Override this function to set a custom stop interact behavior
-  final bool Function() _OnUnfocus;
+  /// 
+  /// ### Example
+  /// ***
+  /// ```
+  /// 
+  /// bool OnUnfocus() {
+  ///   if (Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT))
+  ///     return true;
+  ///   else
+  ///     return false;
+  /// }
+  /// ```
+  bool OnUnfocus() => _OnUnfocus.call();
+
+  late final bool Function() _OnSelect;
+  /// Function to determine how an widget on the screen will compute an interaction
+  /// 
+  /// Override this function to set a custom interaction behavior
+  /// 
+  /// ### Example
+  /// ***
+  /// ```
+  /// 
+  /// bool OnSelect() {
+  ///   if (Collision.CheckPointRec(MousePosition, interactArea))
+  ///     return true;
+  ///   else
+  ///     return false;
+  /// }
+  /// ```
+  bool OnSelect() => _OnSelect.call();
 
   /// Used in UpdateState to run the interaction area check.
   /// 
   /// Override this parameter to define a custom interaction area.
   Rectangle get interactArea => this;
   
-  Interactible({
+  IInteractible({
     required super.sizing,
     void Function()? OnPress,
+    bool Function()? OnSelect,
     bool Function()? OnFocus,
     bool Function()? OnUnfocus,
     this.cursor = .POINTING_HAND
@@ -742,22 +795,24 @@ class Interactible extends Widget
     _OnPress = OnPress,
     _OnFocus = OnFocus ?? (() { return Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT); }),
     _OnUnfocus = OnUnfocus ?? (() { return Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT); }),
-    state = .Idle;
+    state = .Idle {
+      _OnSelect = OnSelect ?? (() { return Collision.CheckPointRec(MousePosition, interactArea); });
+    }
 
-  /// ## Processes mouse interaction and returns the consumption status.
+  /// ## Processes interaction status.
   /// 
   /// ### Logic Flow:
   /// 1. **Pinned Priority**: If this is the [PinnedWidget], it handles [_OnUnfocus] 
   ///    logic and returns `true` to maintain exclusive focus.
-  /// 2. **Hit Testing**: Checks if [MousePosition] is within bounds. 
-  ///    Returns `false` if not, allowing other widgets to be checked.
-  /// 3. **Capture**: If a collision occurs, it updates [state], sets the [cursor], 
+  /// 2. **Interaction Test**: Checks if [this] OnSelect() computes false, allowing other widgets to be checked.
+  /// 
+  /// 3. **Capture**: If an interaction occurs, it updates [state], sets the [cursor], 
   ///    and checks [_OnFocus] to capture the [PinnedWidget].
   /// 
-  /// @return `true` if the interaction was consumed (preventing click-through).
+  /// Returns true when an interaction occurs. Useful for breaking an update loop. 
   bool UpdateState() {
     if (this == PinnedWidget) {
-      if (_OnUnfocus.call()) {
+      if (OnUnfocus()) {
         PinnedWidget = null;
         state = .Selected;
 
@@ -767,7 +822,7 @@ class Interactible extends Widget
       return true;
     }
 
-    if (!Collision.CheckPointRec(MousePosition, interactArea)) {
+    if (!OnSelect()) {
       if (state == .Selected) {
         Cursor.Set(.DEFAULT);
         state = .Idle;
@@ -782,7 +837,7 @@ class Interactible extends Widget
     }
 
     // Compute iteraction
-    if (_OnFocus.call()) {
+    if (OnFocus()) {
       PinnedWidget = this;
       state = .Pressed;
     }
@@ -795,17 +850,17 @@ class Interactible extends Widget
   /// 
   /// Orchestrates interaction for a list of widgets. It gives absolute priority 
   /// to the [PinnedWidget] if it exists. Otherwise, it iterates through 
-  /// [Interactible] widgets and breaks the loop as soon as one consumes the input.
+  /// [IInteractible] widgets and breaks the loop as soon as one triggers the input.
   static void UpdateWidgets(List<Widget> list) {
     if (PinnedWidget != null) {
       PinnedWidget!.UpdateState();
       return;
     }
 
-    final widgets = list.whereType<Interactible>().toList();
+    final widgets = list.whereType<IInteractible>().toList();
 
     bool skip = false;
-    for (Interactible widget in widgets) {
+    for (IInteractible widget in widgets) {
       if (skip) {
         widget.state = .Idle;
         continue;
@@ -834,7 +889,7 @@ class Interactible extends Widget
 /// `Canvas` acts as a **Rendering Bridge** and **Input Transformer**. It decouples 
 /// the internal widget hierarchy from the main backbuffer.
 /// 
-/// - **Input Scaling**: Automatically scales and updates the global [Interactible.MousePosition] 
+/// - **Input Scaling**: Automatically scales and updates the global [IInteractible.MousePosition] 
 ///   before dispatching it to children. This ensures coordinate precision regardless of 
 ///   the UI's internal resolution.
 /// - **Interaction Control**: Through [blockInteraction], the widget can be instructed 
@@ -859,7 +914,7 @@ class Canvas extends Widget
   final double scale;
   RenderTexture2D _renderTexture;
   final Rectangle _dest = Rectangle();
-  /// When drawing and updating [Interactible.MousePosition] for Interactible widgets,
+  /// When drawing and updating [IInteractible.MousePosition] for Interactible widgets,
   /// this boolean blocks this update to cases where the Canvas its not alone (eg. Stacked)
   bool blockInteraction = false;
 
@@ -892,7 +947,7 @@ class Canvas extends Widget
   @override
   void DrawWidget() {
     if (!blockInteraction)
-      Interactible.MousePosition.Set(x: Mouse.GetX() * scale, y: Mouse.GetY() * scale);
+      IInteractible.MousePosition.Set(x: Mouse.GetX() * scale, y: Mouse.GetY() * scale);
 
     Draw.WithTextureMode(renderLogic: () {
       Draw.ClearBackground(.BLANK);
@@ -1056,7 +1111,7 @@ class Grid extends Widget
 
           widgets[index].DrawWidget();
 
-          if (widgets[index] case Interactible widget)
+          if (widgets[index] case IInteractible widget)
           {
             if (skip)
               widget.state = .Idle;
@@ -1211,7 +1266,7 @@ class ListView extends Widget
       }
     });
 
-    Interactible.UpdateWidgets(widgets);
+    IInteractible.UpdateWidgets(widgets);
     super.DrawWidget();
   }
 
@@ -1366,15 +1421,17 @@ typedef WidgetTransition = bool Function(Widget, double);
 /// when the engine shuts down to free GPU resources held by the active widgets.
 abstract class Router
 {
-  static Map<String, WidgetBuilder> routes = {};
   static Widget? _activeWidget;
+  static Widget? _destWidget;
   // static Map<String, WidgetBuilder> overlays = {};
   // static Widget? _activeOverlay;
-
+  
+  /// Used by Router class to compute what route builder should be called when called Push/Pop methods
   static List<String> history = [];
-  static Widget? _destWidget;
-  static double elapsedTime = 0.0;
+  /// Map os String / Widget builder, a funcion instance to create the widget on the go
+  static Map<String, WidgetBuilder> routes = {};
 
+  /// Initializer function set the [home] page and the [routes] map
   static void Init(
     WidgetBuilder home,[
     Map<String, WidgetBuilder> routes = const {},
@@ -1403,11 +1460,13 @@ abstract class Router
     return true;
   }
 
+  /// When called by an [IIteractible] widget or another function, computes what route should the class go to, defaults to home/
   static void PushPage([ String uri = 'home/' ]) {
     if (!_PutPage(uri)) return;
     history.add(uri);
   }
 
+  /// When called by an [IIteractible] widget or another function, releases the currect page and build the previous page registred on [history]
   static void PopPage() {
     if (history.length == 1) {
       print("[Haybale] You can't pop the home page!");
@@ -1423,26 +1482,32 @@ abstract class Router
 
   //----------------------------------Methods------------------------------------------
 
+  /// Simply update the active widgets
   static void Update() {
     _activeWidget?.Mount();
     _destWidget?.Mount();
   }
-
+  
+  /// Simply free the active widgets memory
   static void Release() {
     _activeWidget?.Free();
     _destWidget?.Free();
     // _activeOverlay?.Dispose();
   }
 
+  static double _elapsedTime = 0.0;
+  /// Draws the Widget on the destination page with [transition].
+  /// 
+  /// Set [transition] to compute a custom transition animation to [destWidget] with [_elapsedTime], return [true] when complete.
   static void DrawPage({WidgetTransition? transition}) {
     transition ??= (destWidget, elapsedTime) { return true; };
 
     if (_destWidget != null) {
-      if (transition(_destWidget!, elapsedTime)) {
-        elapsedTime += Frame.GetFrameTime();
+      if (!transition(_destWidget!, _elapsedTime)) {
+        _elapsedTime += Frame.GetFrameTime();
       }
       else {
-        elapsedTime = 0.0;
+        _elapsedTime = 0.0;
         _activeWidget?.Free();
         _activeWidget = _destWidget;
         _destWidget = null;

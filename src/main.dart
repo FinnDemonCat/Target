@@ -3,7 +3,7 @@
 // ignore: unnecessary_import
 import 'package:target_engine/raylib/raylib.dart';
 import 'package:target_engine/haybale/haybale.dart';
-import 'package:target_engine/haybale/buttons.dart';
+import '../example/buttons.dart';
 
 bool ListenTerminal() {
   if (Keyboard.IsDown(Key.LEFT_CONTROL))
@@ -110,15 +110,23 @@ Widget HomePage() {
   );
 }
 
-void DrawScreen()
-{
-  Draw.ClearBackground(Color.GOLD);
-  if (ListenTerminal() || Window.IsResized()) {
-    
-    Router.Update();
-  }
+void DrawScreen() {
+  Draw.WithDefault(renderLogic: () {
+    Draw.ClearBackground(Color.GOLD);
+    Router.DrawPage();
+  });
+}
 
-  Router.DrawPage();
+final updateTime = 1/20;
+final stopwatch = Stopwatch()..start();
+void Update() {
+  final deltaTime = stopwatch.elapsedMilliseconds / 1000;
+  if (deltaTime < updateTime) return;
+
+  if (ListenTerminal() || Window.IsResized())
+    Router.Update();
+  
+  stopwatch.reset();
 }
 
 // Canvas Should be a single child widget which only manages the intermidiate draw buffer
@@ -131,15 +139,14 @@ void main()
   Frame.SetTargetFPS(30);
 
   Router.Init(
-    HomePage, {
-      'Page1/': PageOne,
-      'Page2/': PageTwo
-    }
+    HomePage,
+    { 'Page1/': PageOne,
+      'Page2/': PageTwo }
   );
 
-  while(!Window.ShouldClose())
-  {
-    Draw.WithDefault(renderLogic: DrawScreen);
+  while(!Window.ShouldClose()) {
+    Update();
+    DrawScreen();
   }
 
   // canvas.Dispose();
