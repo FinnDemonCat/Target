@@ -4,20 +4,46 @@ part of '../raylib.dart';
 //                                   Mesh
 //------------------------------------------------------------------------------------
 
-class Mesh extends NativeWrapper<_Mesh>
-{
-  // ignore: unused_element
-  /*
-  void _setmemory(_Mesh result)
-  {
-    Pointer<_Mesh> pointer = malloc.allocate<_Mesh>(sizeOf<_Mesh>());
-    pointer.ref = result;
+class Mesh extends NativeWrapper<_Mesh> {
+  //--------------------------------Getters-&-Setters-----------------------------------
+  
+  _Mesh get ref => pointer.ref;
+  set ref (_Mesh value) => pointer.ref = value;
 
-    _memory = NativeWrapper<_Mesh>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-    _setReferences();
-  }
-  */
+  int get vertexCount => ref.vertexCount;
+  int get triangleCount => ref.triagleCoung;
+  /// OpenGL Vertex Array Object id
+  int get vaoID => ref.vaoID;
+  int get boneCount => ref.boneCount;
+
+  // Vertex attributes data
+  /// Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
+  late final Float32List vertices;
+  /// Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
+  late final Float32List texcoords;
+  /// Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5)
+  late final Float32List texcoords2;
+  /// Vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
+  late final Float32List normals;
+  /// Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
+  late final Float32List tangents;
+  /// Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+  late final Uint8List colors;
+  /// Vertex indices (in case vertex data comes indexed)
+  late final Uint16List indices;
+
+  /// Animated vertex positions (after bones transformations)
+  late final Float32List animVertices;
+  /// Animated normals (after bones transformations)
+  late final Float32List animNormals;
+  /// Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
+  late final Uint8List boneIds;
+  /// Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
+  late final Float32List boneWeights;
+  /// Bones animated transformation matrices
+  late final Matrix boneMatrices;
+  /// OpenGL Vertex Buffer Objects id (default vertex data)
+  late final Int32List vboId;
 
   void _setReferences() {
     vertices = ref.vertices.IsNotNull 
@@ -74,14 +100,21 @@ class Mesh extends NativeWrapper<_Mesh>
       : Int32List(16);
   }
 
+  //--------------------------------Constructors----------------------------------------
+
   // ignore: unused_element_parameter
   Mesh._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences();
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   // ignore: unused_element
   Mesh._Recieve(_Mesh result) : super(sizeOf<_Mesh>()) {
     ref = result;
+    _setReferences();
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   Mesh({
@@ -115,115 +148,97 @@ class Mesh extends NativeWrapper<_Mesh>
     this.boneMatrices = boneMatrices ?? Matrix();
     this.vboId = vboId ?? Int32List(0);
   }
-
-  //--------------------------------Getters-&-Setters-----------------------------------
-  
-  _Mesh get ref => pointer.ref;
-  set ref (_Mesh value) => pointer.ref = value;
-
-  int get vertexCount => ref.vertexCount;
-  int get triangleCount => ref.triagleCoung;
-  /// OpenGL Vertex Array Object id
-  int get vaoID => ref.vaoID;
-  int get boneCount => ref.boneCount;
-
-  // Vertex attributes data
-  /// Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
-  late final Float32List vertices;
-  /// Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
-  late final Float32List texcoords;
-  /// Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5)
-  late final Float32List texcoords2;
-  /// Vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
-  late final Float32List normals;
-  /// Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
-  late final Float32List tangents;
-  /// Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
-  late final Uint8List colors;
-  /// Vertex indices (in case vertex data comes indexed)
-  late final Uint16List indices;
-
-  /// Animated vertex positions (after bones transformations)
-  late final Float32List animVertices;
-  /// Animated normals (after bones transformations)
-  late final Float32List animNormals;
-  /// Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
-  late final Uint8List boneIds;
-  /// Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
-  late final Float32List boneWeights;
-  /// Bones animated transformation matrices
-  late final Matrix boneMatrices;
-  /// OpenGL Vertex Buffer Objects id (default vertex data)
-  late final Int32List vboId;
   
   //----------------------------------Constructors--------------------------------------
 
   /// Generate polygonal mesh
-  factory Mesh.Poly(int sides, double radius) {
+  factory Mesh.Poly(int sides, double radius,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshPoly(sides, radius);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate plane mesh (with subdivisions)
-  factory Mesh.Plane(double width, double length, int resX, int resZ) {
+  factory Mesh.Plane(double width, double length, int resX, int resZ,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshPlane(width, length, resX, resZ);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate cuboid mesh
-  factory Mesh.Cube(double width, double height, double length) {
+  factory Mesh.Cube(double width, double height, double length,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshCube(width, height, length);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate sphere mesh (standard sphere)
-  factory Mesh.Sphere(double radius, int rings, int slices) {
+  factory Mesh.Sphere(double radius, int rings, int slices,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshSphere(radius, rings, slices);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate half-sphere mesh (no bottom cap)
-  factory Mesh.Hemisphere(double radius, int rings, int slices) {
+  factory Mesh.Hemisphere(double radius, int rings, int slices,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshHemiSphere(radius, rings, slices);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate cylinder mesh
-  factory Mesh.Cylinder(double radius, double height, int slices) {
+  factory Mesh.Cylinder(double radius, double height, int slices,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshCylinder(radius, height, slices);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate cone/pyramid mesh
-  factory Mesh.Cone(double radius, double height, int slices) {
+  factory Mesh.Cone(double radius, double height, int slices,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshCone(radius, height, slices);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate torus mesh
   /// 
   /// AKA Donut
-  factory Mesh.Torus(double radius, double size, int radSeg, int sides) {
+  factory Mesh.Torus(double radius, double size, int radSeg, int sides,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshTorus(radius, size, radSeg, sides);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate torus mesh
-  factory Mesh.Knot(double radius, double size, int radSeg, int sides) {
+  factory Mesh.Knot(double radius, double size, int radSeg, int sides,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshKnot(radius, size, radSeg, sides);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate heightmap mesh from image data
-  factory Mesh.Heightmap(Image heightMap, Vector3 size) {
+  factory Mesh.Heightmap(Image heightMap, Vector3 size,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshHeightmap(heightMap.ref, size.ref);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   /// Generate cubes-based map mesh from image data
-  factory Mesh.CubicMap(Image cubicMap, Vector3 cubeSize) {
+  factory Mesh.CubicMap(Image cubicMap, Vector3 cubeSize,[ RaylibArena? arena ]) {
     _Mesh result = _genMeshCubicmap(cubicMap.ref, cubeSize.ref);
-    return Mesh._Recieve(result);
+    Mesh mesh = Mesh._Recieve(result);
+    arena?.register(mesh);
+    return mesh;
   }
 
   //----------------------------------Utilities-----------------------------------------
@@ -247,10 +262,8 @@ class Mesh extends NativeWrapper<_Mesh>
   static void Draw(Mesh mesh, Material material, Matrix transform) => _drawMesh(mesh.ref, material.ref, transform.ref);
 
   /// Draw multiple mesh instances with material and different transforms
-  static void DrawInstanced({ required Mesh mesh, required Material material, required List<Matrix> transforms})
-  {
-    using ((Arena arena)
-    {
+  static void DrawInstanced({ required Mesh mesh, required Material material, required List<Matrix> transforms}) {
+    using ((Arena arena) {
       Pointer<_Matrix> transformsArray = arena.allocate<_Matrix>(sizeOf<_Matrix>() * transforms.length);
       for (int x = 0; x < transforms.length; x++)
         (transformsArray + x).ref = transforms[x].ref;
@@ -260,18 +273,16 @@ class Mesh extends NativeWrapper<_Mesh>
   }
 
   /// Compute mesh bounding box limits
-  BoundingBox GetBoundingBox()
-  {
+  BoundingBox GetBoundingBox() {
     _BoundingBox result = _getMeshBoundingBox(this.ref);
     return BoundingBox._Recieve(result);
   }
 
   /// Compute mesh tangents
-  void GenTangents() =>_genMeshTangents(pointer);
+  void GenTangents() => _genMeshTangents(pointer);
 
   /// Export mesh data to file, returns true on success
-  bool Export(String fileName)
-  {
+  bool Export(String fileName) {
     return using((Arena arena) {
       Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
 
@@ -280,8 +291,7 @@ class Mesh extends NativeWrapper<_Mesh>
   }
 
   /// Export mesh as code file (.h) defining multiple arrays of vertex attributes
-  bool ExportAsCode(String fileName)
-  {
+  bool ExportAsCode(String fileName){
     return using((Arena arena) {
       Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
 
@@ -293,6 +303,11 @@ class Mesh extends NativeWrapper<_Mesh>
   Mesh operator [](int index) {
     if (index < 0 || index >= length) throw RangeError(index);
     return Mesh._Encapsulate(pointer + index);
+  }
+
+  void operator []=(Mesh value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
   }
 
   @override
@@ -331,16 +346,7 @@ class Shader extends NativeWrapper<_Shader> {
   late final Int32List locs;
   final Map<String, int> uniformLocIndex = {};
   final Map<String, int> attbLocIndex = {};
-  /* 
-  void _setmemory(_Shader result) {
-    Pointer<_Shader> pointer = malloc.allocate<_Shader>(sizeOf<_Shader>());
-    pointer.ref = result;
 
-    _memory = NativeWrapper<_Shader>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-    _setReferences();
-  }
-  */
   void _setReferences() {
     locs = ref.locs.asTypedList(32);
   }
@@ -359,7 +365,7 @@ class Shader extends NativeWrapper<_Shader> {
   }
 
   /// Load shader from files and bind default locations
-  factory Shader(String? vsFileName, String? fsFileName) {
+  factory Shader(String? vsFileName, String? fsFileName,[ RaylibArena? arena ]) {
     Pointer<Utf8> cvsFileName = (vsFileName != null)
       ? vsFileName.toNativeUtf8()
       : nullptr;
@@ -380,16 +386,18 @@ class Shader extends NativeWrapper<_Shader> {
       malloc.free(cfsFileName);
     }
 
-    return Shader._Recieve(result);
+    Shader shader = Shader._Recieve(result);
+    arena?.register(shader);
+    return shader;
   }
 
   /// Load shader from code strings and bind default locations
-  factory Shader.FromMemory(Uint8List? vsCode, Uint8List? fsCode) {
+  factory Shader.FromMemory(Uint8List? vsCode, Uint8List? fsCode,[ RaylibArena? arena ]) {
     Pointer<Utf8> cvsCode = (vsCode != null)
-      ? uint8ListToUtf8Pointer(vsCode)
+      ? vsCode.toUTF8Pointer()
       : nullptr;
     Pointer<Utf8> cfsCode = (fsCode != null)
-      ? uint8ListToUtf8Pointer(fsCode)
+      ? fsCode.toUTF8Pointer()
       : nullptr;
     
     _Shader result;
@@ -405,7 +413,9 @@ class Shader extends NativeWrapper<_Shader> {
       malloc.free(cfsCode);
     }
 
-    return Shader._Recieve(result);
+    Shader shader = Shader._Recieve(result);
+    arena?.register(shader);
+    return shader;
   }
 
   /// Check if a shader is valid (loaded on GPU)
@@ -448,7 +458,7 @@ class Shader extends NativeWrapper<_Shader> {
       _setShaderValue(ref, locIndex, tempPtr.cast<Void>(), type.index);
     }
     else if (value is Vector2)
-      _setShaderValue(ref, locIndex, value._ptr.cast<Void>(), type.index);
+      _setShaderValue(ref, locIndex, value.pointer.cast<Void>(), type.index);
     else if (value is Vector3)
       _setShaderValue(ref, locIndex, value.pointer.cast<Void>(), type.index);
     else if (value is Vector4)
@@ -594,18 +604,6 @@ class Material extends NativeWrapper<_Material> {
 
   // ------------------------------Memory management------------------------------
 
-  // ignore: unused_element
-  /* void _setmemory(_Material result) {
-    if (_memory != null) Free();
-    Pointer<_Material> pointer = malloc.allocate<_Material>(sizeOf<_Material>());
-    pointer.ref = result;
-
-    _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeWrapper(pointer);
-
-    _setReferences();
-  } */
-
   void _setReferences() {
     int address = pointer.address;
     _shader = Shader._Encapsulate(.fromAddress(address));
@@ -624,20 +622,23 @@ class Material extends NativeWrapper<_Material> {
   Material._Recieve(_Material result) : super(sizeOf<_Material>()) {
     ref = result;
     _setReferences();
-    _finalizer.attach(this, pointer, detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   // --------------------------Constructors--------------------------------------
 
   /// Load materials from model file
-  static Material LoadMaterials(String fileName) {
+  factory Material.LoadMaterials(String fileName,[ RaylibArena? arena ]) {
     Pointer<Utf8> cfileName = fileName.toNativeUtf8();
     Pointer<Int32> materialCount = malloc.allocate<Int32>(sizeOf<Int32>());
-
     Pointer<_Material> result;
+
+    Material material;
 
     try {
       result = _loadMaterials(cfileName, materialCount);
+      material = Material._Encapsulate(result, IsOwner: true, length: materialCount.value);
     }
     catch (error) {
       rethrow;
@@ -647,7 +648,8 @@ class Material extends NativeWrapper<_Material> {
       malloc.free(materialCount);
     }
 
-    return Material._Encapsulate(result, IsOwner: true, length: materialCount.value);
+    arena?.register(material);
+    return material;
   }
 
   /// Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)

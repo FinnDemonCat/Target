@@ -65,13 +65,13 @@ abstract class Collision3D
   /// Check collision between box and sphere
   static bool CheckBoxSphere(BoundingBox box, Vector3 center, double radius) => _checkCollisionBoxSphere(box.ref, center.ref, radius);
   /// Get collision info between ray and sphere
-  static RayCollision GetRayCollisionSphere(Ray ray, Vector3 center, double radius) => RayCollision._Recieve(_getRayCollisionSphere(ray.ref, center.ref, radius));
+  static RayCollision GetRayCollisionSphere(Ray ray, Vector3 center, double radius,[ RaylibArena? arena ]) => RayCollision._Recieve(_getRayCollisionSphere(ray.ref, center.ref, radius), arena);
   /// Get collision info between ray and box
-  static RayCollision GetRayCollisionBox(Ray ray, BoundingBox box) => RayCollision._Recieve(_getRayCollisionBox(ray.ref, box.ref));
+  static RayCollision GetRayCollisionBox(Ray ray, BoundingBox box,[ RaylibArena? arena ]) => RayCollision._Recieve(_getRayCollisionBox(ray.ref, box.ref), arena);
   /// Get collision info between ray and mesh
-  static RayCollision GetRayCollisionMesh(Ray ray, Mesh mesh, Matrix transform) => RayCollision._Recieve(_getRayCollisionMesh(ray.ref, mesh.ref, transform.ref));
+  static RayCollision GetRayCollisionMesh(Ray ray, Mesh mesh, Matrix transform,[ RaylibArena? arena ]) => RayCollision._Recieve(_getRayCollisionMesh(ray.ref, mesh.ref, transform.ref), arena);
   /// Get collision info between ray and triangle
-  static RayCollision GetRayCollisionTriangle(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3) => RayCollision._Recieve(_getRayCollisionTriangle(ray.ref, p1.ref, p2.ref, p3.ref));
+  static RayCollision GetRayCollisionTriangle(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3,[ RaylibArena? arena ]) => RayCollision._Recieve(_getRayCollisionTriangle(ray.ref, p1.ref, p2.ref, p3.ref), arena);
   /// Get collision info between ray and quad
-  static RayCollision GetRayCollisionQuad(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4) => RayCollision._Recieve(_getRayCollisionQuad(ray.ref, p1.ref, p2.ref, p3.ref, p4.ref));
+  static RayCollision GetRayCollisionQuad(Ray ray, Vector3 p1, Vector3 p2, Vector3 p3, Vector3 p4,[ RaylibArena? arena ]) => RayCollision._Recieve(_getRayCollisionQuad(ray.ref, p1.ref, p2.ref, p3.ref, p4.ref), arena);
 }

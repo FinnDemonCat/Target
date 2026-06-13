@@ -81,8 +81,9 @@ class Matrix extends NativeWrapper<_Matrix>
     double m1 = 0.0, double m5 = 1.0, double m9 = 0.0, double m13 = 0.0,
     double m2 = 0.0, double m6 = 0.0, double m10 = 1.0, double m14 = 0.0,
     double m3 = 0.0, double m7 = 0.0, double m11 = 0.0, double m15 = 1.0,
+    RaylibArena? arena
   ]) :
-    super(sizeOf<_Matrix>())
+    super(sizeOf<_Matrix>(), arena: arena)
   {
     ref
       ..m0 = m0   ..m4 = m4   ..m8 = m8   ..m12 = m12

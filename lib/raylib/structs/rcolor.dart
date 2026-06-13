@@ -9,18 +9,6 @@ class Color extends NativeWrapper<_Color>
   _Color get ref => pointer.ref;
   set ref(_Color result) => pointer.ref = result;
 
-  // Creates a new pointer in heap and copies the value  
-  /*
-  void _setMemory(_Color result)
-  {
-    Pointer<_Color> pointer = malloc.allocate<_Color>(sizeOf<_Color>());
-    pointer.ref = result;
-
-    _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeWrapper<_Color>(pointer);
-  }
-  */
-
   static final Color LIGHTGRAY  = Color(200, 200, 200);
   static final Color GRAY       = Color(130, 130, 130);
   static final Color DARKGRAY   = Color( 80,  80,  80);
@@ -57,7 +45,7 @@ class Color extends NativeWrapper<_Color>
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Color(int r, int g, int b,[ int a = 255 ]) : super(sizeOf<_Color>()) {
+  Color(int r, int g, int b,[ int a = 255, RaylibArena? arena ]) : super(sizeOf<_Color>(), arena: arena) {
     ref
       ..r = r
       ..g = g

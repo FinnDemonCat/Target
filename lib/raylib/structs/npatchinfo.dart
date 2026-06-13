@@ -52,7 +52,8 @@ class NPatchInfo extends NativeWrapper<_NPatchInfo>
     required int top,
     required int left,
     required int right,
-    required NPatchLayout layout
+    required NPatchLayout layout,
+    super.arena
   }) : super(sizeOf<_NPatchInfo>())
   {
     // Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());

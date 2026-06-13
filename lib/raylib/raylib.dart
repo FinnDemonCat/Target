@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:ffi';
-import 'package:ffi/ffi.dart';
-import 'package:meta/meta.dart';
+import 'package:target_engine/native_wrapper/native_wrapper.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;

@@ -2,22 +2,40 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Cmake: init",
+			"label": "CMake: Configure",
 			"type": "shell",
-			"command": "cmake -S . -B build -G Ninja",
-			"problemMatcher": []
+			"command": "cmake",
+			"args": ["-S", ".", "-B", "build", "-G", "Ninja"],
+			"problemMatcher": ["$cmake"],
+			"group": { "kind": "build", "isDefault": false }
 		},
 		{
-			"label": "CMake: debug",
+			"label": "CMake: Build All",
 			"type": "shell",
-			"command": "cmake --build build",
-			"dependsOn": ["Cmake: init"]
+			"command": "cmake",
+			"args": ["--build", "build", "--target", "build_all"],
+			"dependsOn": ["CMake: Configure"],
+			"problemMatcher": ["$gcc"],
+			"group": { "kind": "build", "isDefault": true }
 		},
 		{
-			"label": "CMake: build",
+			"label": "CMake: Build (Dart AOT only)",
 			"type": "shell",
-			"command": "cmake --build build",
-			"dependsOn": ["Cmake: init"]
+			"command": "cmake",
+			"args": ["--build", "build", "--target", "build_aot"],
+			"dependsOn": ["CMake: Configure"],
+			"problemMatcher": [],
+			"group": { "kind": "build", "isDefault": false }
+		},
+		{
+			"label": "CMake: Run (Dart JIT)",
+			"type": "shell",
+			"command": "cmake",
+			"args": ["--build", "build", "--target", "run_jit"],
+			"dependsOn": ["CMake: Configure"],
+			"problemMatcher": [],
+			"group": { "kind": "test", "isDefault": false },
+			"isBackground": false
 		}
 	]
 }

@@ -109,7 +109,7 @@ abstract class Shapes
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
       for (int x = 0; x < points.length; x++) {
-        cpoints[x] = points[x]._ptr.ref;
+        cpoints[x] = points[x].ref;
       }
 
       _drawLineStrip(cpoints, points.length, finalcolor.ref);
@@ -288,7 +288,7 @@ abstract class Shapes
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
       for (int x = 0; x < points.length; x++) {
-        cpoints[x] = points[x]._ptr.ref;
+        cpoints[x] = points[x].ref;
       }
 
       _drawTriangleFan(cpoints, points.length, finalcolor.ref);
@@ -301,7 +301,7 @@ abstract class Shapes
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
       for (int x = 0; x < points.length; x++) {
-        cpoints[x] = points[x]._ptr.ref;
+        cpoints[x] = points[x].ref;
       }
 
       _drawTriangleStrip(cpoints, points.length, finalcolor.ref);

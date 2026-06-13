@@ -4,8 +4,7 @@ part of '../raylib.dart';
 //                                 BoundingBox
 //------------------------------------------------------------------------------------
 
-class BoundingBox extends NativeWrapper<_BoundingBox>
-{
+class BoundingBox extends NativeWrapper<_BoundingBox> {
   _BoundingBox get ref => pointer.ref;
   set ref (_BoundingBox value) => pointer.ref = value;
   late final Vector3 min;
@@ -19,7 +18,7 @@ class BoundingBox extends NativeWrapper<_BoundingBox>
     max = Vector3._Encapsulate(.fromAddress(address));
   }
   
-  BoundingBox(Vector3 min, Vector3 max) : super(sizeOf<_BoundingBox>()) {
+  BoundingBox(Vector3 min, Vector3 max,{ super.arena }) : super(sizeOf<_BoundingBox>()) {
     ref
       ..min = min.ref
       ..max = max.ref;

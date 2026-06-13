@@ -48,6 +48,18 @@ build build_aot: phony CMakeFiles/build_aot
 
 
 #############################################
+# Utility command for run_jit
+
+build run_jit: phony CMakeFiles/run_jit
+
+
+#############################################
+# Utility command for build_all
+
+build build_all: phony CMakeFiles/build_all build_aot
+
+
+#############################################
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
@@ -75,8 +87,22 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # Custom command for CMakeFiles\build_aot
 
 build CMakeFiles/build_aot | ${cmake_ninja_workdir}CMakeFiles/build_aot: CUSTOM_COMMAND
-  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Calie\Documents\Code\Dart\Target\build && dart compile exe C:/Users/Calie/Documents/Code/Dart/Target/src/main.dart"
-  DESC = Compiling project AOT
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Calie\Documents\Code\Dart\Target && dart compile exe C:/Users/Calie/Documents/Code/Dart/Target/src/main.dart"
+  DESC = Compiling Dart project to AOT executable
+
+
+#############################################
+# Custom command for CMakeFiles\run_jit
+
+build CMakeFiles/run_jit | ${cmake_ninja_workdir}CMakeFiles/run_jit: CUSTOM_COMMAND
+  COMMAND = C:\WINDOWS\system32\cmd.exe /C "cd /D C:\Users\Calie\Documents\Code\Dart\Target && dart run --enable-asserts C:/Users/Calie/Documents/Code/Dart/Target/src/main.dart"
+  DESC = Running Dart in JIT (Debug) mode with assertions
+
+
+#############################################
+# Phony custom command for CMakeFiles\build_all
+
+build CMakeFiles/build_all | ${cmake_ninja_workdir}CMakeFiles/build_all: phony || build_aot
 
 # =============================================================================
 # Target aliases.

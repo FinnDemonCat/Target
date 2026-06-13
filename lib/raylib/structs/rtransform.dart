@@ -12,16 +12,6 @@ class Transform extends NativeWrapper<_Transform> {
   late final Quaternion rotation;
   late final Vector3 scale;
 
-  // ignore: unused_element
-  /* void _setmemory(_Transform result) {
-    Pointer<_Transform> pointer = malloc.allocate<_Transform>(sizeOf<_Transform>());
-    pointer.ref = result;
-
-    _memory = NativeWrapper<_Transform>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-    _setReferences(pointer);
-  } */
-
   void _setReferences() {
     int address = pointer.address;
     this.translation = Vector3._Encapsulate(.fromAddress(address));
@@ -47,7 +37,7 @@ class Transform extends NativeWrapper<_Transform> {
       _finalizer.attach(this, pointer, detach: this);
   }
 
-  Transform(Vector3 translation, Quaternion rotation, Vector3 scale) : super(sizeOf<_Transform>()) {
+  Transform(Vector3 translation, Quaternion rotation, Vector3 scale,[ RaylibArena? arena ]) : super(sizeOf<_Transform>(), arena: arena) {
     ref
       ..translation = translation.ref
       ..rotation = rotation.ref

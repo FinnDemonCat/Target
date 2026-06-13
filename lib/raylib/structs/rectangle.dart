@@ -5,10 +5,7 @@ part of '../raylib.dart';
 //------------------------------------------------------------------------------------
 
 /// Rectangle, 4 components
-class Rectangle extends NativeWrapper<_Rectangle>
-{
-  // NativeWrapper<_Rectangle>? _memory;
-
+class Rectangle extends NativeWrapper<_Rectangle> {
   _Rectangle get ref => pointer.ref;
   set ref(_Rectangle value) => pointer.ref = value;
   double get x => pointer.ref.x;
@@ -21,24 +18,12 @@ class Rectangle extends NativeWrapper<_Rectangle>
   set width(double value)  => pointer.ref.width  = value;
   set height(double value) => pointer.ref.height = value;
 
-  void Set({double? x, double? y, double? width, double? height}) {
-    this.x = x ?? this.x;
-    this.y = y ?? this.y;
-    this.width = width ?? this.width;
-    this.height = height ?? this.height;
+  void Set({num? x, num? y, num? width, num? height}) {
+    this.x = x?.toDouble() ?? this.x;
+    this.y = y?.toDouble() ?? this.y;
+    this.width = width?.toDouble() ?? this.width;
+    this.height = height?.toDouble() ?? this.height;
   }
-
-  // ignore: unused_element
-  /* void _setMemory(_Rectangle result)
-  {
-    if (_memory != null) _memory!.Free();
-
-    Pointer<_Rectangle> pointer = malloc.allocate<_Rectangle>(sizeOf<_Rectangle>());
-    pointer.ref = result;
-
-    _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeWrapper<_Rectangle>(pointer);
-  } */
 
   // ignore: unused_element_parameter
   Rectangle._Encapsulate(super.pointer,{ super.length }) : super.fromAddress() {
@@ -51,12 +36,12 @@ class Rectangle extends NativeWrapper<_Rectangle>
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Rectangle([double x = 0.0, double y = 0.0, double width = 0.0, double height = 0.0]) : super(sizeOf<_Rectangle>()) {
+  Rectangle([num x = 0.0, num y = 0.0, num width = 0.0, num height = 0.0, RaylibArena? arena]) : super(sizeOf<_Rectangle>(), arena: arena) {
     ref
-      ..x = x
-      ..y = y
-      ..width = width
-      ..height = height;
+      ..x = x.toDouble()
+      ..y = y.toDouble()
+      ..width = width.toDouble()
+      ..height = height.toDouble();
 
     _finalizer.attach(this, pointer, detach: this);
   }

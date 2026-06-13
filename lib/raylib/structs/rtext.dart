@@ -3,8 +3,7 @@ part of '../raylib.dart';
 //------------------------------------------------------------------------------------
 //                                     Text
 //------------------------------------------------------------------------------------
-class Text implements Disposeable
-{
+class Text implements Disposeable {
   final _buffer = StringBuffer();
   late Pointer<Uint8> _array;
   int _length = 1024;
@@ -102,8 +101,7 @@ class Text implements Disposeable
   }
 }
 
-class TextCodepoint implements Disposeable
-{
+class TextCodepoint implements Disposeable {
   Int32List _buffer;
   Int32List get buffer => _buffer;
   late Pointer<Int32> _codepoints;

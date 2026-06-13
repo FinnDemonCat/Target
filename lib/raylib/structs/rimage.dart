@@ -4,8 +4,7 @@ part of '../raylib.dart';
 //                                   Image
 //------------------------------------------------------------------------------------
 
-class Image extends NativeWrapper<_Image>
-{
+class Image extends NativeWrapper<_Image> {
   _Image get ref => pointer.ref;
   set ref (_Image value) => pointer.ref = value;
 
@@ -31,7 +30,7 @@ class Image extends NativeWrapper<_Image>
 
   //------------------------------Constructors------------------------------------------
   /// Load image from file into CPU memory (RAM)
-  factory Image(String path) {
+  factory Image(String path,[ RaylibArena? arena ]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
     _Image result;
 
@@ -45,11 +44,13 @@ class Image extends NativeWrapper<_Image>
       malloc.free(cPath);
     }
 
-    return Image._Recieve(result);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   }
 
   /// Load image from RAW file data
-  factory Image.Raw(String path, int width, int height, PixelFormat format, int headerSize) {
+  factory Image.Raw(String path, int width, int height, PixelFormat format, int headerSize,[ RaylibArena? arena ]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
     _Image result;
 
@@ -63,11 +64,13 @@ class Image extends NativeWrapper<_Image>
       malloc.free(cPath);
     }
 
-    return Image._Recieve(result);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   }
 
   /// Load image sequence from file (frames appended to image.data)
-  factory Image.Anim(String path) {
+  factory Image.Anim(String path,[ RaylibArena? arena ]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
     Pointer<Int32> frameCount = malloc.allocate<Int32>(sizeOf<Int32>());
     _Image result;
@@ -84,12 +87,12 @@ class Image extends NativeWrapper<_Image>
     }
 
     Image image = Image._Recieve(result)..frameCount = frameCount.value; 
-
+    arena?.register(image);
     return image;
   }
 
   /// Load image sequence from memory buffer
-  factory Image.AnimFromMemory(String fileType, Uint8List bytes) {
+  factory Image.AnimFromMemory(String fileType, Uint8List bytes,[ RaylibArena? arena ]) {
     if (bytes.isEmpty) throw Exception("[Dart] byte array passed is empty!");
     
     Pointer<Utf8> cFileType = fileType.toNativeUtf8();
@@ -112,12 +115,12 @@ class Image extends NativeWrapper<_Image>
     }
 
     Image image = Image._Recieve(result)..frameCount = frameCount.value;
-
+    arena?.register(image);
     return image;
   }
 
   /// Load image from memory buffer, fileType refers to extension: i.e. '.png'
-  factory Image.FromMemory(String fileType, Uint8List fileData) {
+  factory Image.FromMemory(String fileType, Uint8List fileData,[ RaylibArena? arena ]) {
     Pointer<Utf8> cFileType = fileType.toNativeUtf8();
     Pointer<Uint8> data = malloc.allocate<Uint8>(fileData.length);
     data.asTypedList(fileData.length).setAll(0, fileData);
@@ -135,139 +138,173 @@ class Image extends NativeWrapper<_Image>
       malloc.free(data);
     }
 
-    return Image._Recieve(result);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   }
 
   /// Load image from GPU texture data
 	//  Texture2D shadow class not yet implemented
 	//  uncommment when done
-  factory Image.LoadFromTexture(_Texture2D texture) {
+  factory Image.LoadFromTexture(_Texture2D texture,[ RaylibArena? arena ]) {
     final result = _loadImageFromTexture(texture);
-    return Image._Recieve(result);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   }
 
   /// Load image from screen buffer and (screenshot)
-  factory Image.FromScreen() {
+  factory Image.FromScreen([ RaylibArena? arena ]) {
     final result = _loadImageFromScreen();
-    return Image._Recieve(result);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   }
 
 //---------------------------------Generators-----------------------------------------
 /// Generate image: plain color
-static Image FromColor(int width, int height, Color color) {
+static Image FromColor(int width, int height, Color color,[ RaylibArena? arena ]) {
   _Image result = _genImageColor(width, height, color.ref);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
 static Image GradientLinear(
-  int width, int height,
- {required int direction, required Color start, required Color end}
-) {
+  int width, int height,{
+  required int direction,
+  required Color start,
+  required Color end,
+  RaylibArena? arena
+}) {
   _Image result = _genImageGradientLinear(width, height, direction, start.ref, end.ref);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: radial gradient
 static Image GradientRadial(
-  int width, int height,
- {required double density, required Color inner, required Color outer}
-) {
+  int width, int height,{
+  required double density,
+  required Color inner,
+  required Color outer,
+  RaylibArena? arena
+}) {
   _Image result = _genImageGradientRadial(width, height, density, inner.ref, outer.ref);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: square gradient
 static Image GradientSquare(
-  int width, int height,
- {required double density, required Color inner, required Color outer}
-) {
+  int width, int height,{
+  required double density,
+  required Color inner,
+  required Color outer,
+  RaylibArena? arena
+}) {
   _Image result = _genImageGradientSquare(width, height, density, inner.ref, outer.ref);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: checked
 static Image Checked(
   int width, int height,
- {required int checksX, required int checksY, required Color col1, required Color col2}
+ {required int checksX, required int checksY, required Color col1, required Color col2, RaylibArena? arena}
 ) {
   _Image result = _genImageChecked(width, height, checksX, checksY, col1.ref, col2.ref);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: white noise
-static Image WhiteNoise(int width, int height,{ required double factor })
-{
+static Image WhiteNoise(int width, int height,{ required double factor, RaylibArena? arena }) {
   _Image result = _genImageWhiteNoise(width, height, factor);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: perlin noise
-static Image PerlinNoise(int width, int height,{ required int offsetX, required int offsetY, required double scale })
-{
+static Image PerlinNoise(int width, int height,{ required int offsetX, required int offsetY, required double scale, RaylibArena? arena }) {
   _Image result = _genImagePerlinNoise(width, height, offsetX, offsetY, scale);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
 /// Generate image: cellular algorithm, bigger tileSize means bigger cells
-static Image Cellular(int width, int height, int tileSize)
-{
+static Image Cellular(int width, int height, int tileSize, [RaylibArena? arena]) {
   _Image result = _genImageCellular(width, height, tileSize);
-  return Image._Recieve(result);
+  Image image = Image._Recieve(result);
+  arena?.register(image);
+  return image;
 }
 
-static Image GenText(int width, int height, String text)
-{
-  return using ((Arena arena) {
-    Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
+static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) {
+  return using ((Arena tempArena) {
+    Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
 
     _Image result = _genImageText(width, height, ctext);
-    return Image._Recieve(result);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   });
 }
 
   /// Create an image duplicate (useful for transformations)
-  static Image Copy(Image image)
-  {
+  static Image Copy(Image image,[ RaylibArena? arena ]) {
     _Image result = _imageCopy(image.ref);
-    return Image._Recieve(result); 
+    Image copy = Image._Recieve(result);
+    arena?.register(copy);
+    return copy;
   }
 
   /// Create an image from another image piece
-  static Image FromImage(Image image, Rectangle rect)
-  {
+  static Image FromImage(Image image, Rectangle rect,[ RaylibArena? arena ]) {
     _Image result = _imageFromImage(image.ref, rect.ref);
-    return Image._Recieve(result);
+    Image resultImage = Image._Recieve(result);
+    arena?.register(resultImage);
+    return resultImage;
   }
 
   /// Create an image from a selected channel of another image (GRAYSCALE)
-  static Image FromChannel(Image image, int selectedChannel)
-  {
+  static Image FromChannel(Image image, int selectedChannel,[ RaylibArena? arena ]) {
     _Image result = _imageFromChannel(image.ref, selectedChannel);
-    return Image._Recieve(result);
+    Image resultImage = Image._Recieve(result);
+    arena?.register(resultImage);
+    return resultImage;
   }
 
   /// Create an image from text (default font)
-  static Image Text(String text,{ required int fontSize, Color? color })
-  {
-    return using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
+  static Image Text(String text,{ required int fontSize, Color? color, RaylibArena? arena }) {
+    return using ((Arena tempArena) {
+      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
       final finalcolor = color ?? Color.WHITE;
 
       _Image result = _imageText(ctext, fontSize, finalcolor.ref);
-      return Image._Recieve(result);
+      Image image = Image._Recieve(result);
+      arena?.register(image);
+      return image;
     });
   }
 
   /// Create an image from text (custom sprite font)
-  static Image TextEx(Font font, String text,{ required double fontSize, required double spacing, Color? tint })
-  {
-    return using ((Arena arena) {
-      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
+  static Image TextEx(Font font, String text,{ required double fontSize, required double spacing, Color? tint, RaylibArena? arena }) {
+    return using ((Arena tempArena) {
+      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
       final finaltint = tint ?? Color.WHITE;
 
       _Image result = _imageTextEx(font.ref, ctext, fontSize, spacing, finaltint.ref);
-      return Image._Recieve(result);
+      Image image = Image._Recieve(result);
+      arena?.register(image);
+      return image;
     });
   }
 //----------------------------------Methods-------------------------------------------
@@ -466,7 +503,7 @@ static Image GenText(int width, int height, String text)
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
       for (int x = 0; x < points.length; x++) {
-        cpoints[x] = points[x]._ptr.ref;
+        cpoints[x] = points[x].ref;
       }
 
       _imageDrawTriangleFan(pointer, cpoints, points.length, color.ref);
@@ -481,7 +518,7 @@ static Image GenText(int width, int height, String text)
     using ((Arena arena) {
       Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
       for (int x = 0; x < points.length; x++) {
-        cpoints[x] = points[x]._ptr.ref;
+        cpoints[x] = points[x].ref;
       }
 
       _imageDrawTriangleStrip(pointer, cpoints, points.length, color.ref);

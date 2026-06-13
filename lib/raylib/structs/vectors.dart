@@ -3,66 +3,50 @@ part of '../raylib.dart';
 //------------------------------------------------------------------------------------
 /// Module Functions Definition - Vector2 math
 //------------------------------------------------------------------------------------
-class Vector2 extends NativeWrapper<_Vector2>
-{
-	// NativeWrapper<_Vector2>? _memory;
-  /* 
-	void _setmemory(_Vector2 result, {bool owner = true})
-	{
-    if (_memory != null) Free();
-
-    Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
-    pointer.ref = result;
-    
-    _memory = NativeWrapper(pointer, IsOwner: owner);
-
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
- */
+class Vector2 extends NativeWrapper<_Vector2> {
   _Vector2 get ref => pointer.ref;
   set ref (_Vector2 value) => pointer.ref = value;
-  Pointer<_Vector2> get _ptr => pointer;
 
-  double get x { return pointer.ref.x; }
-  double get y { return pointer.ref.y; }
-  set x (double value) { pointer.ref.x = value; }
-  set y (double value) { pointer.ref.y = value; }
+  double get x => ref.x;
+  double get y => ref.y;
+  set x (double value) { ref.x = value; }
+  set y (double value) { ref.y = value; }
 
-  /// Set `x` and `y`  at once
-  void Set({ double? x, double? y }) {
-    if (x != null) this.x = x;
-    if (y != null) this.y = y;
+  ///Set all values in a single call
+  void Set({ num? x, num? y }) {
+    if (x != null) this.x = x.toDouble();
+    if (y != null) this.y = y.toDouble();
   }
 
 //--------------------------------Constructors----------------------------------------
 
   /// Vector with components of value x and y. Defaults to 0.0 and 0.0
-  Vector2([double x = 0.0, double y = 0.0]) : super(sizeOf<_Vector2>()) {
-    // Pointer<_Vector2> pointer = malloc.allocate<_Vector2>(sizeOf<_Vector2>());
-
+  Vector2([double x = 0.0, double y = 0.0, RaylibArena? arena]) : super(sizeOf<_Vector2>(), arena: arena) {
     ref
-    ..x = x
-    ..y = y;
+      ..x = x
+      ..y = y;
 
-    // _memory = NativeWrapper<_Vector2>(pointer);
     _finalizer.attach(this, pointer, detach: this);
   }
 
   Vector2._Recieve(_Vector2 result) : super(sizeOf<_Vector2>()) {
     x = result.x;
     y = result.y;
+
+    _finalizer.attach(this, pointer, detach: this);
   }
 
   // ignore: unused_element_parameter
-  Vector2._Encapsulate(super.pointer,{ super.length }) :
-    super.fromAddress();
+  Vector2._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
 
   /// Vector with components value 0.0f
-  factory Vector2.Zero() => Vector2();
+  factory Vector2.Zero([RaylibArena? arena]) => Vector2(0.0, 0.0, arena);
 
   /// Vector with components value 1.0f
-  factory Vector2.One() => Vector2(1.0, 1.0);
+  factory Vector2.One([RaylibArena? arena]) => Vector2(1.0, 1.0, arena);
 
 //--------------------------------Methods---------------------------------------------
 
@@ -282,8 +266,7 @@ extension Vector2Math on Vector2
     this.y = this.y + dy / dist * maxDistance;
   }
 
-  void Invert()
-  {
+  void Invert() {
     this.x = 1.0 / this.x;
     this.y = 1.0 / this.y;
   }
@@ -291,8 +274,7 @@ extension Vector2Math on Vector2
   /// Clamp the components of the vector between
   ///
   /// min and max values specified by the given vectors
-  void Clamp(Vector2 min, Vector2 max)
-  {
+  void Clamp(Vector2 min, Vector2 max) {
     this.x = math.min(max.x, math.max(min.x, this.x));
     this.y = math.min(max.y, math.max(min.y, this.y));
   }
@@ -340,28 +322,16 @@ class Vector3 extends NativeWrapper<_Vector3>
   set y (double value) => ref.y = value;
   set z (double value) => ref.z = value;
 
-  // ignore: unused_element
-  /* void _setmemory(_Vector3 result)
-  {
-    if (_memory != null) _memory!.Free();
-
-    Pointer<_Vector3> pointer = malloc.allocate<_Vector3>(sizeOf<_Vector3>());
-    pointer.ref = result;
-
-    _memory = NativeWrapper(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-  } */
-
   ///Set all values in a single call
-  void Set({double? x, double? y, double? z}) {
-    if (x != null) this.x = x;
-    if (y != null) this.y = y;
-    if (z != null) this.z = z;
+  void Set({num? x, num? y, num? z}) {
+    if (x != null) this.x = x.toDouble();
+    if (y != null) this.y = y.toDouble();
+    if (z != null) this.z = z.toDouble();
   }
 
 //----------------------------------Constructors------------------------------------
 
-  Vector3([double x = 0.0, double y = 0.0, double z = 0.0]) : super(sizeOf<_Vector3>()) {
+  Vector3([double x = 0.0, double y = 0.0, double z = 0.0, RaylibArena? arena]) : super(sizeOf<_Vector3>(), arena: arena) {
     pointer.ref
       ..x = x
       ..y = y
@@ -371,8 +341,10 @@ class Vector3 extends NativeWrapper<_Vector3>
   }
 
   // ignore: unused_element_parameter
-  Vector3._Encapsulate(super.pointer,{ super.IsOwner, super.length }) :
-    super.fromAddress();
+  Vector3._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
+  }
   
   Vector3._Recieve(_Vector3 result) : super(sizeOf<_Vector3>()) {
     ref = result;
@@ -380,10 +352,10 @@ class Vector3 extends NativeWrapper<_Vector3>
   }
 
   /// Vector with components value 0.0f
-  factory Vector3.Zero() => Vector3();
+  factory Vector3.Zero([RaylibArena? arena]) => Vector3(0.0, 0.0, 0.0, arena);
 
   /// Vector with components value 1.0f
-  factory Vector3.One() => Vector3(1.0, 1.0, 1.0);
+  factory Vector3.One([RaylibArena? arena]) => Vector3(1.0, 1.0, 1.0, arena);
 
 //--------------------------------Methods-------------------------------------------
 
@@ -1027,7 +999,7 @@ class Vector4 extends NativeWrapper<_Vector4>
     this.w = w ?? this.w;
   }
 
-  Vector4([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0]) : super(sizeOf<_Vector4>()) {
+  Vector4([double x = 0.0, double y = 0.0, double z = 0.0, double w = 0.0, RaylibArena? arena]) : super(sizeOf<_Vector4>(), arena: arena) {
     ref
       ..x = x
       ..y = y
@@ -1037,9 +1009,9 @@ class Vector4 extends NativeWrapper<_Vector4>
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  factory Vector4.Zero() => Vector4();
+  factory Vector4.Zero([RaylibArena? arena]) => Vector4(0.0, 0.0, 0.0, 0.0, arena);
 
-  factory Vector4.One() => Vector4(1.0, 1.0, 1.0, 1.0);
+  factory Vector4.One([RaylibArena? arena]) => Vector4(1.0, 1.0, 1.0, 1.0, arena);
 
   static double DotProduct(Vector4 v1, Vector4 v2) => (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z + v1.w*v2.w);
 
@@ -1248,7 +1220,7 @@ extension Vector4Math on Vector4
 
 class Quaternion extends Vector4
 {
-  Quaternion([super.x, super.y, super.z, super.w]) : super();
+  Quaternion([super.x, super.y, super.z, super.w, super.arena]) : super();
 
   // ignore: unused_element_parameter
   Quaternion._Encapsulate(super.pointer,{ super.length }) : super._Encapsulate();

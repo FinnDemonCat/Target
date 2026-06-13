@@ -4,30 +4,15 @@ part of '../raylib.dart';
 //                                    Font
 //------------------------------------------------------------------------------------
 
-class Font extends NativeWrapper<_Font>
-{
-  // NativeWrapper<_Font>? _memory;
+class Font extends NativeWrapper<_Font> {
   _Font get ref => pointer.ref;
   set ref(_Font value) => pointer.ref = value;
   int get baseSize => ref.baseSize;
   int get glyphPadding => ref.glyphPadding;
-  // _Texture2D get texture => ref.texture; 
 
   late final Texture texture;
   late final GlyphInfo glyphs;
   late final Rectangle recs;
-
- /*  void _setmemory(_Font result)
-  {
-    Pointer<_Font> pointer = malloc.allocate<_Font>(sizeOf<_Font>());
-    pointer.ref = result;
-
-    glyphs = GlyphInfo._internal(pointer.ref.glyphs, length: pointer.ref.glyphCount);
-    recs = Rectangle._Encapsulate(pointer.ref.recs, length: pointer.ref.glyphCount);
-
-    _finalizer.attach(this, pointer, detach: this);
-    _memory = NativeWrapper<_Font>(pointer);
-  } */
 
   Font._Recieve(_Font result) : super(sizeOf<_Font>()) {
     ref = result;
@@ -35,13 +20,15 @@ class Font extends NativeWrapper<_Font>
   }
 
   /// Get the default Font
-  factory Font.Default() {
+  factory Font.Default([RaylibArena? arena]) {
     _Font result = _getFontDefault();
-    return Font._Recieve(result);
+    Font font = Font._Recieve(result);
+    arena?.register(font);
+    return font;
   }
 
   /// Load font from file into GPU memory (VRAM)
-  factory Font(String fileName) {
+  factory Font(String fileName,[ RaylibArena? arena ]) {
     _Font result;
     Pointer<Utf8> cfileName = fileName.toNativeUtf8();
 
@@ -55,11 +42,13 @@ class Font extends NativeWrapper<_Font>
       malloc.free(cfileName);
     }
     
-    return Font._Recieve(result);
+    Font font = Font._Recieve(result);
+    arena?.register(font);
+    return font;
   }
 
   /// Load font from file with extended parameters, use NULL for codepoints and 0 for codepointCount to load the default character set, font size is provided in pixels height
-  factory Font.LoadEx(String fileName,{ required int fontSize, required List<int> codepoints}) {
+  factory Font.LoadEx(String fileName,{ required int fontSize, required List<int> codepoints, RaylibArena? arena }) {
     _Font result;
     Pointer<Utf8> cfileName = fileName.toNativeUtf8();
     Pointer<Int32> ccodepoints = malloc.allocate<Int32>(sizeOf<Int32>() * codepoints.length);
@@ -75,12 +64,16 @@ class Font extends NativeWrapper<_Font>
       malloc.free(cfileName);
     }
 
-    return Font._Recieve(result);
+    Font font = Font._Recieve(result);
+    arena?.register(font);
+    return font;
   }
 
-  factory Font.FromImage(Image image, Color key, int firstChar) {
+  factory Font.FromImage(Image image, Color key, int firstChar,[ RaylibArena? arena ]) {
     final result = _loadFontFromImage(image.ref, key.ref, firstChar);
-    return Font._Recieve(result);
+    Font font = Font._Recieve(result);
+    arena?.register(font);
+    return font;
   }
 
   /// Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
@@ -88,7 +81,8 @@ class Font extends NativeWrapper<_Font>
     required String fileType,
     required Uint8List fileData,
     required int fontsize,
-    List<int>? codepoints
+    List<int>? codepoints,
+    RaylibArena? arena
   }) {
     Pointer<Utf8> cfileType = fileType.toNativeUtf8();
     Pointer<Uint8> cfileData = malloc.allocate<Uint8>(sizeOf<Uint8>() * fileData.length);
@@ -117,12 +111,14 @@ class Font extends NativeWrapper<_Font>
       malloc.free(cfileType);
     }
 
-    return Font._Recieve(result);
+    Font font = Font._Recieve(result);
+    arena?.register(font);
+    return font;
   }
 
   /// Generate image font atlas using chars info
-  Image GenAtlas({required int fontSize, required int padding, required int packMethod}) {
-    _Image image = _genImageFontAtlas(
+  Image GenAtlas({required int fontSize, required int padding, required int packMethod, RaylibArena? arena}) {
+    _Image result = _genImageFontAtlas(
       glyphs.pointer,
       recs.pointer,
       glyphs.length,
@@ -131,7 +127,9 @@ class Font extends NativeWrapper<_Font>
       packMethod
     );
 
-    return Image._Recieve(image);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
   }
 
   /// Generate image font atlas using chars info
@@ -183,8 +181,7 @@ class Font extends NativeWrapper<_Font>
   }
 
   /// Get glyph font info data for a codepoint (unicode character), fallback to '?' if not found
-  GlyphInfo GetGlyphInfo(int codepoint)
-  {
+  GlyphInfo GetGlyphInfo(int codepoint) {
     int index = _getGlyphIndex(ref, codepoint);
     return glyphs[index];
   }
@@ -193,16 +190,14 @@ class Font extends NativeWrapper<_Font>
   int GetGlyphIndex(int codepoint) => _getGlyphIndex(ref, codepoint);
 
   /// Get glyph rectangle in font atlas for a codepoint (unicode character), fallback to '?' if not found
-  Rectangle GetAtlasRec(int codepoint)
-  {
+  Rectangle GetAtlasRec(int codepoint) {
     int index = _getGlyphIndex(ref, codepoint);
     return recs[index];
   }
 
   bool IsValid() => _isFontValid(ref);
   /// Export font as code file, returns true on success
-  void ExportAsCode(String fileName)
-  {
+  void ExportAsCode(String fileName) {
     using ((Arena arena) {
       Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
 
@@ -211,8 +206,7 @@ class Font extends NativeWrapper<_Font>
   }
 
   /// Measure string size for Font
-  Vector2 MeasureText(Text text,{ required double fontSize, required double spacing })
-  {
+  Vector2 MeasureText(Text text,{ required double fontSize, required double spacing }) {
     _Vector2 result = _measureTextEx(ref, text.ref, fontSize, spacing);
     return Vector2._Recieve(result);
   }
@@ -262,11 +256,8 @@ class Font extends NativeWrapper<_Font>
 //------------------------------------------------------------------------------------
 //                                 GlyphInfo
 //------------------------------------------------------------------------------------
-class GlyphInfo extends NativeWrapper<_GlyphInfo>
-{
-  // NativeWrapper<_GlyphInfo>? _memory;
+class GlyphInfo extends NativeWrapper<_GlyphInfo> {
   _GlyphInfo get ref => pointer.ref;
-  // _Image get image => ref.image;
 
   late final Image image;
   int get value => ref.value;
@@ -281,18 +272,6 @@ class GlyphInfo extends NativeWrapper<_GlyphInfo>
       _finalizer.attach(this, pointer, detach: this);
   }
 
-  // ignore: unused_element
-  /*
-  void _setmemory(_GlyphInfo result)
-  {
-    Pointer<_GlyphInfo> pointer = malloc.allocate<_GlyphInfo>(sizeOf<_GlyphInfo>());
-    pointer.ref = result;
-
-    this._memory = NativeWrapper<_GlyphInfo>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-  }
-  */
-
   static final Finalizer _finalizer = Finalizer((pointer) {
     malloc.free(pointer);
   });
@@ -300,6 +279,11 @@ class GlyphInfo extends NativeWrapper<_GlyphInfo>
   GlyphInfo operator [](int index) {
     if (index < 0 || index >= length) throw RangeError(index);
     return GlyphInfo._Encapsulate(pointer + index, IsOwner: false);
+  }
+
+  void operator []=(GlyphInfo value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
   }
 
   @override

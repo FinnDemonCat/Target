@@ -1,22 +1,10 @@
 part of 'raylib.dart';
 
-// Implement NativeResource so classes extends it
+// Implement NativeResource so classes extends it ✅
 // NativeResource should implement [ref], [pointer] and [[index]] getters for _memory ✅
 // Implement RayArena and constructor option for temporary allocation
-// Tweak functions to recieve [num] instead of int to auto cast
+// Tweak functions to recieve [num] instead of int to auto cast ✅
 // Make Deg2Rad e Rad2Deg extensions of [num] ✅
-
-extension PointerCompare on Pointer {
-  bool get IsNull {
-    if (this.address == 0) return true;
-    else return false;
-  }
-
-  bool get IsNotNull {
-    if (this.address != 0) return true;
-    else return false;
-  }
-}
 
 extension MathConvert on double {
   /// Convert [this] to radians
@@ -29,40 +17,6 @@ abstract interface class Disposeable {
   void Free();
 }
 
-// C memory resourcers manager class
-class NativeWrapper<T extends NativeType> {
-  final Pointer<T> pointer;
-  final int length;
-
-  bool _disposed = false;
-  bool get IsDisposed => _disposed;
-  bool IsOwner = true;
-
-  Iterable<NativeWrapper<T>> get values => [this];
-
-  NativeWrapper(int size,{ this.IsOwner = true, this.length = 1 }) :
-    pointer = malloc.allocate<T>(size * length);
-  
-  NativeWrapper.fromAddress(Pointer<T> pointer,{ this.IsOwner = false, this.length = 1}) :
-    pointer = .fromAddress(pointer.address);
-
-  @mustCallSuper
-  void Free() {
-    if (IsDisposed)
-      return;
-    if (!IsOwner)
-      return;
-    
-    _disposed = true;
-    malloc.free(this.pointer);
-
-    // if (!isDisposed && IsOwner) {
-    //   _disposed = true;
-    //   malloc.free(this.pointer);
-    // }
-  }
-}
-
 const int RAYLIB_VERSION_MAJOR = 5;
 const int RAYLIB_VERSION_MINOR = 6;
 const int RAYLIB_VERSION_PATCH = 0;
@@ -72,28 +26,6 @@ const double PI = 3.14159265358979323846;
 const double DEG2RAD = (PI/180.0);
 const double RAD2DEG = (180.0/PI);
 const double EPSILON = 0.000001;
-
-Pointer<Utf8> uint8ListToUtf8Pointer(Uint8List bytes, {Allocator allocator = malloc}) {
-  final ptr = allocator.allocate<Uint8>(bytes.length + 1);
-  final nativeList = ptr.asTypedList(bytes.length + 1);
-  
-  nativeList.setAll(0, bytes);
-  nativeList[bytes.length] = 0;
-  
-  return ptr.cast<Utf8>();
-}
-
-String FromCharArray(Array<Uint8> name, int size) {
-  List<int> array = [];
-
-  for (int x = 0; x < size; x++) {
-    int char = name[x];
-    if (char == 0) break;
-    array.add(char);
-  }
-
-  return String.fromCharCodes(array);
-}
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition

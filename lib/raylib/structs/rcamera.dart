@@ -24,11 +24,9 @@ class Camera2D extends NativeWrapper<_Camera2D> {
     required Vector2 offset,
     required Vector2 target,
     double rotation = 0.0,
-    double zoom = 1.0
+    double zoom = 1.0,
+    super.arena
   }) : super(sizeOf<_Camera2D>()) {
-    if (zoom < 1.0) zoom = 1.0;
-
-    // Pointer<_Camera2D> pointer = malloc.allocate<_Camera2D>(sizeOf<_Camera2D>());
     ref
     ..offset = offset.ref
     ..target = target.ref
@@ -57,32 +55,26 @@ class Camera2D extends NativeWrapper<_Camera2D> {
   }
 }
 
-class Camera extends NativeWrapper<_Camera>
-{
-  // NativeResource<_Camera>? _memory;
-
+class Camera extends NativeWrapper<_Camera> {
   _Camera get ref => pointer.ref;
+
+  double get fovy => ref.fovy;
+  set fovy(double value) => ref.fovy = (value > 0) ? value : 0.0;
+
+  CameraProjection get projection => CameraProjection.values[ref.projection];
+  set projection(int value) => ref.projection = value;
+
   late final Vector3 position;
   late final Vector3 target;
   late final Vector3 up;
-  // _Vector3 get position => ref.position;
-  // _Vector3 get target => ref.target;
-  // _Vector3 get up => ref.up;
-  double get fovy => ref.fovy;
-  CameraProjection get projection => CameraProjection.values[ref.projection];
-
-  // set position(Vector3 value) => ref.position = value.ref;
-  // set target(Vector3 value) => ref.target = value.ref;
-  // set up(Vector3 value) => ref.up = value.ref;
-  set fovy(double value) => ref.fovy = (value > 0) ? value : 0.0;
-  set projection(int value) => ref.projection = value;
 
   Camera({
     required Vector3 pos,
     required Vector3 target,
     required Vector3 up,
     required double fovy,
-    required CameraProjection projection
+    required CameraProjection projection,
+    super.arena
   }) : super(sizeOf<_Camera>())
   {
     // Pointer<_Camera> pointer = malloc.allocate<_Camera>(sizeOf<_Camera>());
