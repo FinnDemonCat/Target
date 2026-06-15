@@ -97,6 +97,19 @@ class NativeWrapper<T extends NativeType> {
   }
 }
 
+/// A utility function that creates a temporary [RaylibArena] for the duration of a callback function.
+T rayCompute<T extends NativeWrapper?>(T Function(RaylibArena arena) callback) {
+  final arena = RaylibArena();
+  final result = callback.call(arena);
+
+  try {
+    return result;
+  }
+  finally {
+    arena.release();
+  }
+}
+
 String fromCharArray(Array<Uint8> name, int size) {
   List<int> array = [];
 

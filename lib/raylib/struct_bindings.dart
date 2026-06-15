@@ -2,7 +2,7 @@ part of 'raylib.dart';
 
 // Implement NativeResource so classes extends it ✅
 // NativeResource should implement [ref], [pointer] and [[index]] getters for _memory ✅
-// Implement RayArena and constructor option for temporary allocation
+// Implement RayArena and constructor option for temporary allocation ✅
 // Tweak functions to recieve [num] instead of int to auto cast ✅
 // Make Deg2Rad e Rad2Deg extensions of [num] ✅
 

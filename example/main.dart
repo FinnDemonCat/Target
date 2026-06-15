@@ -3,7 +3,7 @@
 // ignore: unnecessary_import
 import 'package:target_engine/raylib/raylib.dart';
 import 'package:target_engine/haybale/haybale.dart';
-import '../example/buttons.dart';
+import 'buttons.dart';
 
 bool ListenTerminal() {
   if (Keyboard.IsDown(Key.LEFT_CONTROL))

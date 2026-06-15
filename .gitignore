@@ -7,3 +7,4 @@ pubspec.lock
 .dart_tool/package_graph.json
 pubspec.lock
 /.github
+NeededChanges.md
