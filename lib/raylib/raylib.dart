@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:target_engine/native_wrapper/native_wrapper.dart';
+import '../native_wrapper/native_wrapper.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;

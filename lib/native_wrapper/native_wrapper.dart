@@ -13,13 +13,17 @@ export 'package:meta/meta.dart';
 /// automatically when the arena is released. Use [NativeWrapper] to attach
 /// ownership metadata to native pointers and avoid accidental double-free.
 class RaylibArena {
-  final _registry = <NativeWrapper>[];
+  final List<NativeWrapper> _registry;
+
+  RaylibArena([List<NativeWrapper>? instances]) : _registry = instances ?? [];
 
   /// Registers a [NativeWrapper] instance with the arena, ensuring that it will be automatically released when the arena is released.
   T register<T extends NativeWrapper<NativeType>>(T instance) {
     _registry.add(instance);
     return instance;
   }
+
+  void registerAll(List<NativeWrapper> instances) => _registry.addAll(instances);
 
   /// Releases all registered [NativeWrapper] instances, freeing their associated native resources.
   void release() {
@@ -28,9 +32,9 @@ class RaylibArena {
 
   /// Runs a callback function within the context of a [RaylibArena], ensuring that
   /// all native resources allocated during the callback are automatically released when the arena is released.
-  T run<T extends NativeWrapper<NativeType>>(void Function(RaylibArena arena) callback) {
+  T run<T extends NativeWrapper<NativeType>>(void Function(RaylibArena arena) rayArena) {
     final arena = RaylibArena();
-    final result = callback.call(arena);
+    final result = rayArena.call(arena);
 
     try {
       return result as T;
@@ -38,6 +42,19 @@ class RaylibArena {
     finally {
       arena.release();
     }
+  }
+}
+
+/// A utility function that executes a callback within the context of a [RaylibArena].
+T rayCompute<T extends NativeWrapper?>(T Function(RaylibArena arena) rayArena) {
+  final arena = RaylibArena();
+  final result = rayArena.call(arena);
+
+  try {
+    return result;
+  }
+  finally {
+    arena.release();
   }
 }
 
@@ -94,19 +111,6 @@ class NativeWrapper<T extends NativeType> {
     
     _disposed = true;
     malloc.free(this.pointer);
-  }
-}
-
-/// A utility function that creates a temporary [RaylibArena] for the duration of a callback function.
-T rayCompute<T extends NativeWrapper?>(T Function(RaylibArena arena) callback) {
-  final arena = RaylibArena();
-  final result = callback.call(arena);
-
-  try {
-    return result;
-  }
-  finally {
-    arena.release();
   }
 }
 

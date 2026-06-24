@@ -208,6 +208,60 @@ class Center extends Widget
   }
 }
 
+/// # Padding Widget
+///
+/// Adds padding around a single child widget and adjusts its layout bounds.
+///
+/// - Applies inset spacing on all sides using `HayPadding`
+/// - Uses `.Expand()` sizing by default so it fills available parent space
+///
+/// ## Example
+///
+/// ```dart
+/// Padding(
+///   padding: HayPadding.All(10),
+///   child: Text("Hello"),
+/// );
+/// ```
+class Padding extends Widget {
+  HayPadding padding;
+  Widget widget;
+  Padding({required this.padding, required Widget child}) : widget = child, super(sizing: .Expand());
+
+  @override
+  double get x => super.x + padding.left;
+
+  @override
+  double get y => super.y + padding.top;
+
+  @override
+  double get width => super.width - (padding.left + padding.right);
+  @override
+  double get height => super.height - (padding.top + padding.bottom);
+
+  @override
+  void Mount() {
+    widget.SetSizing(width, height);
+    widget.Set(x: (width - widget.width) / 2 + x, y: (height - widget.height) / 2 + y);
+
+    widget.Mount();
+  }
+
+  @override
+  void DrawWidget() {
+    if (widget case IInteractible interactible)
+      interactible.UpdateState();
+    
+    widget.DrawWidget();
+  }
+
+  @override
+  void Free() {
+    widget.Free();
+    super.Free();
+  }
+}
+
 /// # Column Widget
 /// 
 /// A layout widget that arranges child widgets vertically with customizable alignment and spacing.
@@ -533,10 +587,12 @@ class Row extends Widget
 ///   canvas.DrawWidget();
 /// }
 /// ```
-class TextBox extends Widget
-{
+class TextBox extends Widget {
   Font font;
-  TextCodepoint text;
+  final TextCodepoint _text;
+  TextCodepoint get text => _text;
+  set text(String value) => text.text = value;
+
   HayXAxisAlign textAlign;
   double fontSize;
   double spacing;
@@ -552,7 +608,7 @@ class TextBox extends Widget
     this.spacing = 2.0,
     Color? color
   }) :
-    text = TextCodepoint.fromString(text),
+    _text = TextCodepoint.fromString(text),
     color = color ?? Color.WHITE,
     font = font ?? Font.Default(),
     super(sizing: .Expand());
@@ -561,10 +617,10 @@ class TextBox extends Widget
   void Mount()
   {
     lines.clear();
-    Vector2 size = font.MeasureCodepoints(text, fontSize: fontSize, spacing: spacing);
+    Vector2 size = font.MeasureCodepoints(_text, fontSize: fontSize, spacing: spacing);
 
     if (size.x <= width) {
-      lines.add((cut: text.length, width: size.x));
+      lines.add((cut: _text.length, width: size.x));
       return;
     }
 
@@ -575,8 +631,8 @@ class TextBox extends Widget
     int pin = 0;
     int lineBreak = 0;
 
-    for (int index = 0; index <= text.length; index++) {      
-      if (index == text.length) {
+    for (int index = 0; index <= _text.length; index++) {      
+      if (index == _text.length) {
         lines.add((cut: index, width: textWidth));
         break;
       } else if (textHeight > height) {
@@ -584,17 +640,22 @@ class TextBox extends Widget
       }
 
       // Get glyph index of codepoints text.buffer[index]
-      int codepoint = text.buffer[index];
+      int codepoint = _text.buffer[index];
       int glyphIndex = font.GetGlyphIndex(codepoint);
       // Get glyph info of codepoints `index`
       GlyphInfo glyph = font.GetGlyphInfo(glyphIndex);
 
       double advanceX = (glyph.advanceX + spacing) * scale;
 
-      if (textWidth + advanceX > width) {
-        if (pin > lineBreak){
+      if (glyph.value == '\n'.codeUnits.first) {
+        lines.add((cut: index, width: textWidth));
+        lineBreak = index;
+        textWidth = 0.0;
+        textHeight += fontSize;
+      } else if (textWidth + advanceX > width) {
+        if (pin > lineBreak) {
           textWidth = widthAtLastSpace;
-          index = pin;
+          index = pin - 1;
         } else {
           index--;
         }
@@ -602,7 +663,6 @@ class TextBox extends Widget
         lines.add((cut: index, width: textWidth));
         lineBreak = index;
         textWidth = 0.0;
-
         textHeight += fontSize;
       } else {
         textWidth += advanceX;
@@ -651,7 +711,7 @@ class TextBox extends Widget
 
         TextCodepoint.DrawCodepoints(
           font,
-          text,
+          _text,
           length,
           fontSize: fontSize,
           spacing: spacing,
@@ -666,7 +726,7 @@ class TextBox extends Widget
   @override
   void Free() {
     font.Free();
-    text.Free();
+    _text.Free();
 
     super.Free();
   }

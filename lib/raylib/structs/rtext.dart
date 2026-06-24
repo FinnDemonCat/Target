@@ -104,66 +104,59 @@ class Text implements Disposeable {
 class TextCodepoint implements Disposeable {
   Int32List _buffer;
   Int32List get buffer => _buffer;
+
   late Pointer<Int32> _codepoints;
-
-  int _capacity;
-  int _count = 0;
-  int get capacity => _capacity;
-  int get length => _count;
-  bool _isDirty = true;
-
-  TextCodepoint({int capacity = 64}) :
-    _capacity = capacity,
-    _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * capacity),
-    _buffer = Int32List(capacity) {
-    _finalizer.attach(this, _codepoints, detach: this);
-  }
-
-  void _EnsureCapacity(int required) {
-    if (required <= capacity) return;
-
-    int newCapacity = capacity;
-    while (newCapacity < required) newCapacity *= 2;
-
-    final newBuffer = Int32List(newCapacity);
-    newBuffer.setRange(0, _count, _buffer);
-
-    _buffer = newBuffer;
-    _capacity = newCapacity;
-  }
-
-  void Write(String text) {
-    if (text.isEmpty) return;
-
-    Runes runes = text.runes;
-    _EnsureCapacity(_count + runes.length);
-
-    _buffer.setAll(_count, runes);
-    _count += runes.length;
-    _isDirty = true;
-  }
-
-  Pointer<Int32> get ref {
+  Pointer<Int32> get codepoints {
     if (_isDirty) {
-      Free();
+      malloc.free(_codepoints);
       _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * _capacity);
-      _finalizer.attach(this, _codepoints, detach: this);
 
-      // _codepoints.asTypedList(_count).setAll(0, _buffer.getRange(0, _count));
-
-      for (int x = 0; x < _count; x++) {
-        _codepoints[x] = buffer[x];
-      }
-      
+      _codepoints.asTypedList(_length).setAll(0, buffer.sublist(0, _length));
+      _codepoints[_length] = 0;
       _isDirty = false;
     }
 
     return _codepoints;
   }
 
+  int _length = 0;
+  int get length => _length;
+
+  int _capacity;
+  int get capacity => _capacity;
+
+  bool _isDirty = true;
+
+  String get text => String.fromCharCodes(_buffer.sublist(0, _length));
+  set text(String value) {
+    if (value.length >= capacity) {
+      int newCapacity = _capacity;
+      while (newCapacity < value.length)
+        newCapacity *= 2;
+      
+      _capacity = newCapacity;
+      
+      final newBuffer = Int32List(newCapacity)..setAll(0, value.runes);
+      _buffer = newBuffer;
+    } else {
+      _buffer.setAll(0, value.runes);
+    }
+
+    _length = value.length;
+    _isDirty = true;
+  }
+
+  TextCodepoint({int capacity = 64}) :
+    _capacity = capacity,
+    _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * capacity),
+    _buffer = Int32List(capacity),
+    _length = 0 {
+    _finalizer.attach(this, _codepoints, detach: this);
+  }
+
   factory TextCodepoint.fromString(String text) {
     final textCodepoint = TextCodepoint(capacity: text.length + 8);
-    textCodepoint.Write(text);
+    textCodepoint.text = text;
     return textCodepoint;
   }
 
@@ -189,8 +182,8 @@ class TextCodepoint implements Disposeable {
 
     _drawTextCodepoints(
       font.ref,
-      codepoints.ref + index,
-      (length < codepoints.length) ? length : codepoints.length,
+      codepoints.codepoints + index,
+      (length > codepoints.length) ? codepoints.length : length,
       finalPos.ref,
       fontSize,
       spacing,
@@ -203,11 +196,8 @@ class TextCodepoint implements Disposeable {
   });
 
   @override
-  void Free()
-  {
-    _finalizer.detach(this);
+  void Free() {
     malloc.free(_codepoints);
-    // _count = 0;
-    _isDirty = true;
+    _finalizer.detach(this);
   }
 }
