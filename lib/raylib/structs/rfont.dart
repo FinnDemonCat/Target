@@ -16,6 +16,9 @@ class Font extends NativeWrapper<_Font> {
 
   Font._Recieve(_Font result) : super(sizeOf<_Font>()) {
     ref = result;
+    glyphs = GlyphInfo._Encapsulate(Pointer<_GlyphInfo>.fromAddress(result.glyphs.address), length: result.glyphCount, IsOwner: false);
+    recs = Rectangle._Encapsulate(Pointer<_Rectangle>.fromAddress(result.recs.address), length: result.glyphCount, IsOwner: false);
+    texture = Texture._Recieve(result.texture);
     _finalizer.attach(this, pointer, detach: this);
   }
 

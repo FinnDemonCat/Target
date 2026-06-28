@@ -3,6 +3,7 @@ import '../native_wrapper/native_wrapper.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:math' as math;
+// ignore: unused_import
 import 'package:path/path.dart' as path;
 
 part 'struct_bindings.dart';
@@ -225,7 +226,7 @@ abstract class Window
   /// Disable waiting for events on EndDrawing(), automatic events polling
   static void DisabelEventWaiting() => _disableEventWaiting();
   /// Set a custom key to exit program (default is ESC)
-  static void SetExitKey(int key) => _setExitKey(key);
+  static void SetExitKey(Key key) => _setExitKey(key.index);
 }
 
 //------------------------------------------------------------------------------------

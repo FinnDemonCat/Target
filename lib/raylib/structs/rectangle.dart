@@ -26,7 +26,7 @@ class Rectangle extends NativeWrapper<_Rectangle> {
   }
 
   // ignore: unused_element_parameter
-  Rectangle._Encapsulate(super.pointer,{ super.length }) : super.fromAddress() {
+  Rectangle._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     if (IsOwner)
       _finalizer.attach(this, pointer, detach: this);
   }

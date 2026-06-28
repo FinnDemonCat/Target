@@ -183,7 +183,7 @@ class TextCodepoint implements Disposeable {
     _drawTextCodepoints(
       font.ref,
       codepoints.codepoints + index,
-      (length > codepoints.length) ? codepoints.length : length,
+      math.min(length, codepoints.length),
       finalPos.ref,
       fontSize,
       spacing,

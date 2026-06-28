@@ -86,13 +86,13 @@ class Camera extends NativeWrapper<_Camera> {
     ..projection = projection.index;
 
     int address = pointer.address;
-    position = Vector3._Encapsulate(.fromAddress(address));
+    this.position = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    target = Vector3._Encapsulate(.fromAddress(address));
+    this.target = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    up = Vector3._Encapsulate(.fromAddress(address));
+    this.up = Vector3._Encapsulate(.fromAddress(address));
 
     _finalizer.attach(this, pointer, detach: this);
   }

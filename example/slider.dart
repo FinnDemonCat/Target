@@ -1,5 +1,6 @@
 import 'dart:math' as math;
-import 'package:target_engine/haybale/haybale.dart';
+// ignore: avoid_relative_lib_imports
+import '../lib/haybale/haybale.dart';
 
 class Slider extends IInteractible
 {

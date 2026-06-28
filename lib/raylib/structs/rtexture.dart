@@ -261,8 +261,8 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture>
   }
 
   /// Load texture for rendering (framebuffer)
-  factory RenderTexture2D(int width, int height) {
-    final renderTexture2D = _loadRenderTexture(width, height);
+  factory RenderTexture2D(num width, num height) {
+    final renderTexture2D = _loadRenderTexture(width.toInt(), height.toInt());
     return RenderTexture2D._Recieve(renderTexture2D);
   }
 

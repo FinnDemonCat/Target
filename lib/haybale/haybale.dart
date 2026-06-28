@@ -1,9 +1,9 @@
 import '../raylib/raylib.dart';
-export '../raylib/raylib.dart';
 import 'package:meta/meta.dart';
 import 'dart:math' as math;
-export 'package:meta/meta.dart';
 
+export '../raylib/raylib.dart';
+export 'package:meta/meta.dart';
 
 /// ## HayXAxisAlign Enum
 /// 
@@ -242,7 +242,7 @@ class Padding extends Widget {
   @override
   void Mount() {
     widget.SetSizing(width, height);
-    widget.Set(x: (width - widget.width) / 2 + x, y: (height - widget.height) / 2 + y);
+    widget.Set(x: x, y: y);
 
     widget.Mount();
   }
@@ -590,8 +590,13 @@ class Row extends Widget
 class TextBox extends Widget {
   Font font;
   final TextCodepoint _text;
+  bool _linesDirty = true;
+
   TextCodepoint get text => _text;
-  set text(String value) => text.text = value;
+  set text(String value) {
+    _text.text = value;
+    _linesDirty = true;
+  }
 
   HayXAxisAlign textAlign;
   double fontSize;
@@ -616,11 +621,14 @@ class TextBox extends Widget {
   @override
   void Mount()
   {
+    if (!_linesDirty) return;
+
     lines.clear();
     Vector2 size = font.MeasureCodepoints(_text, fontSize: fontSize, spacing: spacing);
 
     if (size.x <= width) {
       lines.add((cut: _text.length, width: size.x));
+      _linesDirty = false;
       return;
     }
 
@@ -647,12 +655,14 @@ class TextBox extends Widget {
 
       double advanceX = (glyph.advanceX + spacing) * scale;
 
-      if (glyph.value == '\n'.codeUnits.first) {
+      if (codepoint == '\n'.codeUnitAt(0) || codepoint == '\r'.codeUnitAt(0)) {
         lines.add((cut: index, width: textWidth));
         lineBreak = index;
         textWidth = 0.0;
         textHeight += fontSize;
-      } else if (textWidth + advanceX > width) {
+        continue;
+      }
+      else if (textWidth + advanceX > width) {
         if (pin > lineBreak) {
           textWidth = widthAtLastSpace;
           index = pin - 1;
@@ -668,16 +678,20 @@ class TextBox extends Widget {
         textWidth += advanceX;
       }
 
-      if (codepoint == 32) {
+      if (codepoint == ' '.codeUnitAt(0)) {
         pin = index + 1;
         widthAtLastSpace = textWidth;
       }
     }
+
+    _linesDirty = false;
   }
 
   @override
   void DrawWidget()
   {
+    if (_linesDirty) Mount();
+
     Draw.WithScissorMode(rect: this, renderLogic: () {
       if (lines.isEmpty) return;
       Vector2 pos = Vector2();
@@ -705,9 +719,19 @@ class TextBox extends Widget {
         posY = index * (fontSize + spacing);
         pos.y = posY + y;
 
-        int length = 0;
-        if (index == 0) length = lines[index].cut;
-        else length = lines[index].cut - lines[index - 1].cut;
+        int start = 0;
+        if (index > 0) {
+          start = lines[index - 1].cut;
+
+          if (start < _text.length
+            && (
+              _text.buffer[start] == '\n'.codeUnitAt(0) 
+              || _text.buffer[start] == '\r'.codeUnitAt(0)
+          ))
+            start++;
+        }
+
+        int length = lines[index].cut - start;
 
         TextCodepoint.DrawCodepoints(
           font,
@@ -717,7 +741,7 @@ class TextBox extends Widget {
           spacing: spacing,
           position: pos,
           tint: color,
-          index: index == 0 ? 0 : lines[index - 1].cut
+          index: start
         );
       }
     });

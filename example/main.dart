@@ -1,8 +1,9 @@
 // ignore_for_file: unused_import
 
-// ignore: unnecessary_import
-import 'package:target_engine/raylib/raylib.dart';
-import 'package:target_engine/haybale/haybale.dart';
+// ignore: avoid_relative_lib_imports, unnecessary_import
+import '../lib/raylib/raylib.dart';
+// ignore: avoid_relative_lib_imports
+import '../lib/haybale/haybale.dart';
 import 'buttons.dart';
 
 bool ListenTerminal() {

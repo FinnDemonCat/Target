@@ -446,7 +446,7 @@ class RayCollision extends NativeWrapper<_RayCollision> {
 
   void _setReferences() {
     int address = pointer.address;
-    address += sizeOf<Bool>() + sizeOf<Float>();
+    address += /* sizeOf<Bool>() */ 4 + sizeOf<Float>();
     point = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
