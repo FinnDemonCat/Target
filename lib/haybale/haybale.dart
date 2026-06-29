@@ -20,7 +20,7 @@ enum HayXAxisAlign {
 
 /// ## HayYAxisAlign Enum
 /// 
-/// The `HayYAxisAlign` enum specifies how widgets are aligned along the vertical axis (main-axis in layout):
+/// Defines vertical text and widget alignment options.
 /// - **TOP**: Align to the top edge
 /// - **CENTER**: Center vertically
 /// - **BOTTOM**: Align to the bottom edge
@@ -77,10 +77,6 @@ class HaySize
 /// # HayPadding Parameter
 /// 
 /// Defines spacing around widget content in a Container.
-/// 
-/// - **Uniform Padding**: Same padding on all sides
-/// - **Symmetric Padding**: Different values for vertical and horizontal spacing
-/// - **Custom Padding**: Individual control over each edge (Bottom, Top, Left, Right)
 /// 
 /// ## Usage
 /// 
@@ -145,8 +141,8 @@ class Widget extends Rectangle
   final HaySize sizing;
 
   // Implement -> Iterable<Widget> get children => const []; ✅
-  // And apply to all existinging widgets
-  // Define Center and other widgets sizing defaults
+  // And apply to all existinging widgets ✅
+  // Define Center and other widgets sizing defaults ✅
 
   Widget({
     required this.sizing
