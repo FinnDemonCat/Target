@@ -11,7 +11,7 @@ class NativeWrapper<T extends NativeType> {
 }
 ```
 
-All classes that use `NativeResource<T>` and inherit from `Disposable` implement a `Free()` method. This function calls the respective native `Unload` functions, detaches the instance from the `Dart Garbage Collector`, and frees the `pointer` from the native heap.
+All classes that use `NativeResource<T>` and inherit from `Disposable` implement a `Free()` method. This function calls the respective native `Unload` functions, detaches the instance from the `Dart Garbage Collector`, and frees the instance pointer.
 
 ```dart
 @override
@@ -19,7 +19,7 @@ void Free() {
 	if (_memory != null && !_memory!.isDisposed) {
 		_finalizer.detach(this);
 		_unloadTexture(ref);
-		_memory!.Free(); // Calls in function free()
+		super.Free(); // Calls in function free()
 	}
 }  
 ```
