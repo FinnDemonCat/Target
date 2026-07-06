@@ -26,14 +26,16 @@ class Vector2 extends NativeWrapper<_Vector2> {
       ..x = x
       ..y = y;
 
-    _finalizer.attach(this, pointer, detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
-  Vector2._Recieve(_Vector2 result) : super(sizeOf<_Vector2>()) {
-    x = result.x;
-    y = result.y;
+  // ignore: unused_element_parameter
+  Vector2._Recieve(_Vector2 result,{ super.IsOwner, super.length }) : super(sizeOf<_Vector2>()) {
+    ref = result;
 
-    _finalizer.attach(this, pointer, detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer, detach: this);
   }
 
   // ignore: unused_element_parameter
@@ -53,7 +55,7 @@ class Vector2 extends NativeWrapper<_Vector2> {
   /// Get max value for each pair of components
   /// 
   /// Developer Note: This method returns a new instance of Vecto2
-  static Vector2 Max(Vector2 v1, Vector2 v2) => Vector2(math.max(v1.x, v2.x));
+  factory Vector2.Max(Vector2 v1, Vector2 v2,[ RaylibArena? arena ]) => Vector2(math.max(v1.x, v2.x), math.max(v1.x, v2.x), arena);
 
   /// Calculate two vectors dot product
   static double Dot(Vector2 v1, Vector2 v2) => (v1.x * v2.x) + (v1.y * v2.y);
@@ -62,13 +64,14 @@ class Vector2 extends NativeWrapper<_Vector2> {
   static double Cross(Vector2 v1, Vector2 v2) => (v1.x * v2.x) - (v1.y * v2.y); 
 
   /// Calculate reflected vector to normal
-  static Vector2 Reflect(Vector2 v, Vector2 normal)
+  factory Vector2.Reflect(Vector2 v, Vector2 normal,[ RaylibArena? arena ])
   {
     double dotProduct = (v.x * normal.x) + (v.y * normal.y);
 
     return Vector2(
       v.x - (2.0 * normal.x) * dotProduct,
-      v.y - (2.0 * normal.y) * dotProduct
+      v.y - (2.0 * normal.y) * dotProduct,
+      arena
     );
   }
   
@@ -88,9 +91,8 @@ class Vector2 extends NativeWrapper<_Vector2> {
   /// r: ratio of the refractive index of the medium from where the ray comes
   /// 
   /// to the refractive index of the medium on the other side of the surface
-  Vector2 Refract(Vector2 v, Vector2 n, double r)
-  {
-    Vector2 result = Vector2.Zero();
+  factory Vector2.Refract(Vector2 v, Vector2 n, double r,[ RaylibArena? arena ]) {
+    Vector2 result = Vector2.Zero(arena);
 
     double dot = (v.x * v.x) + (v.y * v.y);
     double d = 1.0 - r * r * (1.0 - dot * dot);
@@ -137,16 +139,12 @@ class Vector2 extends NativeWrapper<_Vector2> {
 
     malloc.free(pointer);
   });
-  /* 
+  
   @override
   void Free() {
-    if(_memory != null && !_memory!.IsDisposed)
-    {
-      _finalizer.detach(this);
-      _memory!.Free();
-    }
+    _finalizer.detach(this);
+    super.Free();
   }
-  */
 }
 
 /// **Performance Note:** Performed *in-place* to prevent GC pressure 
@@ -178,24 +176,17 @@ extension Vector2Math on Vector2
   double LengthSqr() => ((this.x * this.x) + (this.y + this.y));
 
   /// Calculate distance between two vectors
-  double Distance(Vector2 v2)
-  {
-	  return math.sqrt((this.x - v2.x) * (this.x - v2.x)) + ((this.y - v2.y) + (this.y - v2.y));
-  }
+  double Distance(Vector2 v2) => math.sqrt((this.x - v2.x) * (this.x - v2.x)) + ((this.y - v2.y) + (this.y - v2.y));
 
   /// Calculate square distance between two vectors
-  double DistanceSqr(Vector2 v2)
-  {
-	  return ((this.x - v2.x) * (this.x - v2.x)) + ((this.y - v2.y) + (this.y - v2.y));
-  }
+  double DistanceSqr(Vector2 v2) => ((this.x - v2.x) * (this.x - v2.x)) + ((this.y - v2.y) + (this.y - v2.y));
 
   /// Calculate the signed angle from this to v2, relative to the origin (0, 0)
   ///
   /// NOTE: Coordinate system convention: positive X right, positive Y down
   ///
   /// positive angles appear clockwise, and negative angles appear counterclockwise
-  double Angle(Vector2 v2)
-  {
+  double Angle(Vector2 v2) {
     double dot = (this.x * v2.x) + (this.y * v2.y);
     double det = (this.x * v2.y) - (this.y * v2.x);
 
@@ -235,15 +226,13 @@ extension Vector2Math on Vector2
   /// Calculate linear interpolation between two vectors
   /// 
   /// Developer Note: For memory persistance, this extension modifies `this` to be the result of LERP of `v1`, `v2` and `ammount`
-  void Lerp(Vector2 v1, Vector2 v2, double ammount)
-  {
+  void Lerp(Vector2 v1, Vector2 v2, double ammount) {
     this.x = v1.x + ammount * (v2.x - v1.x);
     this.y = v1.y + ammount * (v2.y - v1.y);
   }
 
   /// Rotate vector by angle
-  void Rotate(double angle)
-  {
+  void Rotate(double angle) {
     double cosresult = math.cos(angle);
     double sinresult = math.sin(angle);
 
@@ -252,8 +241,7 @@ extension Vector2Math on Vector2
   }
 
   /// Move Vector towards target
-  void MoveTowards(Vector2 target, double maxDistance)
-  {
+  void MoveTowards(Vector2 target, double maxDistance) {
     double dx = target.x - this.x;
     double dy = target.y - this.y;
     double value = (dx * dx) + (dy * dy);
@@ -280,8 +268,7 @@ extension Vector2Math on Vector2
   }
 
   /// Clamp the magnitude of the vector between two min and max values
-  void ClampValue(double min, double max)
-  {
+  void ClampValue(double min, double max) {
     double length = (this.x * this.x) + (this.y * this.y);
     if (length > 0.0)
     {
@@ -307,10 +294,7 @@ extension Vector2Math on Vector2
 /// Module Functions Definition - Vector3 math
 //------------------------------------------------------------------------------------
 
-class Vector3 extends NativeWrapper<_Vector3>
-{
-  // NativeWrapper<_Vector3>? _memory;
-
+class Vector3 extends NativeWrapper<_Vector3> {
   _Vector3 get ref => pointer.ref;
   set ref (_Vector3 value) => pointer.ref = value;
 
@@ -346,7 +330,8 @@ class Vector3 extends NativeWrapper<_Vector3>
       _finalizer.attach(this, pointer, detach: this);
   }
   
-  Vector3._Recieve(_Vector3 result) : super(sizeOf<_Vector3>()) {
+  // ignore: unused_element_parameter
+  Vector3._Recieve(_Vector3 result,{ super.IsOwner, super.length }) : super(sizeOf<_Vector3>()) {
     ref = result;
     _finalizer.attach(this, pointer, detach: this);
   }
@@ -359,31 +344,29 @@ class Vector3 extends NativeWrapper<_Vector3>
 
 //--------------------------------Methods-------------------------------------------
 
-  static Vector3 CrossProduct(Vector3 v1, Vector3 v2)
-  {
-    Vector3 result = Vector3();
-    result.x = v1.y * v2.z - v1.z * v2.y;
-    result.y = v1.z * v2.x - v1.x * v2.z;
-    result.z = v1.x * v2.y - v1.y * v2.x;
-
-    return result;
+  factory Vector3.CrossProduct(Vector3 v1, Vector3 v2,[RaylibArena? arena]) {
+    return Vector3(
+      v1.y * v2.z - v1.z * v2.y,
+      v1.z * v2.x - v1.x * v2.z,
+      v1.x * v2.y - v1.y * v2.x,
+      arena
+    );
   }
 
-  static Vector3 Perpendicular(Vector3 v)
-  {
-    Vector3 result = Vector3();
+  factory Vector3.Perpendicular(Vector3 v,[RaylibArena? arena]) {
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
     double min = v.x.abs();
-    Vector3 cardinalAxis = Vector3(1.0, 0.0, 0.0);
+    Vector3 cardinalAxis = Vector3(1.0, 0.0, 0.0, arena);
 
     if (v.y.abs() < min)
     {
       min = v.y.abs();
-      cardinalAxis = Vector3(0.0, 1.0, 0.0);
+      cardinalAxis = Vector3(0.0, 1.0, 0.0, arena);
     }
 
     if (v.z.abs() < min)
     {
-      cardinalAxis = Vector3(0.0, 0.0, 1.0);
+      cardinalAxis = Vector3(0.0, 0.0, 1.0, arena);
     }
 
     result.x = v.y * cardinalAxis.z - v.z * cardinalAxis.y;
@@ -426,38 +409,29 @@ class Vector3 extends NativeWrapper<_Vector3>
   }
 
   ///Calculate the projection of the vector v1 on to v2
-  static Vector3 Project(Vector3 v1, Vector3 v2)
-  {
-    Vector3 result = Vector3();
-
+  factory Vector3.Project(Vector3 v1, Vector3 v2,[RaylibArena? arena]) {
     double v1dv2 = (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
     double v2dv2 = (v2.x*v2.x + v2.y*v2.y + v2.z*v2.z);
     
     // magnitude division by zero guard
     double mag = (v2dv2 != 0.0) ? (v1dv2 / v2dv2) : 0.0;
 
-    result.x = v2.x * mag;
-    result.y = v2.y * mag;
-    result.z = v2.z * mag;
-
-    return result;
+    return Vector3(v2.x * mag, v2.y * mag, v2.z * mag, arena);
   }
 
   ///Calculate the rejection of the vector v1 on to v2
-  static Vector3 Reject(Vector3 v1, Vector3 v2)
-  {
-    Vector3 result = Vector3();
-
+  factory Vector3.Reject(Vector3 v1, Vector3 v2,[RaylibArena? arena]) {
     double v1dv2 = (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
     double v2dv2 = (v2.x*v2.x + v2.y*v2.y + v2.z*v2.z);
 
     double mag = v1dv2/v2dv2;
 
-    result.x = v1.x - (v2.x*mag);
-    result.y = v1.y - (v2.y*mag);
-    result.z = v1.z - (v2.z*mag);
-
-    return result;
+    return Vector3(
+      v1.x - (v2.x*mag),
+      v1.y - (v2.y*mag),
+      v1.z - (v2.z*mag),
+      arena
+    );
   }
 
   static final Finalizer _finalizer = Finalizer<Pointer<_Vector3>>((pointer) {
@@ -506,9 +480,9 @@ class Vector3 extends NativeWrapper<_Vector3>
   /// Calculate cubic hermite interpolation between two vectors and their tangents
   /// 
   /// as described in the GLTF 2.0 specification: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#interpolation-cubic
-  Vector3 CubicHermite(Vector3 v1, Vector3 tangent1, Vector3 v2, Vector3 tangent2, double amount)
+  Vector3 CubicHermite(Vector3 v1, Vector3 tangent1, Vector3 v2, Vector3 tangent2, double amount,[ RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     double amountPow2 = amount*amount;
     double amountPow3 = amount*amount*amount;
@@ -517,13 +491,14 @@ class Vector3 extends NativeWrapper<_Vector3>
     result.y = (2*amountPow3 - 3*amountPow2 + 1)*v1.y + (amountPow3 - 2*amountPow2 + amount)*tangent1.y + (-2*amountPow3 + 3*amountPow2)*v2.y + (amountPow3 - amountPow2)*tangent2.y;
     result.z = (2*amountPow3 - 3*amountPow2 + 1)*v1.z + (amountPow3 - 2*amountPow2 + amount)*tangent1.z + (-2*amountPow3 + 3*amountPow2)*v2.z + (amountPow3 - amountPow2)*tangent2.z;
 
+    arena?.register(result);
     return result;
   }
 
   /// Calculate reflected vector to normalVector3 Vector3Reflect(Vector3 v, Vector3 normal)
-  Vector3 Reflect(Vector3 v, Vector3 normal)
+  Vector3 Reflect(Vector3 v, Vector3 normal,[RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     // I is the original vector
     // N is the normal of the incident plane
@@ -539,9 +514,9 @@ class Vector3 extends NativeWrapper<_Vector3>
   }
 
   /// Get min value for each pair of components
-  Vector3 Min(Vector3 v1, Vector3 v2)
+  Vector3 Min(Vector3 v1, Vector3 v2,[RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     result.x = math.min(v1.x, v2.x);
     result.y = math.min(v1.y, v2.y);
@@ -551,9 +526,9 @@ class Vector3 extends NativeWrapper<_Vector3>
   }
 
   /// Get max value for each pair of components
-  Vector3 Max(Vector3 v1, Vector3 v2)
+  Vector3 Max(Vector3 v1, Vector3 v2,[RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     result.x = math.max(v1.x, v2.x);
     result.y = math.max(v1.y, v2.y);
@@ -565,9 +540,9 @@ class Vector3 extends NativeWrapper<_Vector3>
   /// Compute barycenter coordinates (u, v, w) for point p with respect to triangle (a, b, c)
   /// 
   /// NOTE: Assumes P is on the plane of the triangleVector3 Vector3Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
-  Vector3 Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c)
+  Vector3 Barycenter(Vector3 p, Vector3 a, Vector3 b, Vector3 c,[RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     double v0x = b.x - a.x, v0y = b.y - a.y, v0z = b.z - a.z;   // Vector3Subtract(b, a)
     double v1x = c.x - a.x, v1y = c.y - a.y, v1z = c.z - a.z;   // Vector3Subtract(c, a)
@@ -591,9 +566,9 @@ class Vector3 extends NativeWrapper<_Vector3>
   /// Projects a Vector3 from screen space into object space
   /// 
   /// NOTE: Self-contained function, no other raymath functions are called
-  Vector3 Unproject(Vector3 source, Matrix projection, Matrix view)
+  Vector3 Unproject(Vector3 source, Matrix projection, Matrix view,[RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     var matViewProj = [ // MatrixMultiply(view, projection);
       view.m0*projection.m0 + view.m1*projection.m4 + view.m2*projection.m8 + view.m3*projection.m12,
@@ -692,9 +667,9 @@ class Vector3 extends NativeWrapper<_Vector3>
   /// 
   /// to the refractive index of the medium on the other side of the surface
   /// 
-  Vector3 Refract(Vector3 v, Vector3 n, double r)
+  Vector3 Refract(Vector3 v, Vector3 n, double r,[RaylibArena? arena])
   {
-    Vector3 result = Vector3();
+    Vector3 result = Vector3(0.0, 0.0, 0.0, arena);
 
     double dot = v.x*n.x + v.y*n.y + v.z*n.z;
     double d = 1.0 - r*r*(1.0 - dot*dot);
@@ -702,11 +677,9 @@ class Vector3 extends NativeWrapper<_Vector3>
     if (d >= 0.0)
     {
       d = math.sqrt(d);
-      v.x = r*v.x - (r*dot + d)*n.x;
-      v.y = r*v.y - (r*dot + d)*n.y;
-      v.z = r*v.z - (r*dot + d)*n.z;
-
-      result = v;
+      result.x = r*v.x - (r*dot + d)*n.x;
+      result.y = r*v.y - (r*dot + d)*n.y;
+      result.z = r*v.z - (r*dot + d)*n.z;
     }
 
     return result;
@@ -1036,9 +1009,9 @@ class Vector4 extends NativeWrapper<_Vector4>
   /// Get min value for each pair of components
   /// 
   /// Creates new instance
-  static Vector4 Min(Vector4 v1, Vector4 v2)
+  static Vector4 Min(Vector4 v1, Vector4 v2,[RaylibArena? arena])
   {
-    Vector4 result = Vector4();
+    Vector4 result = Vector4(0.0, 0.0, 0.0, 0.0, arena);
 
     result.x = math.min(v1.x, v2.x);
     result.y = math.min(v1.y, v2.y);
@@ -1051,9 +1024,9 @@ class Vector4 extends NativeWrapper<_Vector4>
   /// Get max value for each pair of components
   /// 
   /// Creates new instance
-  static Vector4 Max(Vector4 v1, Vector4 v2)
+  static Vector4 Max(Vector4 v1, Vector4 v2,[RaylibArena? arena])
   {
-    Vector4 result = Vector4();
+    Vector4 result = Vector4(0.0, 0.0, 0.0, 0.0, arena);
 
     result.x = math.max(v1.x, v2.x);
     result.y = math.max(v1.y, v2.y);
@@ -1230,7 +1203,8 @@ class Quaternion extends Vector4
   static Quaternion CubicHermiteSpline({
     required Quaternion q1, required Quaternion outTan1,
     required Quaternion q2, required Quaternion inTan2,
-    required double t
+    required double t,
+    RaylibArena? arena
   }) {
     double t2 = t*t;
     double t3 = t2*t;
@@ -1239,7 +1213,7 @@ class Quaternion extends Vector4
     double h01 = -2*t3 + 3*t2;
     double h11 = t3 - t2;
 
-    Quaternion result = Quaternion();
+    Quaternion result = Quaternion(0.0, 0.0, 0.0, 0.0, arena);
     result.x = h00*q1.x + h10*outTan1.x + h01*q2.x + h11*inTan2.x;
     result.y = h00*q1.y + h10*outTan1.y + h01*q2.y + h11*inTan2.y;
     result.z = h00*q1.z + h10*outTan1.z + h01*q2.z + h11*inTan2.z;
@@ -1253,9 +1227,9 @@ class Quaternion extends Vector4
   /// Calculate quaternion based on the rotation from one vector to another
   /// 
   /// Note: AI warned about passing oposite vectors
-  static Quaternion FromVector3ToVector3(Vector3 from, Vector3 to)
+  static Quaternion FromVector3ToVector3(Vector3 from, Vector3 to,[RaylibArena? arena])
   {
-    Quaternion result = Quaternion();
+    Quaternion result = Quaternion(0.0, 0.0, 0.0, 0.0, arena);
 
     double cos2Theta = (from.x*to.x + from.y*to.y + from.z*to.z); // Vector3DotProduct(from, to)
     Vector3 cross = Vector3(from.y*to.z - from.z*to.y, from.z*to.x - from.x*to.z, from.x*to.y - from.y*to.x); // Vector3CrossProduct(from, to)
@@ -1281,9 +1255,9 @@ class Quaternion extends Vector4
   }
 
   /// Get a quaternion for a given rotation matrix
-  static Quaternion FromMatrix(Matrix matrix)
+  static Quaternion FromMatrix(Matrix matrix,[RaylibArena? arena])
   {
-    Quaternion result = Quaternion();
+    Quaternion result = Quaternion(0.0, 0.0, 0.0, 0.0, arena);
 
     double fourWSquaredMinus1 = matrix.m0  + matrix.m5 + matrix.m10;
     double fourXSquaredMinus1 = matrix.m0  - matrix.m5 - matrix.m10;
@@ -1349,16 +1323,16 @@ class Quaternion extends Vector4
   }
 
   /// Get identity quaternion
-  factory Quaternion.Identity() => Quaternion();
+  factory Quaternion.Identity([RaylibArena? arena]) => Quaternion(0.0, 0.0, 0.0, 1.0, arena);
   
   /// Get rotation quaternion for an angle and axis
   /// 
   /// NOTE: Angle must be provided in radians
   /// 
   /// Dev Note: This function was adapted, proceed with caution. _I am tired_
-  static Quaternion FromAxisAngle(Vector3 axis, double angle)
+  static Quaternion FromAxisAngle(Vector3 axis, double angle,[RaylibArena? arena])
   {
-    Quaternion result = Quaternion();
+    Quaternion result = Quaternion(0.0, 0.0, 0.0, 0.0, arena);
 
     double axisLength = math.sqrt(axis.x*axis.x + axis.y*axis.y + axis.z*axis.z);
 
@@ -1442,9 +1416,9 @@ class Quaternion extends Vector4
   /// Get the quaternion equivalent to Euler angles
   /// 
   /// NOTE: Rotation order is ZYX
-  static Quaternion FromEuler({required double pitch, required double yaw, required double roll})
+  static Quaternion FromEuler({required double pitch, required double yaw, required double roll, RaylibArena? arena})
   {
-    Quaternion result = Quaternion();
+    Quaternion result = Quaternion(0.0, 0.0, 0.0, 0.0, arena);
 
     double x0 = math.cos(pitch*0.5);
     double x1 = math.sin(pitch*0.5);

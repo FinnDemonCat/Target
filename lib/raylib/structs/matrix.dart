@@ -6,9 +6,6 @@ part of '../raylib.dart';
 
 class Matrix extends NativeWrapper<_Matrix>
 {
-  // NativeResource<_Matrix>? _memory;
-  // final int _length;
-  // int get length => _length;
 
 //--------------------------------Getters-&-Setters-----------------------------------
 
@@ -94,22 +91,14 @@ class Matrix extends NativeWrapper<_Matrix>
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  Matrix._Encapsulate(super.pointer,{ super.length }) : super.fromAddress() {
+  // ignore: unused_element_parameter
+  Matrix._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     if (IsOwner)
       _finalizer.attach(this, pointer, detach: this);
   }
 
-  /*
-  void _setMemory(_Matrix result)
-  {
-    Pointer<_Matrix> pointer = malloc.allocate<_Matrix>(sizeOf<_Matrix>());
-    pointer.ref = result;
-
-    _finalizer.attach(this, pointer, detach: this);
-  }
-  */
-
-  Matrix._Recieve(_Matrix result,) : super(sizeOf<_Matrix>()) {
+  // ignore: unused_element_parameter
+  Matrix._Recieve(_Matrix result,{ super.IsOwner, super.length }) : super(sizeOf<_Matrix>()) {
     ref = result;
 
     _finalizer.attach(this, pointer, detach: this);
@@ -120,7 +109,7 @@ class Matrix extends NativeWrapper<_Matrix>
   factory Matrix.Identity() => Matrix();
 
   /// Get translation matrix
-  static Matrix Translate({double x = 0.0, double y = 0.0, double z = 0.0})
+  factory Matrix.Translate({double x = 0.0, double y = 0.0, double z = 0.0, RaylibArena? arena})
   {
     Matrix result = Matrix();
 
@@ -128,13 +117,15 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m13 = y;
     result.m14 = z;
 
+    arena?.register(result);
+    
     return result;
   }
 
   /// Create rotation matrix from axis and angle
   /// 
   /// NOTE: Angle should be provided in radians
-  static Matrix Rotate(Vector3 axis, double angle)
+  factory Matrix.Rotate(Vector3 axis, double angle, [RaylibArena? arena])
   {
     Matrix result = Matrix();
 
@@ -173,13 +164,14 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m14 = 0.0;
     result.m15 = 1.0;
 
+    arena?.register(result);
     return result;
   }
   
   /// Get x-rotation matrix
   /// 
   /// NOTE: Angle must be provided in radians
-  static Matrix RotateX(double angle)
+  factory Matrix.RotateX(double angle, [RaylibArena? arena])
   {
     Matrix result = Matrix();
 
@@ -191,13 +183,14 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m9 = -sinres;
     result.m10 = cosres;
     
+    arena?.register(result);
     return result;
   }
 
   /// Get y-rotation matrix
   /// 
   /// NOTE: Angle must be provided in radians
-  static Matrix RotateY(double angle)
+  factory Matrix.RotateY(double angle, [RaylibArena? arena])
   {
     Matrix result = Matrix();
 
@@ -209,13 +202,14 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m8 = sinres;
     result.m10 = cosres;
 
+    arena?.register(result);
     return result;
   }
 
   /// Get z-rotation matrix
   /// 
   /// NOTE: Angle must be provided in radians
-  static Matrix RotateZ(double angle)
+  factory Matrix.RotateZ(double angle, [RaylibArena? arena])
   {
     Matrix result = Matrix();
 
@@ -227,13 +221,14 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m4 = -sinres;
     result.m5 = cosres;
 
+    arena?.register(result);
     return result;
   }
 
   /// Get xyz-rotation matrix
   /// 
   /// NOTE: Angle must be provided in radians
-  static Matrix RotateXYZ(Vector3 angle)
+  factory Matrix.RotateXYZ(Vector3 angle, [RaylibArena? arena])
   {
     Matrix result = Matrix();
 
@@ -256,14 +251,16 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m9 = cosy*sinx;
     result.m10= cosy*cosx;
 
+    arena?.register(result);
     return result;
   }
 
   /// Get perspective projection matrix
-  static Matrix Frustrum({
+  factory Matrix.Frustrum({
     required double left     , required double right   ,
     required double bottom   , required double top     , 
-    required double nearPlane, required double farPlane
+    required double nearPlane, required double farPlane,
+    RaylibArena? arena
   }) {
     Matrix result = Matrix();
 
@@ -291,15 +288,17 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m14 = -(farPlane*nearPlane*2.0)/fn;
     result.m15 = 0.0;
 
+    arena?.register(result);
     return result;
   }
 
   /// Get perspective projection matrix
   /// 
   /// NOTE: Fovy angle must be provided in radians
-  static Matrix Perspective({
+  factory Matrix.Perspective({
     required double fovY, required double aspect,
-    required double nearPlane, required double farPlane
+    required double nearPlane, required double farPlane,
+    RaylibArena? arena
   }) {
     Matrix result = Matrix();
 
@@ -321,14 +320,16 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m11 = -1.0;
     result.m14 = -(farPlane*nearPlane*2.0)/fn;
 
+    arena?.register(result);
     return result;
   }
 
   /// Get orthographic projection matrix
-  static Matrix Ortho({
+  factory Matrix.Ortho({
     required double left, required double right,
     required double bottom, required double top,
-    required double nearPlane, required double farPlane
+    required double nearPlane, required double farPlane,
+    RaylibArena? arena
   }) {
     Matrix result = Matrix();
 
@@ -353,10 +354,11 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m14 = -(farPlane + nearPlane)/fn;
     result.m15 = 1.0;
 
+    arena?.register(result);
     return result;
   }
 
-  static Matrix LookAt({required Vector3 eye, required Vector3 target, required Vector3 up})
+  factory Matrix.LookAt({required Vector3 eye, required Vector3 target, required Vector3 up, RaylibArena? arena})
   {
     Matrix result = Matrix();
 
@@ -410,11 +412,12 @@ class Matrix extends NativeWrapper<_Matrix>
     result.m14 = -(vz.x*eye.x + vz.y*eye.y + vz.z*eye.z);   // Vector3DotProduct(vz, eye)
     result.m15 = 1.0;
 
+    arena?.register(result);
     return result;
   }
 
   /// Compose a transformation matrix from rotational, translational and scaling components
-  static Matrix Compose(Vector3 translation, Quaternion rotation, Vector3 scale)
+  factory Matrix.Compose(Vector3 translation, Quaternion rotation, Vector3 scale, [RaylibArena? arena])
   {
     // Initialize vectors components and scale them
     double rx = scale.x, ry = 0.0, rz = 0.0;
@@ -439,12 +442,15 @@ class Matrix extends NativeWrapper<_Matrix>
     double resFz = fx*(-2*qw*qy + 2*qx*qz) + fy*(2*qw*qx + 2*qy*qz) + fz*(qw*qw - qx*qx - qy*qy + qz*qz);
     
     // Set result matrix output
-    return Matrix(
+    Matrix result = Matrix(
       resRx, resUx, resFx, translation.x,
       resRy, resUy, resFy, translation.y,
       resRz, resUz, resFz, translation.z,
       0.0, 0.0, 0.0, 1.0
     );
+
+    arena?.register(result);
+    return result;
   }
 
   /// Decompose a transformation matrix into its rotational, translational and scaling components and remove shear
