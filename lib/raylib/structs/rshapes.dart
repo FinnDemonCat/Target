@@ -72,10 +72,10 @@ abstract class Shapes3D
 abstract class Shapes
 {
   /// Draw a pixel using geometry [Can be slow, use with care]
-  static void DrawPixel(int posX, int posY,{ Color? color }) {
+  static void DrawPixel(num posX, num posY,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawPixel(posX, posY, finalcolor.ref);
+    _drawPixel(posX.toInt(), posY.toInt(), finalcolor.ref);
   }
   /// Draw a pixel using geometry (Vector version) [Can be slow, use with care]
   static void DrawPixelV(Vector2 position,{ Color? color }) {
@@ -84,10 +84,10 @@ abstract class Shapes
     _drawPixelV(position.ref, finalcolor.ref);
   }
 
-  static void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY,{ Color? color }) {
+  static void DrawLine(num startPosX, num startPosY, num endPosX, num endPosY,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawLine(startPosX, startPosY, endPosX, endPosY, finalcolor.ref);
+    _drawLine(startPosX.toInt(), startPosY.toInt(), endPosX.toInt(), endPosY.toInt(), finalcolor.ref);
   }
   /// Draw a line (using gl lines)
   static void DrawLineV(Vector2 startPos, Vector2 endPos,{ Color? color }) {
@@ -122,32 +122,32 @@ abstract class Shapes
     _drawLineBezier(startPos.ref, endPos.ref, thick, finalcolor.ref);
   }
   /// Draw a dashed line
-  static void DrawLineDashed(Vector2 startPos, Vector2 endPos, int dashSize, int spaceSize,{ Color? color }) {
+  static void DrawLineDashed(Vector2 startPos, Vector2 endPos, num dashSize, num spaceSize,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawLineDashed(startPos.ref, endPos.ref, dashSize, spaceSize, finalcolor.ref);
+    _drawLineDashed(startPos.ref, endPos.ref, dashSize.toInt(), spaceSize.toInt(), finalcolor.ref);
   }
   /// Draw a color-filled circle
-  static void DrawCircle(int centerX, int centerY, double radius,{ Color? color }) {
+  static void DrawCircle(num centerX, num centerY, double radius,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawCircle(centerX, centerY, radius, finalcolor.ref);
+    _drawCircle(centerX.toInt(), centerY.toInt(), radius, finalcolor.ref);
   }
   /// Draw a piece of a circle
-  static void DrawCicleSector(Vector2 center, double radius,{ required double startAngle, required double endAngle, required int segments, Color? color }) {
+  static void DrawCicleSector(Vector2 center, double radius,{ required double startAngle, required double endAngle, required num segments, Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawCircleSector(center.ref, radius, startAngle, endAngle, segments, finalcolor.ref);
+    _drawCircleSector(center.ref, radius, startAngle, endAngle, segments.toInt(), finalcolor.ref);
   }
   /// Draw circle sector outline
-  static void DrawCircleSectorLines(Vector2 center, double radius,{ required double startAngle, required double endAngle, required int segments, Color? color }) {
+  static void DrawCircleSectorLines(Vector2 center, double radius,{ required double startAngle, required double endAngle, required num segments, Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawCircleSectorLines(center.ref, radius, startAngle, endAngle, segments, finalcolor.ref);
+    _drawCircleSectorLines(center.ref, radius, startAngle, endAngle, segments.toInt(), finalcolor.ref);
   }
   /// Draw a gradient-filled circle
-  static void DrawCircleGradient(int centerX, int centerY, double radius,{ required Color inner, required Color outer }) {
-    _drawCircleGradient(centerX, centerY, radius, inner.ref, outer.ref);
+  static void DrawCircleGradient(num centerX, num centerY, double radius,{ required Color inner, required Color outer }) {
+    _drawCircleGradient(centerX.toInt(), centerY.toInt(), radius, inner.ref, outer.ref);
   }
   /// Draw a color-filled circle (Vector version)
   static void DrawCircleV(Vector2 center, double radius,{ Color? color }) {
@@ -156,10 +156,10 @@ abstract class Shapes
     _drawCircleV(center.ref, radius, finalcolor.ref);
   }
   /// Draw circle outline
-  static void DrawCircleLines(int centerX, int centerY, double radius,{ Color? color }) {
+  static void DrawCircleLines(num centerX, num centerY, double radius,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawCircleLines(centerX, centerY, radius, finalcolor.ref);
+    _drawCircleLines(centerX.toInt(), centerY.toInt(), radius, finalcolor.ref);
   }
   /// Draw circle outline (Vector version)
   static void DrawCircleLinesV(Vector2 center, double radius,{ Color? color }) {
@@ -168,10 +168,10 @@ abstract class Shapes
     _drawCircleLinesV(center.ref, radius, finalcolor.ref);
   }
   /// Draw ellipse
-  static void DrawEllipse(int centerX, int centerY, double radiusH, double radiusV,{ Color? color }) {
+  static void DrawEllipse(num centerX, num centerY, double radiusH, double radiusV,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawEllipse(centerX, centerY, radiusH, radiusV, finalcolor.ref);
+    _drawEllipse(centerX.toInt(), centerY.toInt(), radiusH, radiusV, finalcolor.ref);
   }
   /// Draw ellipse (Vector version)
   static void DrawEllipseV(Vector2 center, double radiusH, double radiusV,{ Color? color }) {
@@ -180,10 +180,10 @@ abstract class Shapes
     _drawEllipseV(center.ref, radiusH, radiusV, finalcolor.ref);
   }
   /// Draw ellipse outline
-  static void DrawEllipseLines(int centerX, int centerY, double radiusH, double radiusV,{ Color? color }) {
+  static void DrawEllipseLines(num centerX, num centerY, double radiusH, double radiusV,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawEllipseLines(centerX, centerY, radiusH, radiusV, finalcolor.ref);
+    _drawEllipseLines(centerX.toInt(), centerY.toInt(), radiusH, radiusV, finalcolor.ref);
   }
   /// Draw ellipse outline (Vector version)
   static void DrawEllipseLinesV(Vector2 center, double radiusH, double radiusV,{ Color? color }) {
@@ -192,22 +192,22 @@ abstract class Shapes
     _drawEllipseLinesV(center.ref, radiusH, radiusV, finalcolor.ref);
   }
   /// Draw ring
-  static void DrawRing(Vector2 center, double innerRadius, double outerRadius,{ required double startAngle, required double endAngle, required int segments, Color? color }) {
+  static void DrawRing(Vector2 center, double innerRadius, double outerRadius,{ required double startAngle, required double endAngle, required num segments, Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawRing(center.ref, innerRadius, outerRadius, startAngle, endAngle, segments, finalcolor.ref);
+    _drawRing(center.ref, innerRadius, outerRadius, startAngle, endAngle, segments.toInt(), finalcolor.ref);
   }
   /// Draw ring outline
-  static void DrawRingLines(Vector2 center, double innerRadius, double outerRadius,{ required double startAngle, required double endAngle, required int segments, Color? color }) {
+  static void DrawRingLines(Vector2 center, double innerRadius, double outerRadius,{ required double startAngle, required double endAngle, required num segments, Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawRingLines(center.ref, innerRadius, outerRadius, startAngle, endAngle, segments, finalcolor.ref);
+    _drawRingLines(center.ref, innerRadius, outerRadius, startAngle, endAngle, segments.toInt(), finalcolor.ref);
   }
   /// Draw a color-filled rectangle
-  static void DrawRectangle(int posX, int posY, int width, int height,{ Color? color }) {
+  static void DrawRectangle(num posX, num posY, num width, num height,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawRectangle(posX, posY, width, height, finalcolor.ref);
+    _drawRectangle(posX.toInt(), posY.toInt(), width.toInt(), height.toInt(), finalcolor.ref);
   }
   /// Draw a color-filled rectangle (Vector version)
   static void DrawRectangleV(Vector2 position, Vector2 size,{ Color? color }) {
@@ -228,22 +228,22 @@ abstract class Shapes
     _drawRectanglePro(rec.ref, origin.ref, rotation, finalcolor.ref);
   }
   /// Draw a vertical-gradient-filled rectangle
-  static void DrawRectangleGradientV(int posX, int posY, int width, int height,{ required Color top, required Color bottom }) {
-    _drawRectangleGradientV(posX, posY, width, height, top.ref, bottom.ref);
+  static void DrawRectangleGradientV(num posX, num posY, num width, num height,{ required Color top, required Color bottom }) {
+    _drawRectangleGradientV(posX.toInt(), posY.toInt(), width.toInt(), height.toInt(), top.ref, bottom.ref);
   }
   /// Draw a horizontal-gradient-filled rectangle
-  static void DrawRectangleGradientH(int posX, int posY, int width, int height,{ required Color left, required Color right }) {
-    _drawRectangleGradientH(posX, posY, width, height, left.ref, right.ref);
+  static void DrawRectangleGradientH(num posX, num posY, num width, num height,{ required Color left, required Color right }) {
+    _drawRectangleGradientH(posX.toInt(), posY.toInt(), width.toInt(), height.toInt(), left.ref, right.ref);
   }
   /// Draw a gradient-filled rectangle with custom vertex colors
   static void  DrawRectangleGradientEx(Rectangle rec,{ required Color topLeft, required Color bottomLeft, required Color bottomRight, required Color topRight }) {
     _drawRectangleGradientEx(rec.ref, topLeft.ref, bottomLeft.ref, bottomRight.ref, topRight.ref);
   }
   /// Draw rectangle outline
-  static void DrawRectangleLines(int posX, int posY, int width, int height,{ Color? color }) {
+  static void DrawRectangleLines(num posX, num posY, num width, num height,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
     
-    _drawRectangleLines(posX, posY, width, height, finalcolor.ref);
+    _drawRectangleLines(posX.toInt(), posY.toInt(), width.toInt(), height.toInt(), finalcolor.ref);
   }
   /// Draw rectangle outline with extended parameters
   static void DrawRectangleLinesEx(Rectangle rec, double lineThick,{ Color? color }) {
@@ -252,22 +252,22 @@ abstract class Shapes
     _drawRectangleLinesEx(rec.ref, lineThick, finalcolor.ref);
   }
   /// Draw rectangle with rounded edges
-  static void DrawRectangleRounded(Rectangle rec, double roundness, int segments,{ Color? color }) {
+  static void DrawRectangleRounded(Rectangle rec, double roundness, num segments,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawRectangleRounded(rec.ref, roundness, segments, finalcolor.ref);
+    _drawRectangleRounded(rec.ref, roundness, segments.toInt(), finalcolor.ref);
   }
   /// Draw rectangle lines with rounded edges
-  static void DrawRectangleRoundedLines(Rectangle rec, double roundness, int segments,{ Color? color }) {
+  static void DrawRectangleRoundedLines(Rectangle rec, double roundness, num segments,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawRectangleRoundedLines(rec.ref, roundness, segments, finalcolor.ref);
+    _drawRectangleRoundedLines(rec.ref, roundness, segments.toInt(), finalcolor.ref);
   }
   /// Draw rectangle with rounded edges outline
-  static void DrawRectangleRoundedLinesEx(Rectangle rec, double roundness, int segments, double lineThick,{ Color? color }) {
+  static void DrawRectangleRoundedLinesEx(Rectangle rec, double roundness, num segments, double lineThick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawRectangleRoundedLinesEx(rec.ref, roundness, segments, lineThick, finalcolor.ref);
+    _drawRectangleRoundedLinesEx(rec.ref, roundness, segments.toInt(), lineThick, finalcolor.ref);
   }
   /// Draw a color-filled triangle (vertex in counter-clockwise order!)
   static void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3,{ Color? color }) {
@@ -308,21 +308,21 @@ abstract class Shapes
     }); 
   }
   /// Draw a regular polygon (Vector version)
-  static void DrawPoly(Vector2 center, int sides, double radius, double rotation,{ Color? color }) {
+  static void DrawPoly(Vector2 center, num sides, double radius, double rotation,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawPoly(center.ref, sides, radius, rotation, finalcolor.ref);
+    _drawPoly(center.ref, sides.toInt(), radius, rotation, finalcolor.ref);
   }
   /// Draw a polygon outline of n sides
-  static void DrawPolyLines(Vector2 center, int sides, double radius, double rotation,{ Color? color }) {
+  static void DrawPolyLines(Vector2 center, num sides, double radius, double rotation,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawPolyLines(center.ref, sides, radius, rotation, finalcolor.ref);
+    _drawPolyLines(center.ref, sides.toInt(), radius, rotation, finalcolor.ref);
   }
   /// Draw a polygon outline of n sides with extended parameters
-  static void DrawPolyLinesEx(Vector2 center, int sides, double radius, double rotation, double lineThick,{ Color? color }) {
+  static void DrawPolyLinesEx(Vector2 center, num sides, double radius, double rotation, double lineThick,{ Color? color }) {
     final finalcolor = color ?? Color.WHITE;
 
-    _drawPolyLinesEx(center.ref, sides, radius, rotation, lineThick, finalcolor.ref);
+    _drawPolyLinesEx(center.ref, sides.toInt(), radius, rotation, lineThick, finalcolor.ref);
   }
 }

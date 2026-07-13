@@ -98,6 +98,9 @@ class NativeWrapper<T extends NativeType> {
     if (IsOwner) arena?.register(this);
   }
 
+  // Direct call to [arena] to register [this] to be freed 
+  void register(RaylibArena arena) => arena.register(this);
+
   /// Releases the allocated native memory associated with [pointer].
   /// 
   /// This operation will only execute if the object is the [IsOwner] and 

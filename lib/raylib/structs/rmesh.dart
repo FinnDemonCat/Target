@@ -105,16 +105,12 @@ class Mesh extends NativeWrapper<_Mesh> {
   // ignore: unused_element_parameter
   Mesh._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   // ignore: unused_element
   Mesh._Recieve(_Mesh result) : super(sizeOf<_Mesh>()) {
     ref = result;
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   Mesh({
@@ -318,15 +314,11 @@ class Mesh extends NativeWrapper<_Mesh> {
 
   //---------------------------------Degenerators--------------------------------------
   
-  static final Finalizer _finalizer = Finalizer((pointer) {
-    _unloadMesh(pointer.ref);
-    malloc.free(pointer);
-  });
-
   @override
   void Free() {
+    if (IsDisposed || !IsOwner) return;
+
     _unloadMesh(ref);
-    _finalizer.detach(this);
     super.Free();
   }
 }

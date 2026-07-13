@@ -32,16 +32,11 @@ class Texture2D extends NativeWrapper<_Texture2D>
   //--------------------------------Constructors----------------------------------------
 
   // ignore: unused_element_parameter
-  Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
+  Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress();
 
   // Used for TextureCubeMap constructor
   Texture2D._Recieve(_Texture value,{ super.IsOwner, super.length }) : super(sizeOf<_Texture2D>()) {
     ref = value;
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   /// Load texture from file into GPU memory (VRAM)
@@ -171,17 +166,12 @@ class Texture2D extends NativeWrapper<_Texture2D>
 
   //--------------------------------Deconstructors--------------------------------------
 
-  // Garbage collector setup
-  static final Finalizer<Pointer<_Texture>> _finalizer = Finalizer((ptr) {
-    _unloadTexture(ptr.ref);
-    malloc.free(ptr);
-  });
-
   /// Unload texture from GPU memory (VRAM)
   @override
   void Free() {
+    if (IsDisposed || !IsOwner) return;
+
     _unloadTexture(pointer.ref);
-    _finalizer.detach(this);
     super.Free();
   }
 }
@@ -249,15 +239,11 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture>
   // ignore: unused_element_parameter, unused_element
   RenderTexture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   RenderTexture2D._Recieve(_RenderTexture result) : super(sizeOf<_RenderTexture>()) {
     ref = result;
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   /// Load texture for rendering (framebuffer)
@@ -269,16 +255,11 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture>
   /// Check if a render texture is valid (loaded in GPU)
   bool isValid() => _isRenderTextureValid(ref);
   
-  // Garbage collector setup
-  static final Finalizer<Pointer<_RenderTexture2D>> _finalizer = Finalizer((ptr) {
-    _unloadRenderTexture(ptr.ref);
-    malloc.free(ptr);
-  });
-
   /// Unload render texture from GPU memory (VRAM)
   @override
   void Free() {
-    _finalizer.detach(this);
+    if (IsDisposed || !IsOwner) return;
+
     _unloadRenderTexture(pointer.ref);
     super.Free();
   }

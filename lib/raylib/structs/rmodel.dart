@@ -152,15 +152,11 @@ class Model extends NativeWrapper<_Model> {
   // ignore: unused_element_parameter, unused_element
   Model._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
-    if(IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   Model._Recieve(_Model result) : super(sizeOf<_Model>()) {
     ref = result;
     _setReferences();
-    if(IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
   
   /// Load model from files (meshes and materials)
@@ -261,24 +257,15 @@ class Model extends NativeWrapper<_Model> {
   void SetMeshMaterial(int meshId, int materialId) => _setModelMeshMaterial(pointer, meshId, materialId);
 
 //-----------------------------Memory Management--------------------------------------
-  
+
   /// Unload model (including meshes) from memory (RAM and/or VRAM)
   void Unload() => Free();
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Model>>((pointer) {
-    malloc.free(pointer);
-  });
-
   @override
   void Free() {
-    transform.Free();
-    meshes?.Free();
-    materials?.Free();
-    bones?.Free();
-    bindPose?.Free();
-    
+    if (IsDisposed || !IsOwner) return;
+
     _unloadModel(pointer.ref);
-    _finalizer.detach(this);
     super.Free();
   }
 }

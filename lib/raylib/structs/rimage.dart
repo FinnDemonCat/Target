@@ -146,8 +146,8 @@ class Image extends NativeWrapper<_Image> {
   /// Load image from GPU texture data
 	//  Texture2D shadow class not yet implemented
 	//  uncommment when done
-  factory Image.LoadFromTexture(_Texture2D texture,[ RaylibArena? arena ]) {
-    final result = _loadImageFromTexture(texture);
+  factory Image.LoadFromTexture(Texture2D texture,[ RaylibArena? arena ]) {
+    final result = _loadImageFromTexture(texture.ref);
     Image image = Image._Recieve(result);
     arena?.register(image);
     return image;

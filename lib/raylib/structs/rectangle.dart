@@ -13,10 +13,10 @@ class Rectangle extends NativeWrapper<_Rectangle> {
   double get width => pointer.ref.width;
   double get height => pointer.ref.height;
 
-  set x(double value) => pointer.ref.x = value;
-  set y(double value) => pointer.ref.y = value;
-  set width(double value)  => pointer.ref.width  = value;
-  set height(double value) => pointer.ref.height = value;
+  set x(num value) => pointer.ref.x = value.toDouble();
+  set y(num value) => pointer.ref.y = value.toDouble();
+  set width(num value)  => pointer.ref.width  = value.toDouble();
+  set height(num value) => pointer.ref.height = value.toDouble();
 
   void Set({num? x, num? y, num? width, num? height}) {
     this.x = x?.toDouble() ?? this.x;

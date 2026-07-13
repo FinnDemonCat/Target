@@ -74,6 +74,13 @@ class HaySize
   const HaySize.FullHeight({required this.width}) : height = ExpandHeight;
 }
 
+/*
+class HayPosition
+{
+
+}
+*/
+
 /// # HayPadding Parameter
 /// 
 /// Defines spacing around widget content in a Container.
@@ -328,7 +335,7 @@ class Column extends Widget
   @override
   void DrawWidget()
   {
-    Shapes.DrawRectangleLines(x.toInt(), y.toInt(), width.toInt(), height.toInt());
+    // Shapes.DrawRectangleLines(x, y, width, height);
 
     for (Widget widget in widgets)
       widget.DrawWidget();
@@ -361,7 +368,7 @@ class Column extends Widget
 
     for (int index = 0; index < widgets.length; index++)
     {
-      widgets[index].SetSizing(width, height);
+      widgets[index].SetSizing(width, height - totalHeight);
 
       switch (CrossAxis)
       {
@@ -379,6 +386,9 @@ class Column extends Widget
       }
 
       widgets[index].y = startY + totalHeight;
+
+      widgets[index].y = widgets[index].y.round();
+      widgets[index].x = widgets[index].x.round();
       widgets[index].Mount();
 
       totalHeight += widgets[index].height + spacing;
@@ -475,9 +485,11 @@ class Row extends Widget
     {
       case HayXAxisAlign.CENTER:
         startX = (width - widWidth) / 2;
+        startX += x;
         break;
       case HayXAxisAlign.RIGHT:
         startX = width - widWidth;
+        startX += x;
         break;
       default:
         break;
@@ -487,7 +499,7 @@ class Row extends Widget
 
     for (int index = 0; index < widgets.length; index++)
     {
-      widgets[index].SetSizing(width, height);
+      widgets[index].SetSizing(width - totalWidth, height);
       
       switch(MainAxis)
       {
@@ -505,6 +517,9 @@ class Row extends Widget
       }
       
       widgets[index].x = startX + totalWidth;
+
+      widgets[index].y = widgets[index].y.round();
+      widgets[index].x = widgets[index].x.round();
       widgets[index].Mount();
 
       totalWidth += widgets[index].width + spacing;
@@ -1154,13 +1169,13 @@ class Grid extends Widget
 
     for (int row = 0; row < _rows; row++) {
       for (int col = 0; col < _cols; col++) {
-          int index = (row * _cols) + col;
-          if (index >= widgets.length) break;
+        int index = (row * _cols) + col;
+        if (index >= widgets.length) break;
 
-          widgets[index].Set(
-            x: x + col * _colStride,
-            y: y + (row * _rowStride) - _scroll
-          );
+        widgets[index].Set(
+          x: x + col * _colStride,
+          y: y + (row * _rowStride) - _scroll
+        );
       }
     }
     
@@ -1185,8 +1200,8 @@ class Grid extends Widget
           if (index >= widgets.length) break;
 
           widgets[index].Set(
-            x: x + col * _colStride,
-            y: y + (row * _rowStride) - _scroll
+            x: (x + col * _colStride).round(),
+            y: (y + (row * _rowStride) - _scroll).round()
           );
 
           widgets[index].DrawWidget();
@@ -1502,7 +1517,9 @@ typedef WidgetTransition = bool Function(Widget, double);
 abstract class Router
 {
   static Widget? _activeWidget;
+  static Widget? get activeWidget => _activeWidget;
   static Widget? _destWidget;
+  static Widget? get destWidget => _destWidget;
   // static Map<String, WidgetBuilder> overlays = {};
   // static Widget? _activeOverlay;
   
@@ -1514,11 +1531,11 @@ abstract class Router
   /// Initializer function set the [home] page and the [routes] map
   static void Init(
     WidgetBuilder home,[
-    Map<String, WidgetBuilder> routes = const {},
+    Map<String, WidgetBuilder>? routes,
     // Map<String, WidgetBuilder> overlays = const {}
   ]) {
     // Router.overlays = overlays;
-    Router.routes = routes;
+    Router.routes = routes ?? {};
 
     Router.routes['home/'] = home;
     history.add('home/');
@@ -1579,12 +1596,12 @@ abstract class Router
   /// Draws the Widget on the destination page with [transition].
   /// 
   /// Set [transition] to compute a custom transition animation to [destWidget] with [_elapsedTime], return [true] when complete.
-  static void DrawPage({WidgetTransition? transition}) {
+  static void DrawPage([WidgetTransition? transition]) {
     transition ??= (destWidget, elapsedTime) { return true; };
 
     if (_destWidget != null) {
       if (!transition(_destWidget!, _elapsedTime)) {
-        _elapsedTime += Frame.GetFrameTime();
+        _elapsedTime += Frame.GetTime();
       }
       else {
         _elapsedTime = 0.0;

@@ -23,26 +23,27 @@ class BoundingBox extends NativeWrapper<_BoundingBox> {
       ..min = min.ref
       ..max = max.ref;
 
-    _finalizer.attach(this, pointer, detach: this);
+    // _finalizer.attach(this, pointer, detach: this);
     _setReferences(pointer);
   }
 
   BoundingBox._Recieve(_BoundingBox result) : super(sizeOf<_BoundingBox>()) {
     ref = result;
 
-    _finalizer.attach(this, pointer, detach: this);
+    // _finalizer.attach(this, pointer, detach: this);
     _setReferences(pointer);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_BoundingBox>>((pointer) {
-    malloc.free(pointer);
-  });
+  // This is causing a double free error
+  // static final Finalizer _finalizer = Finalizer<Pointer<_BoundingBox>>((pointer) {
+  //   malloc.free(pointer);
+  // });
   
   @override
   void Free() {
     max.Free();
     min.Free();
-    _finalizer.detach(this);
+    // _finalizer.detach(this);
     super.Free();
   }
 }

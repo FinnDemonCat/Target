@@ -27,14 +27,11 @@ class Transform extends NativeWrapper<_Transform> {
   Transform._Recieve(_Transform result) : super(sizeOf<_Transform>()) {
     ref = result;
     _setReferences();
-    _finalizer.attach(this, pointer, detach: this);
   }
 
   // ignore: unused_element_parameter
   Transform._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
   }
 
   Transform(Vector3 translation, Quaternion rotation, Vector3 scale,[ RaylibArena? arena ]) : super(sizeOf<_Transform>(), arena: arena) {
@@ -44,7 +41,6 @@ class Transform extends NativeWrapper<_Transform> {
       ..scale = scale.ref;
 
     _setReferences();
-    _finalizer.attach(this, pointer, detach: this);
   }
 
   Transform operator [](int index) {
@@ -63,13 +59,10 @@ class Transform extends NativeWrapper<_Transform> {
       yield this[x];
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Transform>>((pointer) {
-    malloc.free(pointer);
-  });
-
   @override
   void Free() {
-    _finalizer.detach(this);
+    if (IsDisposed || !IsOwner) return;
+
     super.Free();
   }
 }
