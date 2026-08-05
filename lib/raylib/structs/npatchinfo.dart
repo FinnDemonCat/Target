@@ -4,41 +4,38 @@ part of '../raylib.dart';
 //                                 NPatchInfo
 //------------------------------------------------------------------------------------
 
+typedef _FreeNPatchInfoC    = Void Function(Pointer<Void> token);
+// typedef _FreeNPatchInfoDart = void Function(Pointer<Void> token);
+final _freeNPatchInfo = _dyReleaseLib.lookup<NativeFunction<_FreeNPatchInfoC>>('FreeNPatchInfo');
+
 /// NPatchInfo, n-patch layout info
-class NPatchInfo extends NativeWrapper<_NPatchInfo>
-{
-  // NativeResource<_NPatchInfo>? _memory;
+class NPatchInfo extends NativeWrapper<_NPatchInfo> implements Finalizable {
+	_NPatchInfo get ref => pointer.ref;
+	set ref(_NPatchInfo value) => pointer.ref = value;
 
-  /*
-  void _setmemory(_NPatchInfo result)
-  {
-    if (_memory != null) Free();
-    Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
-    pointer.ref = result;
+	/// Texture source rectangle
+	_Rectangle get source => ref.source;
+	/// Left border offset
+	int get left => ref.left;
+	/// Top border offset
+	int get top => ref.top;
+	/// Right border offset
+	int get right => ref.right;
+	/// Bottom border offset
+	int get bottom => ref.bottom;
+	/// Layout of the n-patch: 3x3, 1x3 or 3x1
+	int get layout => ref.layout;
 
-    this._memory = NativeResource<_NPatchInfo>(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-  }
-  */
-
-  _NPatchInfo get ref => pointer.ref;
-  _Rectangle get source => ref.source;
-  int get bottom => ref.bottom;
-  int get top    => ref.top;
-  int get left   => ref.left;
-  int get right  => ref.right;
-  int get layout => ref.layout;
-
-  set source(_Rectangle value) => ref.source = value;
-  set bottom(int value) => ref.bottom = value.clamp(0.0, value).toInt();
-  set top(int value) => ref.top = value.clamp(0.0, value).toInt();
-  set left(int value) => ref.left = value.clamp(0.0, value).toInt();
-  set right(int value) => ref.right = value.clamp(0.0, value).toInt();
-  set layout(NPatchLayout layout) => ref.layout = layout.index;
+	set source(Rectangle value) => ref.source = value.ref;
+	set left(int value) => ref.left = value;
+	set top(int value) => ref.top = value;
+	set right(int value) => ref.right = value;
+	set bottom(int value) => ref.bottom = value;
+	set layout(NPatchLayout value) => ref.layout = value.index;
 
   void Set({ Rectangle? source, int? bottom, int? top, int? left, int? right, NPatchLayout? layout})
   {
-    if (source != null) this.source = source.ref;
+    if (source != null) this.source = source;
     if (bottom != null) this.bottom = bottom;
     if (top != null) this.top = top;
     if (left != null) this.left = left;
@@ -46,36 +43,32 @@ class NPatchInfo extends NativeWrapper<_NPatchInfo>
     if (layout != null) this.layout = layout;
   }
 
-  NPatchInfo({
+	NPatchInfo({
     required Rectangle source,
-    required int bottom,
-    required int top,
-    required int left,
-    required int right,
-    required NPatchLayout layout,
-    super.arena
-  }) : super(sizeOf<_NPatchInfo>())
-  {
-    // Pointer<_NPatchInfo> pointer = malloc.allocate<_NPatchInfo>(sizeOf<_NPatchInfo>());
-    ref
-    ..source = source.ref
-    ..bottom = bottom
-    ..top    = top
-    ..left   = left
-    ..right  = right
-    ..layout = layout.index;
+    int left = 0,
+    int top = 0,
+    int right = 0,
+    int bottom = 0,
+    NPatchLayout layout = .NPATCH_NINE_PATCH}
+  ) : super(sizeOf<_NPatchInfo>()) {
+		ref
+			..source = source.ref
+			..left = left
+			..top = top
+			..right = right
+			..bottom = bottom
+			..layout = layout.index;
 
-    _finalizer.attach(this, pointer, detach: this);
-  }
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_NPatchInfo>>((pointer) {
-    malloc.free(pointer);
-  });
+	// =================================== Deconstructor ====================================
 
+	static final _nativeFinalizer = NativeFinalizer(_freeNPatchInfo);
   
   @override
   void Free() {
-    _finalizer.detach(this);
+    _nativeFinalizer.detach(this);
     super.Free();
   }
 }

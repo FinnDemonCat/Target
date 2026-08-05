@@ -18,7 +18,7 @@ class Button extends IInteractible
     super.cursor
   }) {
     if (buttonTexture != null)
-      buttonRect = Rectangle(0.0, 0.0, buttonTexture!.width.toDouble(), buttonTexture!.heigth.toDouble());
+      buttonRect = Rectangle(0.0, 0.0, buttonTexture!.width.toDouble(), buttonTexture!.height.toDouble());
   }
 
   @override
@@ -35,7 +35,7 @@ class Button extends IInteractible
   @override
   void DrawWidget() {
     if (buttonTexture != null) {
-      var src = Rectangle(0.0, 0.0, buttonTexture!.width.toDouble(), buttonTexture!.heigth.toDouble());
+      var src = Rectangle(0.0, 0.0, buttonTexture!.width.toDouble(), buttonTexture!.height.toDouble());
       Texture.DrawPro(buttonTexture!, src, interactArea);
       src.Free();
     }

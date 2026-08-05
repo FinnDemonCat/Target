@@ -4,12 +4,21 @@ part of '../raylib.dart';
 //                                   BoneInfo
 //------------------------------------------------------------------------------------
 
-class BoneInfo extends NativeWrapper<_BoneInfo> {
+typedef _FreeBoneInfoC    = Void Function(Pointer<Void> token);
+// typedef _FreeBoneInfoDart = void Function(Pointer<Void> token);
+final _freeBoneInfo = _dyReleaseLib.lookup<NativeFunction<_FreeBoneInfoC>>('FreeBoneInfo');
+
+/// Bone, skeletal animation bone
+class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
   _BoneInfo get ref => pointer.ref;
   set ref (_BoneInfo value) => pointer.ref = value;
 
+	/// Bone name
   late final String name;
+  
+	/// Bone parent
   int get parent => ref.parent;
+	set parent(int value) => ref.parent = value;
 
   void _setReferences() {
     List<int> stringList = [];
@@ -22,64 +31,71 @@ class BoneInfo extends NativeWrapper<_BoneInfo> {
   // ignore: unused_element_parameter
   BoneInfo._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  BoneInfo operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    return BoneInfo._Encapsulate(pointer + index, IsOwner: false);
-  }
+	// ignore: unused_element_parameter, unused_element
+	BoneInfo._Recieve(_BoneInfo result): super(sizeOf<_BoneInfo>()) {
+    _setReferences();
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  void operator []=(int index, BoneInfo value) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    (pointer + index).ref = value.ref;
-  }
+	// ===================================== Operators ======================================
 
-  @override
-  Iterable<BoneInfo> get values sync* {
-    for(int x = 0; x < length; x++)
-      yield this[x]; 
-  }
+	BoneInfo operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return BoneInfo._Encapsulate(pointer + index, IsOwner: false);
+	}
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_BoneInfo>>((pointer) {
-    malloc.free(pointer);
-  });
-  
-  @override
-  void Free() {
-    _finalizer.detach(this);
-    super.Free();
-  }
+	void operator[]=(BoneInfo value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<BoneInfo> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeBoneInfo);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 //------------------------------------------------------------------------------------
 //                                   Model
 //------------------------------------------------------------------------------------
 
+// Unload model (including meshes) from memory (RAM and/or VRAM)
+typedef _FreeModelC    = Void Function(Pointer<Void> token);
+// typedef _FreeModelDart = void Function(Pointer<Void> token);
+final _freeModel = _dyReleaseLib.lookup<NativeFunction<_FreeModelC>>('FreeModel');
+
 /// Model, meshes, materials and animation data
-/// 
-/// Access to internal arrays is provided via [meshes] and [materials] views, 
-/// allowing for intuitive list-style indexing.
-///
-/// ### Example:
-/// ```dart
-/// // Accessing the first mesh's vertex data
-/// var vertexCount = model.meshes[0].vertexCount;
-/// 
-/// // Modifying a material property
-/// model.materials[0].maps[MAP_DIFFUSE].color = Color.RED;
-/// ```
-/// 
-/// ### Direct Pointer Access:
-/// If you need to interface with external C libraries or custom shaders, 
-/// use the `.ptr` property on [meshes], [materials], or the [Model] itself 
-/// to get the underlying memory address.
-class Model extends NativeWrapper<_Model> {
+class Model extends NativeWrapper<_Model> implements Finalizable {
   _Model get ref => pointer.ref;
   set ref(_Model value) => pointer.ref = value;
 
+	/// Number of meshes
   int get meshCount => ref.meshCount;
+	set meshCount(int value) => ref.meshCount = value;
+
+	/// Number of bones
   int get boneCount => ref.boneCount;
+	set boneCount(int value) => ref.boneCount = value;
+
+	/// Number of materials
   int get materialCount => ref.materialCount;
+	set materialCount(int value) => ref.materialCount = value;
   
   late Matrix _transform;
   late Mesh? _meshes;
@@ -88,9 +104,11 @@ class Model extends NativeWrapper<_Model> {
   late Transform? _bindPose;
   late Int32List meshMaterial;
 
+	/// Local transform matrix
   Matrix get transform => _transform;
   set transform(Matrix value) => _transform.ref = value.ref;
 
+	/// Number of meshes
   Mesh? get meshes => _meshes;
   set meshes(Mesh? value) {
     if (_meshes == null)
@@ -99,6 +117,7 @@ class Model extends NativeWrapper<_Model> {
       _meshes!.ref = value.ref;
   }
 
+	/// Materials array
   Material? get materials => _materials;
   set materials(Material? value) {
     if (_materials == null)
@@ -107,6 +126,7 @@ class Model extends NativeWrapper<_Model> {
       _materials!.ref = value.ref;
   }
 
+	/// Bones information (skeleton)
   BoneInfo? get bones => _bones;
   set bones(BoneInfo? value) {
     if (_bones == null)
@@ -115,6 +135,7 @@ class Model extends NativeWrapper<_Model> {
       _bones!.ref = value.ref;
   }
 
+	/// Bones base transformation (pose)
   Transform? get bindPose => _bindPose;
   set bindPose(Transform? value) {
     if (_bindPose == null)
@@ -147,18 +168,21 @@ class Model extends NativeWrapper<_Model> {
       : Int32List(meshCount);
   }
 
-//----------------------------------Constructors-------------------------------------
-
   // ignore: unused_element_parameter, unused_element
   Model._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   Model._Recieve(_Model result) : super(sizeOf<_Model>()) {
     ref = result;
     _setReferences();
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
   
+	// ==================================== Constructor =====================================
+
   /// Load model from files (meshes and materials)
   factory Model(String fileName,[ RaylibArena? arena ]) {
     Pointer<Utf8> cfileName = fileName.toNativeUtf8();
@@ -251,39 +275,50 @@ class Model extends NativeWrapper<_Model> {
 
   /// Draw bounding box (wires)
   static void DrawBoundingBox({required BoundingBox bounds, required Color color}) => _drawBoundingBox(bounds.ref, color.ref);
-//----------------------------------Method--------------------------------------------
 
   /// Set material for a mesh
   void SetMeshMaterial(int meshId, int materialId) => _setModelMeshMaterial(pointer, meshId, materialId);
 
-//-----------------------------Memory Management--------------------------------------
+	// =================================== Deconstructor ====================================
 
-  /// Unload model (including meshes) from memory (RAM and/or VRAM)
-  void Unload() => Free();
+	static final _nativeFinalizer = NativeFinalizer(_freeModel);
 
-  @override
-  void Free() {
-    if (IsDisposed || !IsOwner) return;
-
-    _unloadModel(pointer.ref);
-    super.Free();
-  }
+	// Unload model (including meshes) from memory (RAM and/or VRAM)
+	@override
+	void Free() {
+		_unloadModel(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 //------------------------------------------------------------------------------------
 //                                ModelAnimation
 //------------------------------------------------------------------------------------
 
-class ModelAnimation extends NativeWrapper<_ModelAnimation> {
+// Unload animation array data
+// typedef _FreeModelAnimationC    = Void Function(Pointer<Void> token);
+// typedef _FreeModelAnimationDart = void Function(Pointer<Void> token);
+// final _freeModelAnimation = _dyReleaseLib.lookup<NativeFunction<_FreeModelAnimationC>>('FreeModelAnimation');
+
+// TODO: Fix NativeFinalizer implementation
+/// ModelAnimation
+class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizable {
   _ModelAnimation get ref => pointer.ref;
   set ref (_ModelAnimation value) => pointer.ref = value;
 
+	/// Animation name
   late final String name;
+	/// Bones information (skeleton)
   late final BoneInfo? bones;
+	/// Poses array by frame
   late final List<Transform?> framePoses;
-  late final int animationCount;
+	/// Number of animation frames
   int get frameCount => ref.frameCount;
+	/// Number of bones
   int get boneCount => ref.boneCount;
+  /// Number of animations
+  late final int animationCount;
 
   void _setReferences() {
     bones = ref.bones.IsNotNull
@@ -342,17 +377,25 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> {
   /// Update model animation mesh bone matrices (GPU skinning)
   void UpdateAnimationBones(Model model, int frame) => _updateModelAnimationBones(model.ref, ref, frame);
 
-  ModelAnimation operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
+	// ===================================== Operators ======================================
 
-    return ModelAnimation._Encapsulate(pointer + index, 1);
-  }
-  
-  void operator []=(int index, ModelAnimation value) {
-    if (index < 0 || index >= length) throw RangeError(index);
+	ModelAnimation operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return ModelAnimation._Encapsulate(pointer + index, 1, IsOwner: false);
+	}
 
-    (pointer + index).ref = value.ref;
-  }
+	void operator[]=(ModelAnimation value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<ModelAnimation> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
 
   static final Finalizer<Map<String, dynamic>> _finalizer = Finalizer((data) {
     final Pointer<_ModelAnimation> ptr = data['ptr'];
@@ -375,31 +418,50 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> {
 //                                      Ray
 //------------------------------------------------------------------------------------
 
-class Ray extends NativeWrapper<_Ray> {
+typedef _FreeRayC    = Void Function(Pointer<Void> token);
+// typedef _FreeRayDart = void Function(Pointer<Void> token);
+final _freeRay = _dyReleaseLib.lookup<NativeFunction<_FreeRayC>>('FreeRay');
+
+/// Ray, ray for raycasting
+class Ray extends NativeWrapper<_Ray> implements Finalizable {
   _Ray get ref => pointer.ref;
   set ref (_Ray value) => pointer.ref = value;
-  late final Vector3 position;
-  late final Vector3 direction;
+
+  late final Vector3 _position;
+	/// Ray position (origin)
+  Vector3 get position => _position;
+  set position(Vector3 value) => _position.ref = value.ref;
+  
+  late final Vector3 _direction;
+	/// Ray direction (normalized)
+  Vector3 get direction => _direction;
+  set direction(Vector3 value) => _direction.ref = value.ref;
 
   void _setReferences() {
     int address = pointer.address;
-    position = Vector3._Encapsulate(.fromAddress(address));
+    _position = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    direction = Vector3._Encapsulate(.fromAddress(address));
+    _direction = Vector3._Encapsulate(.fromAddress(address));
   }
 
   // ignore: unused_element_parameter, unused_element
   Ray._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
+	// ignore: unused_element_parameter, unused_element
   Ray._Recieve(_Ray result) : super(sizeOf<_Ray>()) {
     ref = result;
-    _finalizer.attach(this, pointer, detach: this);
+    _setReferences();
+
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
+
+	// ==================================== Constructor =====================================
 
   Ray(Vector3 position, Vector3 direction,[ RaylibArena? arena ]) : super(sizeOf<_Ray>()) {
     ref
@@ -407,60 +469,114 @@ class Ray extends NativeWrapper<_Ray> {
       ..direction = direction.ref;
 
     _setReferences();
+
     arena?.register(this);
-    _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Ray>>((pointer) {
-    malloc.free(pointer);
-  });
+	// ===================================== Operators ======================================
 
-  @override
-  void Free() {
-    _finalizer.detach(this);
-    super.Free();
-  }
+	Ray operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Ray._Encapsulate(pointer + index, IsOwner: false);
+	}
+
+	void operator[]=(Ray value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<Ray> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeRay);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
-class RayCollision extends NativeWrapper<_RayCollision> {
+typedef _FreeRayCollisionC    = Void Function(Pointer<Void> token);
+// typedef _FreeRayCollisionDart = void Function(Pointer<Void> token);
+final _freeRayCollision = _dyReleaseLib.lookup<NativeFunction<_FreeRayCollisionC>>('FreeRayCollision');
+
+/// RayCollision, ray hit information
+class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
   _RayCollision get ref => pointer.ref;
   set ref(_RayCollision value) => pointer.ref = value;
 
+	/// Did the ray hit something?
   bool get hit => ref.hit;
+	set hit(bool value) => ref.hit = value;
+	/// Distance to the nearest hit
   double get distance => ref.distance;
-  late final Vector3 point;
-  late final Vector3 normal;
+	set distance(num value) => ref.distance = value.toDouble();
+  
+  late final Vector3 _point;
+	/// Point of the nearest hit
+  Vector3 get point => _point;
+  set point(Vector3 value) => _point.ref = value.ref;
+  
+  late final Vector3 _normal;
+	/// Surface normal of hit
+  Vector3 get normal => _normal;
+  set normal(Vector3 value) => _normal.ref = value.ref;
 
   void _setReferences() {
     int address = pointer.address;
     address += /* sizeOf<Bool>() */ 4 + sizeOf<Float>();
-    point = Vector3._Encapsulate(.fromAddress(address));
+    _point = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    normal = Vector3._Encapsulate(.fromAddress(address));
+    _normal = Vector3._Encapsulate(.fromAddress(address));
   }
 
   // ignore: unused_element_parameter, unused_element
   RayCollision._Encapsulate(super.pointer,{ super.IsOwner, super.length, super.arena }) : super.fromAddress() {
     _setReferences();
     if(IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
+	// ignore: unused_element_parameter, unused_element
   RayCollision._Recieve(_RayCollision result,[ RaylibArena? arena ]) : super(sizeOf<_RayCollision>(), arena: arena) {
     ref = result;
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_RayCollision>>((pointer) {
-    malloc.free(pointer);
-  });
+  // ===================================== Operators ======================================
 
-  @override
-  void Free() {
-    _finalizer.detach(this);
-    super.Free();
-  }
+	RayCollision operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return RayCollision._Encapsulate(pointer + index, IsOwner: false);
+	}
+
+	void operator[]=(RayCollision value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<RayCollision> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeRayCollision);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }

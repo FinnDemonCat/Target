@@ -1,24 +1,31 @@
 part of '../raylib.dart';
 
+typedef _FreeVector2C    = Void Function(Pointer<Void> token);
+// typedef _FreeVector2Dart = void Function(Pointer<Void> token);
+final _freeVector2 = _dyReleaseLib.lookup<NativeFunction<_FreeVector2C>>('FreeVector2');
+
 //------------------------------------------------------------------------------------
 /// Module Functions Definition - Vector2 math
 //------------------------------------------------------------------------------------
-class Vector2 extends NativeWrapper<_Vector2> {
+class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
   _Vector2 get ref => pointer.ref;
   set ref (_Vector2 value) => pointer.ref = value;
 
-  double get x => ref.x;
-  double get y => ref.y;
-  set x (double value) { ref.x = value; }
-  set y (double value) { ref.y = value; }
+	/// Vector x component
+	double get x => ref.x;
+	/// Vector y component
+	double get y => ref.y;
 
-  ///Set all values in a single call
+	set x(num value) => ref.x = value.toDouble();
+	set y(num value) => ref.y = value.toDouble();
+
+  /// Set all values in a single call
   void Set({ num? x, num? y }) {
-    if (x != null) this.x = x.toDouble();
-    if (y != null) this.y = y.toDouble();
+    if (x != null) this.x = x;
+    if (y != null) this.y = y;
   }
 
-//--------------------------------Constructors----------------------------------------
+	// ===================================== Operators ======================================
 
   /// Vector with components of value x and y. Defaults to 0.0 and 0.0
   Vector2([double x = 0.0, double y = 0.0, RaylibArena? arena]) : super(sizeOf<_Vector2>(), arena: arena) {
@@ -27,7 +34,7 @@ class Vector2 extends NativeWrapper<_Vector2> {
       ..y = y;
 
     if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element_parameter
@@ -35,13 +42,14 @@ class Vector2 extends NativeWrapper<_Vector2> {
     ref = result;
 
     if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+
   }
 
   // ignore: unused_element_parameter
   Vector2._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   /// Vector with components value 0.0f
@@ -132,17 +140,19 @@ class Vector2 extends NativeWrapper<_Vector2> {
     ref = _getSplinePointBezierCubic(p1.ref, c2.ref, c3.ref, p4.ref, t);
   }
 
-//------------------------------------Deconstrutor------------------------------------
-  
-  static final Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
-    if (pointer.address == 0) return;
+	// =================================== Deconstructor ====================================
 
-    malloc.free(pointer);
-  });
+	static final _nativeFinalizer = NativeFinalizer(_freeVector2);
+  
+  // static final Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
+  //   if (pointer.address == 0) return;
+
+  //   malloc.free(pointer);
+  // });
   
   @override
   void Free() {
-    _finalizer.detach(this);
+    _nativeFinalizer.detach(this);
     super.Free();
   }
 }
@@ -152,8 +162,7 @@ class Vector2 extends NativeWrapper<_Vector2> {
 ///
 /// * **Address:** Remains constant.
 /// * **Memory:** Zero new allocations.
-extension Vector2Math on Vector2
-{
+extension Vector2Math on Vector2 {
   /// Add two vectors (v1 + v2)
   void Add(Vector2 other) { this.x += other.x; this.y += other.y; }
 
@@ -294,26 +303,46 @@ extension Vector2Math on Vector2
 /// Module Functions Definition - Vector3 math
 //------------------------------------------------------------------------------------
 
-class Vector3 extends NativeWrapper<_Vector3> {
+typedef _FreeVector3C    = Void Function(Pointer<Void> token);
+// typedef _FreeVector3Dart = void Function(Pointer<Void> token);
+final _freeVector3 = _dyReleaseLib.lookup<NativeFunction<_FreeVector3C>>('FreeVector3');
+
+/// Vector3, 3 components
+class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
   _Vector3 get ref => pointer.ref;
   set ref (_Vector3 value) => pointer.ref = value;
 
-  double get x => ref.x;
-  double get y => ref.y;
-  double get z => ref.z;
+	/// Vector x component
+	double get x => ref.x;
+	/// Vector y component
+	double get y => ref.y;
+	/// Vector z component
+	double get z => ref.z;
 
-  set x (double value) => ref.x = value;
-  set y (double value) => ref.y = value;
-  set z (double value) => ref.z = value;
+	set x(num value) => ref.x = value.toDouble();
+	set y(num value) => ref.y = value.toDouble();
+	set z(num value) => ref.z = value.toDouble();
 
   ///Set all values in a single call
   void Set({num? x, num? y, num? z}) {
-    if (x != null) this.x = x.toDouble();
-    if (y != null) this.y = y.toDouble();
-    if (z != null) this.z = z.toDouble();
+    if (x != null) this.x = x;
+    if (y != null) this.y = y;
+    if (z != null) this.z = z;
   }
 
-//----------------------------------Constructors------------------------------------
+	// ignore: unused_element_parameter, unused_element
+	Vector3._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ignore: unused_element_parameter, unused_element
+	Vector3._Recieve(_Vector3 result): super(sizeOf<_Vector3>()) {
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ==================================== Constructor =====================================
 
   Vector3([double x = 0.0, double y = 0.0, double z = 0.0, RaylibArena? arena]) : super(sizeOf<_Vector3>(), arena: arena) {
     pointer.ref
@@ -321,18 +350,6 @@ class Vector3 extends NativeWrapper<_Vector3> {
       ..y = y
       ..z = z;
 
-    _finalizer.attach(this, pointer, detach: this);
-  }
-
-  // ignore: unused_element_parameter
-  Vector3._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-  
-  // ignore: unused_element_parameter
-  Vector3._Recieve(_Vector3 result,{ super.IsOwner, super.length }) : super(sizeOf<_Vector3>()) {
-    ref = result;
     _finalizer.attach(this, pointer, detach: this);
   }
 
@@ -685,6 +702,28 @@ class Vector3 extends NativeWrapper<_Vector3> {
     return result;
   }
 
+	// ===================================== Operators ======================================
+
+	Vector3 operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Vector3._Encapsulate(pointer + index, IsOwner: false);
+	}
+
+	void operator[]=(Vector3 value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<Vector3> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+  // =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeVector3);
+
   @override
   void Free() {
     _finalizer.detach(this);
@@ -692,8 +731,7 @@ class Vector3 extends NativeWrapper<_Vector3> {
   }
 }
 
-extension Vector3Math on Vector3
-{
+extension Vector3Math on Vector3 {
   /// Add two vectors (v1 + v2) - In-place
   void Add(Vector3 v2) {
     this.x += v2.x;
@@ -923,49 +961,42 @@ extension Vector3Math on Vector3
 //----------------------------------------------------------------------------------
 /// Module Functions Definition - Vector4 math
 //----------------------------------------------------------------------------------
-class Vector4 extends NativeWrapper<_Vector4>
-{
-  // NativeWrapper<_Vector4>? _memory;
+
+typedef _FreeVector4C    = Void Function(Pointer<Void> token);
+// typedef _FreeVector4Dart = void Function(Pointer<Void> token);
+final _freeVector4 = _dyReleaseLib.lookup<NativeFunction<_FreeVector4C>>('FreeVector4');
+
+class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
   _Vector4 get ref => pointer.ref;
   set ref (_Vector4 v) => pointer.ref = v;
 
-  // ignore: unused_element
-  /* void _setmemory(_Vector4 result)
-  {
-    Pointer<_Vector4> pointer = malloc.allocate<_Vector4>(sizeOf<_Vector4>());
-    pointer.ref = result;
+	/// Vector x component
+	double get x => ref.x;
+	/// Vector y component
+	double get y => ref.y;
+	/// Vector z component
+	double get z => ref.z;
+	/// Vector w component
+	double get w => ref.w;
 
-    _memory = NativeWrapper(pointer);
-    _finalizer.attach(this, pointer, detach: this);
-  } */
+	set x(num value) => ref.x = value.toDouble();
+	set y(num value) => ref.y = value.toDouble();
+	set z(num value) => ref.z = value.toDouble();
+	set w(num value) => ref.w = value.toDouble();
 
-  Vector4._Recieve(_Vector4 result) : super(sizeOf<_Vector4>()) {
-    ref = result;
-    _finalizer.attach(this, pointer, detach: this);
-  }
+	// ignore: unused_element_parameter, unused_element
+	Vector4._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  Vector4._Encapsulate(super.pointer,{ super.length }) :
-    super.fromAddress();
-  /* {
-    if (pointer.IsNull) throw ArgumentError("[Target]: The loaded Vector4 is NULL!");
-    if (_memory != null) Free();
-    _memory = NativeWrapper(pointer, IsOwner: owner);
+	// ignore: unused_element_parameter, unused_element
+	Vector4._Recieve(_Vector4 result): super(sizeOf<_Vector4>()) {
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-    if (owner)
-      _finalizer.attach(this, pointer, detach: this);
-  } */
-
-  double get x => ref.x;
-  double get y => ref.y;
-  double get z => ref.z;
-  double get w => ref.w;
-
-  set x(double value) => ref.x = value;
-  set y(double value) => ref.y = value;
-  set z(double value) => ref.z = value;
-  set w(double value) => ref.w = value;
-
-  void Set([double? x, double? y, double? z, double? w]) {
+  void Set([num? x, num? y, num? z, num? w]) {
     this.x = x ?? this.x;
     this.y = y ?? this.y;
     this.z = z ?? this.z;
@@ -979,7 +1010,8 @@ class Vector4 extends NativeWrapper<_Vector4>
       ..z = z
       ..w = w;
 
-    _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+
   }
 
   factory Vector4.Zero([RaylibArena? arena]) => Vector4(0.0, 0.0, 0.0, 0.0, arena);
@@ -1045,13 +1077,30 @@ class Vector4 extends NativeWrapper<_Vector4>
            ((p.w - q.w).abs() <= (EPSILON * math.max(1.0, math.max(p.w.abs(), q.w.abs()))));
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Vector4>>((pointer) {
-    malloc.free(pointer);
-  });
+	// ===================================== Operators ======================================
+
+	Vector4 operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Vector4._Encapsulate(pointer + index, IsOwner: false);
+	}
+
+	void operator[]=(Vector4 value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<Vector4> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeVector4);
 }
 
-extension Vector4Math on Vector4
-{
+extension Vector4Math on Vector4 {
   void Add(Vector4 v)
   {
     this.x += v.x;
@@ -1191,8 +1240,7 @@ extension Vector4Math on Vector4
 /// Module Functions Definition - Quaternion math
 //------------------------------------------------------------------------------------
 
-class Quaternion extends Vector4
-{
+class Quaternion extends Vector4 {
   Quaternion([super.x, super.y, super.z, super.w, super.arena]) : super();
 
   // ignore: unused_element_parameter
@@ -1452,8 +1500,7 @@ class Quaternion extends Vector4
   }
 }
 
-extension QuaternionMath on Quaternion
-{
+extension QuaternionMath on Quaternion {
   /// Add two quaternions (In place)
   void Add(Quaternion q)
   {

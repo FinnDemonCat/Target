@@ -48,7 +48,7 @@ class Slider extends IInteractible
       sliderRect = Rectangle(
         0, 0,
         sliderTexture.width.toDouble(),
-        sliderTexture.heigth.toDouble()
+        sliderTexture.height.toDouble()
       );
     }
 
@@ -56,7 +56,7 @@ class Slider extends IInteractible
       barRect = Rectangle(
         0, 0,
         barTexture.width.toDouble(),
-        barTexture.heigth.toDouble()
+        barTexture.height.toDouble()
       );
     }
   }
@@ -77,7 +77,7 @@ class Slider extends IInteractible
     }
     
     if (barTexture != null) {
-      var src = Rectangle(0, 0, barTexture!.width.toDouble(), barTexture!.heigth.toDouble());
+      var src = Rectangle(0, 0, barTexture!.width.toDouble(), barTexture!.height.toDouble());
       Texture2D.DrawPro(barTexture!, src, barRect);
     }
     else {
@@ -87,7 +87,7 @@ class Slider extends IInteractible
 
     if (sliderTexture != null) {
       sliderRect.Set(y: y * switch (state) { .Selected => 2, .Pressed => 3, _ => 1 }, width: sliderTexture!.width.toDouble(), height: sliderRect.height.toDouble());
-      sliderRect.Set(x: x + (width * value), y: y + (sliderTexture!.heigth / 2));
+      sliderRect.Set(x: x + (width * value), y: y + (sliderTexture!.height / 2));
       Texture2D.DrawPro(sliderTexture!, sliderRect, sliderRect);
     }
     else {

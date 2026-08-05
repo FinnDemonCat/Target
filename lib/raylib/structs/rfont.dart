@@ -4,9 +4,15 @@ part of '../raylib.dart';
 //                                    Font
 //------------------------------------------------------------------------------------
 
-class Font extends NativeWrapper<_Font> {
+typedef _FreeFontC    = Void Function(Pointer<Void> token);
+// typedef _FreeFontDart = void Function(Pointer<Void> token);
+final _freeFont = _dyReleaseLib.lookup<NativeFunction<_FreeFontC>>('FreeFont');
+
+/// Font, font texture and GlyphInfo array data
+class Font extends NativeWrapper<_Font> implements Finalizable {
   _Font get ref => pointer.ref;
   set ref(_Font value) => pointer.ref = value;
+
   int get baseSize => ref.baseSize;
   int get glyphPadding => ref.glyphPadding;
 
@@ -16,10 +22,12 @@ class Font extends NativeWrapper<_Font> {
 
   Font._Recieve(_Font result) : super(sizeOf<_Font>()) {
     ref = result;
+
     glyphs = GlyphInfo._Encapsulate(Pointer<_GlyphInfo>.fromAddress(result.glyphs.address), length: result.glyphCount, IsOwner: false);
     recs = Rectangle._Encapsulate(Pointer<_Rectangle>.fromAddress(result.recs.address), length: result.glyphCount, IsOwner: false);
     texture = Texture._Recieve(result.texture);
-    _finalizer.attach(this, pointer, detach: this);
+
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   /// Get the default Font
@@ -237,67 +245,94 @@ class Font extends NativeWrapper<_Font> {
     return size;
   }
 
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeFont);
+
+	// Unload font from GPU memory (VRAM)
+	@override
+	Free() {
+		_unloadFont(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
+
   /// Unload font from GPU memory (VRAM)
   void Unload() => Free();
 
   /// Unload font chars info data (RAM)
   void UnloadData() => _unloadFontData(glyphs.pointer, glyphs.length);
-
-  static final Finalizer _finalizer = Finalizer<Pointer<_Font>>((pointer) {
-    _unloadFont(pointer.ref);
-    malloc.free(pointer);
-  });
-
-  @override
-  void Free() {
-    _unloadFont(ref);
-    _finalizer.detach(this);
-    super.Free();
-  }
 }
 
 //------------------------------------------------------------------------------------
 //                                 GlyphInfo
 //------------------------------------------------------------------------------------
-class GlyphInfo extends NativeWrapper<_GlyphInfo> {
-  _GlyphInfo get ref => pointer.ref;
 
-  late final Image image;
-  int get value => ref.value;
-  int get offsetX => ref.offsetX;
-  int get offsetY => ref.offsetY;
-  int get advanceX => ref.advanceX;
+// typedef _FreeGlyphInfoC    = Void Function(Pointer<Void> token);
+// typedef _FreeGlyphInfoDart = void Function(Pointer<Void> token);
+// final _freeGlyphInfo = _dyReleaseLib.lookup<NativeFunction<_FreeGlyphInfoC>>('FreeGlyphInfo');
 
-  // ignore: unused_element_parameter
-  GlyphInfo._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
-    image = Image._Encapsulate(.fromAddress(pointer.address + (sizeOf<Int32>() * 3)));
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
+/// GlyphInfo, font characters glyphs info
+class GlyphInfo extends NativeWrapper<_GlyphInfo> implements Finalizable {
+	_GlyphInfo get ref => pointer.ref;
+	set ref(_GlyphInfo value) => pointer.ref = value;
 
-  static final Finalizer _finalizer = Finalizer((pointer) {
-    malloc.free(pointer);
-  });
+	/// Character value (Unicode)
+	int get value => ref.value;
+	/// Character offset X when drawing
+	int get offsetX => ref.offsetX;
+	/// Character offset Y when drawing
+	int get offsetY => ref.offsetY;
+	/// Character advance position X
+	int get advanceX => ref.advanceX;
+	/// Character image data
+	_Image get image => ref.image;
 
-  GlyphInfo operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    return GlyphInfo._Encapsulate(pointer + index, IsOwner: false);
-  }
+	set value(int value) => ref.value = value;
+	set offsetX(int value) => ref.offsetX = value;
+	set offsetY(int value) => ref.offsetY = value;
+	set advanceX(int value) => ref.advanceX = value;
+	set image(Image value) => ref.image = value.ref;
 
-  void operator []=(GlyphInfo value, int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    (pointer + index).ref = value.ref;
-  }
+	// ignore: unused_element_parameter, unused_element
+	GlyphInfo._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		// if (IsOwner)
+		// 	_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  @override
-  Iterable<GlyphInfo> get values sync* {
-    for (int x = 0; x < length; x++)
-      yield this[x];
-  }
+	// ignore: unused_element_parameter, unused_element
+	GlyphInfo._Recieve(_GlyphInfo result): super(sizeOf<_GlyphInfo>()) {
+		ref = result;
+		// _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ===================================== Operators ======================================
+
+	GlyphInfo operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return GlyphInfo._Encapsulate(pointer + index, IsOwner: false);
+	}
+
+	void operator[]=(GlyphInfo value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<GlyphInfo> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	/*
+  static final _nativeFinalizer = NativeFinalizer(_freeGlyphInfo);
 
   @override
   void Free() {
     super.Free();
-    _finalizer.detach(this);
+    _nativeFinalizer.detach(this);
   }
+  */
 }

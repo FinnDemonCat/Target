@@ -4,46 +4,81 @@ part of '../raylib.dart';
 //                                 BoundingBox
 //------------------------------------------------------------------------------------
 
-class BoundingBox extends NativeWrapper<_BoundingBox> {
+typedef _FreeBoundingBoxC    = Void Function(Pointer<Void> token);
+// typedef _FreeBoundingBoxDart = void Function(Pointer<Void> token);
+final _freeBoundingBox = _dyReleaseLib.lookup<NativeFunction<_FreeBoundingBoxC>>('FreeBoundingBox');
+
+/// BoundingBox
+class BoundingBox extends NativeWrapper<_BoundingBox> implements Finalizable {
   _BoundingBox get ref => pointer.ref;
   set ref (_BoundingBox value) => pointer.ref = value;
-  late final Vector3 min;
-  late final Vector3 max;
+
+  late final Vector3 _min;
+	/// Minimum vertex box-corner
+  Vector3 get min => _min;
+  set min(Vector3 value) => _min.ref = value.ref;
+
+  late final Vector3 _max;
+	/// Maximum vertex box-corner
+  Vector3 get max => _max;
+  set max(Vector3 value) => _max.ref = value.ref;
 
   void _setReferences(Pointer<_BoundingBox> pointer) {
     int address = pointer.address;
-    min = Vector3._Encapsulate(.fromAddress(address));
+    _min = Vector3._Encapsulate(.fromAddress(address));
     
     address += sizeOf<_Vector3>();
-    max = Vector3._Encapsulate(.fromAddress(address));
+    _max = Vector3._Encapsulate(.fromAddress(address));
   }
+
+	// ignore: unused_element_parameter, unused_element
+	BoundingBox._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+    _setReferences(pointer);
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ignore: unused_element_parameter, unused_element
+	BoundingBox._Recieve(_BoundingBox result): super(sizeOf<_BoundingBox>()) {
+		ref = result;
+    _setReferences(pointer);
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
   
   BoundingBox(Vector3 min, Vector3 max,{ super.arena }) : super(sizeOf<_BoundingBox>()) {
     ref
       ..min = min.ref
       ..max = max.ref;
 
-    // _finalizer.attach(this, pointer, detach: this);
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
     _setReferences(pointer);
   }
 
-  BoundingBox._Recieve(_BoundingBox result) : super(sizeOf<_BoundingBox>()) {
-    ref = result;
+  // ===================================== Operators ======================================
 
-    // _finalizer.attach(this, pointer, detach: this);
-    _setReferences(pointer);
-  }
+	BoundingBox operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return BoundingBox._Encapsulate(pointer + index, IsOwner: false);
+	}
 
-  // This is causing a double free error
-  // static final Finalizer _finalizer = Finalizer<Pointer<_BoundingBox>>((pointer) {
-  //   malloc.free(pointer);
-  // });
+	void operator[]=(BoundingBox value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<BoundingBox> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
   
-  @override
-  void Free() {
-    max.Free();
-    min.Free();
-    // _finalizer.detach(this);
-    super.Free();
-  }
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeBoundingBox);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }

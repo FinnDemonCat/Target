@@ -4,21 +4,24 @@ part of '../raylib.dart';
 //                                   Camera
 //------------------------------------------------------------------------------------
 
-class Camera2D extends NativeWrapper<_Camera2D> {
-  // NativeResource<_Camera2D>? _memory;
-  
+typedef _FreeCamera2DC    = Void Function(Pointer<Void> token);
+// typedef _FreeCamera2DDart = void Function(Pointer<Void> token);
+final _freeCamera2D = _dyReleaseLib.lookup<NativeFunction<_FreeCamera2DC>>('FreeCamera2D');
+
+/// Camera2D, defines position/orientation in 2d space
+class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
   _Camera2D get ref => pointer.ref;
+	set ref(_Camera2D value) => pointer.ref = value;
+
+  double get rotation => ref.rotation;
+  set rotation (double value) => ref.rotation = value;
+  double get zoom => ref.zoom;
+  set zoom (double value) => ref.zoom = value;
+
   late final Vector2 offset;
   late final Vector2 target;
-  // Vector2 get offset => Vector2._recieve(ref.offset);
-  // Vector2 get target => Vector2._recieve(ref.target);
-  double get rotation => ref.rotation;
-  double get zoom => ref.zoom;
 
-  // set offset (Vector2 value) => ref.offset = value.ref;
-  // set target (Vector2 value) => ref.target = value.ref;
-  set rotation (double value) => ref.rotation = value;
-  set zoom (double value) => ref.zoom = value;
+	// ==================================== Constructor =====================================
 
   Camera2D({
     required Vector2 offset,
@@ -38,31 +41,34 @@ class Camera2D extends NativeWrapper<_Camera2D> {
     address += sizeOf<_Vector2>();
     target = Vector2._Encapsulate(.fromAddress(address));
 
-    _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Camera2D>>((pointer) {
-    malloc.free(pointer);
-  });
-  
-  
-  @override
-  void Free() {
-    offset.Free();
-    target.Free();
-    _finalizer.detach(this);
-    super.Free();
-  }
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeCamera2D);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
-class Camera extends NativeWrapper<_Camera> {
+typedef _FreeCameraC    = Void Function(Pointer<Void> token);
+// typedef _FreeCameraDart = void Function(Pointer<Void> token);
+final _freeCamera = _dyReleaseLib.lookup<NativeFunction<_FreeCameraC>>('FreeCamera');
+
+/// Camera, defines position/orientation in 3d space
+class Camera extends NativeWrapper<_Camera> implements Finalizable {
   _Camera get ref => pointer.ref;
+	set ref(_Camera value) => pointer.ref = value;
 
   double get fovy => ref.fovy;
-  set fovy(double value) => ref.fovy = (value > 0) ? value : 0.0;
+  set fovy(num value) => ref.fovy = (value > 0) ? value.toDouble() : 0.0;
 
   CameraProjection get projection => CameraProjection.values[ref.projection];
-  set projection(int value) => ref.projection = value;
+  set projection(CameraProjection value) => ref.projection = value.index;
 
   late final Vector3 position;
   late final Vector3 target;
@@ -75,9 +81,9 @@ class Camera extends NativeWrapper<_Camera> {
     required double fovy,
     required CameraProjection projection,
     super.arena
-  }) : super(sizeOf<_Camera>())
+  })
+    : super(sizeOf<_Camera>())
   {
-    // Pointer<_Camera> pointer = malloc.allocate<_Camera>(sizeOf<_Camera>());
     pointer.ref
     ..position = pos.ref
     ..target = target.ref
@@ -94,21 +100,18 @@ class Camera extends NativeWrapper<_Camera> {
     address += sizeOf<_Vector3>();
     this.up = Vector3._Encapsulate(.fromAddress(address));
 
-    _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Camera>>((pointer) {
-    malloc.free(pointer);
-  });
+	// =================================== Deconstructor ====================================
 
-  @override
-  void Free() {
-    position.Free();
-    target.Free();
-    up.Free();
-    _finalizer.detach(this);
-    super.Free();
-  }
+	static final _nativeFinalizer = NativeFinalizer(_freeCamera);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 typedef Camera3D = Camera;

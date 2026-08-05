@@ -4,17 +4,29 @@ part of '../raylib.dart';
 //                                   Mesh
 //------------------------------------------------------------------------------------
 
-class Mesh extends NativeWrapper<_Mesh> {
-  //--------------------------------Getters-&-Setters-----------------------------------
-  
+// Unload mesh data from CPU and GPU
+typedef _FreeMeshC    = Void Function(Pointer<Void> token);
+// typedef _FreeMeshDart = void Function(Pointer<Void> token);
+final _freeMesh = _dyReleaseLib.lookup<NativeFunction<_FreeMeshC>>('FreeMesh');
+
+/// Mesh, vertex data and vao/vbo
+class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   _Mesh get ref => pointer.ref;
   set ref (_Mesh value) => pointer.ref = value;
 
-  int get vertexCount => ref.vertexCount;
-  int get triangleCount => ref.triagleCoung;
+	/// Number of vertices stored in arrays
+	int get vertexCount => ref.vertexCount;
+	/// Number of triangles stored (indexed or not)
+	int get triangleCount => ref.triagleCoung;
   /// OpenGL Vertex Array Object id
   int get vaoID => ref.vaoID;
-  int get boneCount => ref.boneCount;
+	/// Number of bones
+	int get boneCount => ref.boneCount;
+
+	set vertexCount(int value) => ref.vertexCount = value;
+	set triangleCount(int value) => ref.triagleCoung = value;
+	set vaoId(int value) => ref.vaoID = value;
+	set boneCount(int value) => ref.boneCount = value;
 
   // Vertex attributes data
   /// Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
@@ -100,18 +112,22 @@ class Mesh extends NativeWrapper<_Mesh> {
       : Int32List(16);
   }
 
-  //--------------------------------Constructors----------------------------------------
-
   // ignore: unused_element_parameter
   Mesh._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences();
+
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element
   Mesh._Recieve(_Mesh result) : super(sizeOf<_Mesh>()) {
     ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
     _setReferences();
   }
+
+	// ==================================== Constructor =====================================
 
   Mesh({
     Float32List? vertices,
@@ -145,7 +161,7 @@ class Mesh extends NativeWrapper<_Mesh> {
     this.vboId = vboId ?? Int32List(0);
   }
   
-  //----------------------------------Constructors--------------------------------------
+	// =============================== Named Constructor ====================================
 
   /// Generate polygonal mesh
   factory Mesh.Poly(int sides, double radius,[ RaylibArena? arena ]) {
@@ -294,33 +310,36 @@ class Mesh extends NativeWrapper<_Mesh> {
       return _exportMeshAsCode(this.ref, cFileName);
     });
   }
-  //---------------------------------Operator------------------------------------------
 
-  Mesh operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    return Mesh._Encapsulate(pointer + index);
-  }
+	// ===================================== Operators ======================================
 
-  void operator []=(Mesh value, int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    (pointer + index).ref = value.ref;
-  }
+	Mesh operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Mesh._Encapsulate(pointer + index, IsOwner: false);
+	}
 
-  @override
-  Iterable<Mesh> get values sync* {
-    for (int x = 0; x < length; x++)
-      yield this[x];
-  }
+	void operator[]=(Mesh value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
 
-  //---------------------------------Degenerators--------------------------------------
-  
-  @override
-  void Free() {
-    if (IsDisposed || !IsOwner) return;
+	@override
+	Iterable<Mesh> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
 
-    _unloadMesh(ref);
-    super.Free();
-  }
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeMesh);
+
+	// Unload mesh data from CPU and GPU
+	@override
+	void Free() {
+		_unloadMesh(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 
@@ -328,13 +347,21 @@ class Mesh extends NativeWrapper<_Mesh> {
 //                                   Shader
 //------------------------------------------------------------------------------------
 
-class Shader extends NativeWrapper<_Shader> {
+// Unload shader from GPU memory (VRAM)
+typedef _FreeShaderC    = Void Function(Pointer<Void> token);
+// typedef _FreeShaderDart = void Function(Pointer<Void> token);
+final _freeShader = _dyReleaseLib.lookup<NativeFunction<_FreeShaderC>>('FreeShader');
+
+/// Shader
+class Shader extends NativeWrapper<_Shader> implements Finalizable {
   _Shader get ref => pointer.ref;
   set ref(_Shader value) => pointer.ref = value;
 
+	/// Shader program id
   int get id => ref.id;
   set id (int value) => ref.id = value;
   
+	/// Shader locations array (RL_MAX_SHADER_LOCATIONS)
   late final Int32List locs;
   final Map<String, int> uniformLocIndex = {};
   final Map<String, int> attbLocIndex = {};
@@ -343,18 +370,22 @@ class Shader extends NativeWrapper<_Shader> {
     locs = ref.locs.asTypedList(32);
   }
 
-  // ignore: unused_element
-  Shader._Recieve(_Shader result) : super(sizeOf<_Shader>()) {
-    ref = result;
-    _finalizer.attach(this, pointer, detach: this);
-  }
-
-  // ignore: unused_element_parameter
-  Shader._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+	// ignore: unused_element_parameter, unused_element
+	Shader._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
+
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ignore: unused_element_parameter, unused_element
+	Shader._Recieve(_Shader result): super(sizeOf<_Shader>()) {
+		ref = result;
+    _setReferences();
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ==================================== Constructor =====================================
 
   /// Load shader from files and bind default locations
   factory Shader(String? vsFileName, String? fsFileName,[ RaylibArena? arena ]) {
@@ -526,33 +557,48 @@ class Shader extends NativeWrapper<_Shader> {
   /// Set shader uniform value and bind the texture (sampler2d)
   void SetValueTexture(int locIndex, Texture2D texture) => _setShaderValueTexture(ref, locIndex, texture.ref);
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Shader>>((pointer) {
-    _unloadShader(pointer.ref);
-    malloc.free(pointer);
-  });
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeShader);
 
   /// Unload shader from GPU memory (VRAM)
   void Unload() => Free();
 
-  @override
-  void Free() {
-    _unloadShader(ref);
-    _finalizer.detach(this);
-    super.Free();
-  }
+	// Unload shader from GPU memory (VRAM)
+	@override
+	void Free() {
+		_unloadShader(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 //------------------------------------------------------------------------------------
 //                                 MaterialMap
 //------------------------------------------------------------------------------------
 
-class MaterialMap extends NativeWrapper<_MaterialMap> {
+// typedef _FreeMaterialMapC    = Void Function(Pointer<Void> token);
+// typedef _FreeMaterialMapDart = void Function(Pointer<Void> token);
+// final _freeMaterialMap = _dyReleaseLib.lookup<NativeFunction<_FreeMaterialMapC>>('FreeMaterialMap');
+
+/// MaterialMap
+class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
   _MaterialMap get ref => pointer.ref;
   set ref(_MaterialMap value) => pointer.ref = value; 
 
-  late final Texture texture;
-  late final Color color;
+	/// Material map texture
+  late final Texture _texture;
+  Texture get texture => _texture;
+  set texture(Texture value) => _texture.ref = value.ref;
+
+	/// Material map color
+  late final Color _color;
+  Color get color => _color;
+  set color(Color value) => _color.ref = value.ref;
+
+	/// Material map value
   double get value => ref.value;
+	set value(num value) => ref.value = value.toDouble();
 
   void setReferences(Pointer<_MaterialMap> pointer) {
     int address = pointer.address;
@@ -562,39 +608,74 @@ class MaterialMap extends NativeWrapper<_MaterialMap> {
     color = Color._Encapsulate(.fromAddress(address));
   }
 
-  // ignore: unused_element_parameter
-  MaterialMap._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress();
+	// ignore: unused_element_parameter, unused_element
+	MaterialMap._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		// if (IsOwner)
+		// 	_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  // static final Finalizer _finalizer = Finalizer<Pointer<_MaterialMap>>((pointer) {
-  //   malloc.free(pointer);
-  // });
+	// ignore: unused_element_parameter, unused_element
+	MaterialMap._Recieve(_MaterialMap result): super(sizeOf<_MaterialMap>()) {
+		ref = result;
+		// _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  // @override
-  // void Free() {
-  //   _finalizer.detach(this);
-  //   _memory!.Free();
-  // }
+	// ===================================== Operators ======================================
+
+	MaterialMap operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return MaterialMap._Encapsulate(pointer + index, IsOwner: false);
+	}
+
+	void operator[]=(MaterialMap value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
+
+	@override
+	Iterable<MaterialMap> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+  /* 
+	static final _nativeFinalizer = NativeFinalizer(_freeMaterialMap);
+
+	@override
+	void Free() {
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
+   */
 }
 
 //------------------------------------------------------------------------------------
 //                                   Material
 //------------------------------------------------------------------------------------
 
-class Material extends NativeWrapper<_Material> {
+// Unload material from GPU memory (VRAM)
+typedef _FreeMaterialC    = Void Function(Pointer<Void> token);
+// typedef _FreeMaterialDart = void Function(Pointer<Void> token);
+final _freeMaterial = _dyReleaseLib.lookup<NativeFunction<_FreeMaterialC>>('FreeMaterial');
+
+/// Material, includes shader and maps
+class Material extends NativeWrapper<_Material> implements Finalizable {
   _Material get ref => pointer.ref;
   set ref (_Material value) => pointer.ref = value;
 
+	/// Material shader
   late final Shader _shader;
   Shader get shader => _shader;
   set shader(Shader value) => ref.shader = value.ref;
 
+	/// Material maps array (MAX_MATERIAL_MAPS)
   late final MaterialMap _materialMap;
   MaterialMap get materialMap => _materialMap;
   set materialMap(MaterialMap value) => _materialMap.ref = value.ref;
 
+	/// Material generic parameters (if required)
   Float32List get params => ref.params.elements;
-
-  // ------------------------------Memory management------------------------------
 
   void _setReferences() {
     int address = pointer.address;
@@ -608,17 +689,16 @@ class Material extends NativeWrapper<_Material> {
   Material._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
     if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   Material._Recieve(_Material result) : super(sizeOf<_Material>()) {
     ref = result;
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  // --------------------------Constructors--------------------------------------
+	// ==================================== Constructor =====================================
 
   /// Load materials from model file
   factory Material.LoadMaterials(String fileName,[ RaylibArena? arena ]) {
@@ -649,7 +729,6 @@ class Material extends NativeWrapper<_Material> {
     _Material result = _loadMaterialDefault();
     return Material._Recieve(result);
   }
-  // -----------------------------Utilities--------------------------------------
 
   /// Check if a material is valid (shader assigned, map textures loaded in GPU)
   bool IsValid() => _isMaterialValid(this.ref);
@@ -662,33 +741,33 @@ class Material extends NativeWrapper<_Material> {
     _setMaterialTexture(pointer, mapType.index, texture.ref);
   }
 
-  // -----------------------------Overrides--------------------------------------
+	// ===================================== Operators ======================================
 
-  Material operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    return Material._Encapsulate(pointer + index);
-  }
+	Material operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Material._Encapsulate(pointer + index, IsOwner: false);
+	}
 
-  void operator []=(Material value, int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    (pointer + index).ref = value.ref;
-  }
+	void operator[]=(Material value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
 
-  @override
-  Iterable<Material> get values sync* {
-    for (int x = 0; x < length; x++)
-      yield this[x];
-  }
+	@override
+	Iterable<Material> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Material>>((pointer) {
-    _unloadMaterial(pointer.ref);
-    malloc.free(pointer);
-  });
+	// =================================== Deconstructor ====================================
 
-  @override
-  void Free() {
-    _unloadMaterial(pointer.ref);
-    _finalizer.detach(this);
-    super.Free();
-  }
+	static final _nativeFinalizer = NativeFinalizer(_freeMaterial);
+
+	// Unload material from GPU memory (VRAM)
+	@override
+	void Free() {
+		_unloadMaterial(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }

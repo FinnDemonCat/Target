@@ -97,14 +97,13 @@ final class _Image extends Struct
   @Int32() external int format;        // Data format (PixelFormat type)
 }
 
-// Texture, tex data stored in GPU memory (VRAM)
-final class _Texture extends Struct
-{
-  @Uint32() external int id;           // OpenGL texture id
-  @Int32()  external int width;        // Texture base width
-  @Int32()  external int heigth;       // Texture base height
-  @Int32()  external int mipmaps;      // Mipmap levels, 1 by default
-  @Int32()  external int format;       // Data format (PixelFormat type)
+/// Texture, tex data stored in GPU memory (VRAM)
+final class _Texture extends Struct {
+	@Uint32() external int id;    // OpenGL texture id
+	@Int32() external int width;  // Texture base width
+	@Int32() external int height; // Texture base height
+	@Int32() external int mipmaps; // Mipmap levels, 1 by default
+	@Int32() external int format; // Data format (PixelFormat type)
 }
 
 // Texture2D, same as Texture
@@ -877,9 +876,9 @@ enum NPatchLayout {
 //------------------------------------------------------------------------------------
 
 final DynamicLibrary _dylib = _load();
+final DynamicLibrary _dyReleaseLib = _loadRelease();
 
-DynamicLibrary _load()
-{
+DynamicLibrary _load() {
   // String sdkPath = path.dirname(Platform.script.toFilePath());
   // sdkPath = sdkPath.replaceFirst('src', 'lib');
   
@@ -893,6 +892,16 @@ DynamicLibrary _load()
   if (Platform.isWindows) return DynamicLibrary.open('libraylib.dll');
   else if (Platform.isLinux) return DynamicLibrary.open('libraylib.so');
   else if (Platform.isMacOS) return DynamicLibrary.open('libraylib.dylib');
+  else throw UnsupportedError("Operational system not supported");
+}
+
+DynamicLibrary _loadRelease() {
+  String dirPath = path.dirname(Platform.script.toFilePath());
+  dirPath = path.join(path.dirname(dirPath), 'lib', 'Target', 'lib', 'raylib', 'release_pointers'); // lib\Target\lib\raylib\release_pointers\release_functions.dll
+
+  if (Platform.isWindows) return DynamicLibrary.open(path.join(dirPath, 'release_functions.dll'));
+  else if (Platform.isLinux) return DynamicLibrary.open(path.join(dirPath, 'release_functions.so'));
+  else if (Platform.isMacOS) return DynamicLibrary.open(path.join(dirPath, 'release_functions.dylib'));
   else throw UnsupportedError("Operational system not supported");
 }
 

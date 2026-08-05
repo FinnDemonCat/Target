@@ -4,31 +4,49 @@ part of '../raylib.dart';
 //                                   Image
 //------------------------------------------------------------------------------------
 
-class Image extends NativeWrapper<_Image> {
+typedef _FreeImageC    = Void Function(Pointer<Void> token);
+// typedef _FreeImageDart = void Function(Pointer<Void> token);
+final _freeImage = _dyReleaseLib.lookup<NativeFunction<_FreeImageC>>('FreeImage');
+
+/// Image, pixel data stored in CPU memory (RAM)
+class Image extends NativeWrapper<_Image> implements Finalizable {
   _Image get ref => pointer.ref;
   set ref (_Image value) => pointer.ref = value;
 
-  Pointer<Void> get data => ref.data;
-  int get width => ref.width;
-  int get height => ref.height;
-  int get format => ref.format;
-  int get mipmaps => ref.mipmaps;
+	/// Image raw data
+	Pointer<Void> get data => ref.data;
+	/// Image base width
+	int get width => ref.width;
+	/// Image base height
+	int get height => ref.height;
+	/// Mipmap levels, 1 by default
+	int get mipmaps => ref.mipmaps;
+	/// Data format (PixelFormat type)
+	int get format => ref.format;
+
+	set data(Pointer value) => ref.data = value.cast();
+	set width(int value) => ref.width = value;
+	set height(int value) => ref.height = value;
+	set mipmaps(int value) => ref.mipmaps = value;
+	set format(int value) => ref.format = value;
 
   int frameCount = 0;
   int fileSize = 0;
 
-  // ignore: unused_element_parameter, unused_element
-  Image._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
+	// ignore: unused_element_parameter, unused_element
+	Image._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  Image._Recieve(_Image result) : super(sizeOf<_Image>()) {
-    ref = result;
-    _finalizer.attach(this, pointer, detach: this);
-  }
+	// ignore: unused_element_parameter, unused_element
+	Image._Recieve(_Image result): super(sizeOf<_Image>()) {
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
-  //------------------------------Constructors------------------------------------------
+	// ==================================== Constructor =====================================
+
   /// Load image from file into CPU memory (RAM)
   factory Image(String path,[ RaylibArena? arena ]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
@@ -548,22 +566,14 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
     });
   }
 
-//--------------------------------Deconstructors--------------------------------------
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeImage);
 
   /// Unload image from CPU memory (RAM)
   void Unload() => Free();
-
-  // Garbage Colector dispose reference
-  static final Finalizer<Pointer<_Image>> _finalizer = Finalizer((ptr) 
-  {
-    if (ptr.address == 0) return;
-
-    _unloadImage(ptr.ref);
-    malloc.free(ptr);
-  });
   
   /// Unload image from CPU memory (RAM)
-  // Manual dispose
   @override
   void Free() {
     _unloadImage(ref);
@@ -573,7 +583,7 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
     if (_pallet != null)
       _unloadImageColors(_pallet!.pointer);
     
-    _finalizer.detach(this);
+    _nativeFinalizer.detach(this);
     super.Free();
   }
 }

@@ -4,38 +4,50 @@ part of '../raylib.dart';
 //                                  Rectangle
 //------------------------------------------------------------------------------------
 
+typedef _FreeRectangleC    = Void Function(Pointer<Void> token);
+// typedef _FreeRectangleDart = void Function(Pointer<Void> token);
+final _freeRectangle = _dyReleaseLib.lookup<NativeFunction<_FreeRectangleC>>('FreeRectangle');
+
 /// Rectangle, 4 components
-class Rectangle extends NativeWrapper<_Rectangle> {
+class Rectangle extends NativeWrapper<_Rectangle> implements Finalizable {
   _Rectangle get ref => pointer.ref;
   set ref(_Rectangle value) => pointer.ref = value;
-  double get x => pointer.ref.x;
-  double get y => pointer.ref.y;
-  double get width => pointer.ref.width;
-  double get height => pointer.ref.height;
 
-  set x(num value) => pointer.ref.x = value.toDouble();
-  set y(num value) => pointer.ref.y = value.toDouble();
-  set width(num value)  => pointer.ref.width  = value.toDouble();
-  set height(num value) => pointer.ref.height = value.toDouble();
+	/// Rectangle top-left corner position x
+	double get x => ref.x;
+	/// Rectangle top-left corner position y
+	double get y => ref.y;
+	/// Rectangle width
+	double get width => ref.width;
+	/// Rectangle height
+	double get height => ref.height;
+
+	set x(num value) => ref.x = value.toDouble();
+	set y(num value) => ref.y = value.toDouble();
+	set width(num value) => ref.width = value.toDouble();
+	set height(num value) => ref.height = value.toDouble();
+
+	// ignore: unused_element_parameter, unused_element
+	Rectangle._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ignore: unused_element_parameter, unused_element
+	Rectangle._Recieve(_Rectangle result): super(sizeOf<_Rectangle>()) {
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
   void Set({num? x, num? y, num? width, num? height}) {
-    this.x = x?.toDouble() ?? this.x;
-    this.y = y?.toDouble() ?? this.y;
-    this.width = width?.toDouble() ?? this.width;
-    this.height = height?.toDouble() ?? this.height;
+    this.x = x ?? this.x;
+    this.y = y ?? this.y;
+    this.width = width ?? this.width;
+    this.height = height ?? this.height;
   }
 
-  // ignore: unused_element_parameter
-  Rectangle._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-
-  Rectangle._Recieve(_Rectangle result) : super(sizeOf<_Rectangle>()) {
-    ref = result;
-    _finalizer.attach(this, pointer, detach: this);
-  }
-
+	// ==================================== Constructor =====================================
+  
   Rectangle([num x = 0.0, num y = 0.0, num width = 0.0, num height = 0.0, RaylibArena? arena]) : super(sizeOf<_Rectangle>(), arena: arena) {
     ref
       ..x = x.toDouble()
@@ -43,32 +55,34 @@ class Rectangle extends NativeWrapper<_Rectangle> {
       ..width = width.toDouble()
       ..height = height.toDouble();
 
-    _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  Rectangle operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    return Rectangle._Encapsulate(pointer + index);
-  }
+	// ===================================== Operators ======================================
 
-  void operator []=(Rectangle value, int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    (pointer + index).ref = value.ref;
-  }
+	Rectangle operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Rectangle._Encapsulate(pointer + index, IsOwner: false);
+	}
 
-  @override
-  Iterable<NativeWrapper<_Rectangle>> get values sync* {
-    for (int x = 0; x < length; x++)
-      yield this[x];
-  }
+	void operator[]=(Rectangle value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Rectangle>>((pointer) {
-    malloc.free(pointer);
-  });
+	@override
+	Iterable<Rectangle> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeRectangle);
   
   @override
   void Free() {
-    _finalizer.detach(this);
+    _nativeFinalizer.detach(this);
     super.Free();
   }
 }

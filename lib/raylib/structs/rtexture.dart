@@ -4,40 +4,46 @@ part of '../raylib.dart';
 //                                   Texture
 //------------------------------------------------------------------------------------
 
-class Texture2D extends NativeWrapper<_Texture2D>
-{
-	// NativeWrapper<_Texture2D>? _memory;
+// Unload texture from GPU memory (VRAM)
+typedef _FreeTextureC    = Void Function(Pointer<Void> token);
+// typedef _FreeTextureDart = void Function(Pointer<Void> token);
+final _freeTexture = _dyReleaseLib.lookup<NativeFunction<_FreeTextureC>>('FreeTexture');
 
-	/* void _setmemory(_Texture2D result)
-	{
-		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (_memory != null) Free();
-
-    // Allocating memory in C heap
-    Pointer<_Texture2D> pointer = malloc.allocate<_Texture2D>(sizeOf<_Texture2D>());
-    pointer.ref = result;
-    this._memory = NativeWrapper<_Texture2D>(pointer);
-
-    _finalizer.attach(this, pointer, detach: this);
-	}
- */
+/// Texture, tex data stored in GPU memory (VRAM)
+class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
   _Texture2D get ref => pointer.ref;
   set ref (_Texture2D value) => pointer.ref = value;
-  int get width => ref.width;
-  int get heigth => ref.heigth;
-  int get format => ref.format;
-  int get id => ref.id;
-  int get mipmaps => ref.mipmaps;
 
-  //--------------------------------Constructors----------------------------------------
+	/// OpenGL texture id
+	int get id => ref.id;
+	/// Texture base width
+	int get width => ref.width;
+	/// Texture base height
+	int get height => ref.height;
+	/// Mipmap levels, 1 by default
+	int get mipmaps => ref.mipmaps;
+	/// Data format (PixelFormat type)
+	int get format => ref.format;
 
-  // ignore: unused_element_parameter
-  Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress();
+	set id(int value) => ref.id = value;
+	set width(int value) => ref.width = value;
+	set height(int value) => ref.height = value;
+	set mipmaps(int value) => ref.mipmaps = value;
+	set format(int value) => ref.format = value;
 
-  // Used for TextureCubeMap constructor
-  Texture2D._Recieve(_Texture value,{ super.IsOwner, super.length }) : super(sizeOf<_Texture2D>()) {
-    ref = value;
-  }
+	// ignore: unused_element_parameter, unused_element
+	Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ignore: unused_element_parameter, unused_element
+	Texture2D._Recieve(_Texture result): super(sizeOf<_Texture>()) {
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ==================================== Constructor =====================================
 
   /// Load texture from file into GPU memory (VRAM)
   factory Texture2D(String fileName) {
@@ -99,6 +105,7 @@ class Texture2D extends NativeWrapper<_Texture2D>
     tint ??= Color.WHITE;
     _drawTexture(texture.ref, posX, posY, tint.ref);
   }
+
   /// Draw a Texture2D with position defined as Vector2
   static void DrawV(Texture2D texture,{ required Vector2 position, Color? tint }) {
     tint ??= Color.WHITE;
@@ -164,16 +171,17 @@ class Texture2D extends NativeWrapper<_Texture2D>
     _drawBillboardPro(camera.ref, texture.ref, source.ref, position.ref, up.ref, size.ref, origin.ref, rotation, tint.ref);
   }
 
-  //--------------------------------Deconstructors--------------------------------------
+	// =================================== Deconstructor ====================================
 
-  /// Unload texture from GPU memory (VRAM)
-  @override
-  void Free() {
-    if (IsDisposed || !IsOwner) return;
+	static final _nativeFinalizer = NativeFinalizer(_freeTexture);
 
-    _unloadTexture(pointer.ref);
-    super.Free();
-  }
+	// Unload texture from GPU memory (VRAM)
+	@override
+	Free() {
+		_unloadTexture(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 typedef Texture = Texture2D;
@@ -193,40 +201,27 @@ class TextureCubemap extends Texture2D {
 //                                 RenderTexture2D
 //------------------------------------------------------------------------------------
 
-class RenderTexture2D extends NativeWrapper<_RenderTexture>
-{
-  // NativeWrapper<_RenderTexture2D>? _memory;
+// Unload render texture from GPU memory (VRAM)
+typedef _FreeRenderTextureC    = Void Function(Pointer<Void> token);
+// typedef _FreeRenderTextureDart = void Function(Pointer<Void> token);
+final _freeRenderTexture = _dyReleaseLib.lookup<NativeFunction<_FreeRenderTextureC>>('FreeRenderTexture');
 
+/// RenderTexture, fbo for texture rendering
+class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finalizable {
   _RenderTexture2D get ref => pointer.ref;
   set ref (_RenderTexture2D value) => pointer.ref = value;
 
   late final Texture texture;
   late final Texture depth;
-  int get width => ref.texture.width;
-  int get height => ref.texture.heigth;
-  
-  // Texture get texture {
-  //   final address = pointer.address + sizeOf<Uint32>();
-  //   final ptr = Pointer<_Texture>.fromAddress(address);
 
-  //   return Texture._Encapsulate(ptr, IsOwner: false);
-  // }
+	/// OpenGL framebuffer object id
+	int get id => ref.id;
+	set id(int value) => ref.id = value;
 
-	/*
-  void _setmemory(_RenderTexture2D result)
-	{
-		if(result.id == 0) throw Exception("[Dart] Couldn't load Texture2D!");
-    if (_memory != null) Free();
-
-    // Allocating memory in C heap
-
-    Pointer<_RenderTexture2D> pointer = malloc.allocate<_RenderTexture2D>(sizeOf<_RenderTexture2D>());
-    pointer.ref = result;
-    this._memory = NativeWrapper<_RenderTexture2D>(pointer);
-
-    _finalizer.attach(this, pointer, detach: this);
-	} 
-  */
+  int get width => texture.width;
+	set width(int value) => texture.width = value;
+  int get height => texture.height;
+	set height(int value) => texture.height = value;
 
   void _setReferences() {
     int address = pointer.address + sizeOf<Int32>();
@@ -239,13 +234,19 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture>
   // ignore: unused_element_parameter, unused_element
   RenderTexture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
+
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
   RenderTexture2D._Recieve(_RenderTexture result) : super(sizeOf<_RenderTexture>()) {
     ref = result;
     _setReferences();
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
 
+	// ==================================== Constructor =====================================
+  
   /// Load texture for rendering (framebuffer)
   factory RenderTexture2D(num width, num height) {
     final renderTexture2D = _loadRenderTexture(width.toInt(), height.toInt());
@@ -255,14 +256,17 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture>
   /// Check if a render texture is valid (loaded in GPU)
   bool isValid() => _isRenderTextureValid(ref);
   
-  /// Unload render texture from GPU memory (VRAM)
-  @override
-  void Free() {
-    if (IsDisposed || !IsOwner) return;
+	// =================================== Deconstructor ====================================
 
-    _unloadRenderTexture(pointer.ref);
-    super.Free();
-  }
+	static final _nativeFinalizer = NativeFinalizer(_freeRenderTexture);
+
+	// Unload render texture from GPU memory (VRAM)
+	@override
+	Free() {
+		_unloadRenderTexture(ref);
+		_nativeFinalizer.detach(this);
+		super.Free();
+	}
 }
 
 typedef RenderTexture = RenderTexture2D;

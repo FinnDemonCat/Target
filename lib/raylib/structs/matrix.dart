@@ -4,47 +4,60 @@ part of '../raylib.dart';
 // Module Functions Definition - Matrix math
 //------------------------------------------------------------------------------------
 
-class Matrix extends NativeWrapper<_Matrix>
-{
+typedef _FreeMatrixC    = Void Function(Pointer<Void> token);
+// typedef _FreeMatrixDart = void Function(Pointer<Void> token);
+final _freeMatrix = _dyReleaseLib.lookup<NativeFunction<_FreeMatrixC>>('FreeMatrix');
 
-//--------------------------------Getters-&-Setters-----------------------------------
-
+/// Matrix, 4x4 components, column major, OpenGL style, right-handed
+class Matrix extends NativeWrapper<_Matrix> implements Finalizable {
   _Matrix get ref => pointer.ref;
   set ref (_Matrix value) => pointer.ref = value;
 
-  double get m0 => ref.m0;
-  double get m1 => ref.m1;
-  double get m2 => ref.m2;
-  double get m3 => ref.m3;
-  double get m4 => ref.m4;
-  double get m5 => ref.m5;
-  double get m6 => ref.m6;
-  double get m7 => ref.m7;
-  double get m8 => ref.m8;
-  double get m9 => ref.m9;
-  double get m10 => ref.m10;
-  double get m11 => ref.m11;
-  double get m12 => ref.m12;
-  double get m13 => ref.m13;
-  double get m14 => ref.m14;
-  double get m15 => ref.m15;
+	double get m0 => ref.m0;
+	double get m4 => ref.m4;
+	double get m8 => ref.m8;
+	double get m12 => ref.m12;
+	double get m1 => ref.m1;
+	double get m5 => ref.m5;
+	double get m9 => ref.m9;
+	double get m13 => ref.m13;
+	double get m2 => ref.m2;
+	double get m6 => ref.m6;
+	double get m10 => ref.m10;
+	double get m14 => ref.m14;
+	double get m3 => ref.m3;
+	double get m7 => ref.m7;
+	double get m11 => ref.m11;
+	double get m15 => ref.m15;
 
-  set m0(double value) => ref.m0 = value;
-  set m1(double value) => ref.m1 = value;
-  set m2(double value) => ref.m2 = value;
-  set m3(double value) => ref.m3 = value;
-  set m4(double value) => ref.m4 = value;
-  set m5(double value) => ref.m5 = value;
-  set m6(double value) => ref.m6 = value;
-  set m7(double value) => ref.m7 = value;
-  set m8(double value) => ref.m8 = value;
-  set m9(double value) => ref.m9 = value;
-  set m10(double value) => ref.m10 = value;
-  set m11(double value) => ref.m11 = value;
-  set m12(double value) => ref.m12 = value;
-  set m13(double value) => ref.m13 = value;
-  set m14(double value) => ref.m14 = value;
-  set m15(double value) => ref.m15 = value;
+	set m0(num value) => ref.m0 = value.toDouble();
+	set m4(num value) => ref.m4 = value.toDouble();
+	set m8(num value) => ref.m8 = value.toDouble();
+	set m12(num value) => ref.m12 = value.toDouble();
+	set m1(num value) => ref.m1 = value.toDouble();
+	set m5(num value) => ref.m5 = value.toDouble();
+	set m9(num value) => ref.m9 = value.toDouble();
+	set m13(num value) => ref.m13 = value.toDouble();
+	set m2(num value) => ref.m2 = value.toDouble();
+	set m6(num value) => ref.m6 = value.toDouble();
+	set m10(num value) => ref.m10 = value.toDouble();
+	set m14(num value) => ref.m14 = value.toDouble();
+	set m3(num value) => ref.m3 = value.toDouble();
+	set m7(num value) => ref.m7 = value.toDouble();
+	set m11(num value) => ref.m11 = value.toDouble();
+	set m15(num value) => ref.m15 = value.toDouble();
+
+	// ignore: unused_element_parameter, unused_element
+	Matrix._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+		if (IsOwner)
+			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
+
+	// ignore: unused_element_parameter, unused_element
+	Matrix._Recieve(_Matrix result): super(sizeOf<_Matrix>()) {
+		ref = result;
+		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	}
 
   set column1(Vector4 v) {
     _Matrix r = ref;
@@ -71,7 +84,7 @@ class Matrix extends NativeWrapper<_Matrix>
   Vector4 get column3 => Vector4._Encapsulate((pointer.cast<Float>() + 8).cast<_Vector4>());
   Vector4 get column4 => Vector4._Encapsulate((pointer.cast<Float>() + 12).cast<_Vector4>());
   
-//--------------------------------Constructors----------------------------------------
+	// ==================================== Constructor =====================================
 
   Matrix([
     double m0 = 1.0, double m4 = 0.0, double m8 = 0.0, double m12 = 0.0,
@@ -88,20 +101,7 @@ class Matrix extends NativeWrapper<_Matrix>
       ..m2 = m2   ..m6 = m6   ..m10 = m10 ..m14 = m14
       ..m3 = m3   ..m7 = m7   ..m11 = m11 ..m15 = m15;
 
-    _finalizer.attach(this, pointer, detach: this);
-  }
-
-  // ignore: unused_element_parameter
-  Matrix._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer, detach: this);
-  }
-
-  // ignore: unused_element_parameter
-  Matrix._Recieve(_Matrix result,{ super.IsOwner, super.length }) : super(sizeOf<_Matrix>()) {
-    ref = result;
-
-    _finalizer.attach(this, pointer, detach: this);
+    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
   }
   
   /// Get identity matrix
@@ -639,35 +639,36 @@ class Matrix extends NativeWrapper<_Matrix>
     }
   }
 
-  Matrix operator [](int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    return Matrix._Encapsulate(pointer + index);
-  }
+	// ===================================== Operators ======================================
 
-  void operator []=(Matrix value, int index) {
-    if (index < 0 || index >= length) throw RangeError(index);
-    (pointer + index).ref = value.ref;
-  }
+	Matrix operator[](int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		return Matrix._Encapsulate(pointer + index, IsOwner: false);
+	}
 
-  @override
-  Iterable<Matrix> get values sync* {
-    for (int x = 0; x < length; x++)
-      yield this[x];
-  }
+	void operator[]=(Matrix value, int index) {
+		if (index < 0 || index >= length) throw RangeError(index);
+		(pointer + index).ref = value.ref;
+	}
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_Matrix>>((pointer) {
-    malloc.free(pointer);
-  });
+	@override
+	Iterable<Matrix> get values sync* {
+		for (int x = 0; x < length; x++)
+			yield this[x];
+	}
+
+	// =================================== Deconstructor ====================================
+
+	static final _nativeFinalizer = NativeFinalizer(_freeMatrix);
 
   @override
   void Free() {
-    _finalizer.detach(this);
+    _nativeFinalizer.detach(this);
     super.Free();
   }
 }
 
-extension MatrixMath on Matrix
-{
+extension MatrixMath on Matrix {
   /// Add `other` matrix to `this`
   void Add(Matrix right)
   {
