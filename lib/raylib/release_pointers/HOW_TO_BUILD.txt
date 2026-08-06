@@ -1,3 +1,4 @@
+Deprecated
 How to build because I am too lazy to setup a cmake file
 gcc -c .\release_functions.c -lraylib
 gcc -shared -o .\release_functions.dll .\release_functions.o -lraylib

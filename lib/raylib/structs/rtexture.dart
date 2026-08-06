@@ -5,9 +5,9 @@ part of '../raylib.dart';
 //------------------------------------------------------------------------------------
 
 // Unload texture from GPU memory (VRAM)
-typedef _FreeTextureC    = Void Function(Pointer<Void> token);
+// typedef _FreeTextureC    = Void Function(Pointer<Void> token);
 // typedef _FreeTextureDart = void Function(Pointer<Void> token);
-final _freeTexture = _dyReleaseLib.lookup<NativeFunction<_FreeTextureC>>('FreeTexture');
+// final _freeTexture = _dyReleaseLib.lookup<NativeFunction<_FreeTextureC>>('FreeTexture');
 
 /// Texture, tex data stored in GPU memory (VRAM)
 class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
@@ -31,17 +31,17 @@ class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
 	set mipmaps(int value) => ref.mipmaps = value;
 	set format(int value) => ref.format = value;
 
-	// ignore: unused_element_parameter, unused_element
-	Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
-	// ignore: unused_element_parameter, unused_element
-	Texture2D._Recieve(_Texture result): super(sizeOf<_Texture>()) {
-		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  Texture2D._Recieve(_Texture result): super(sizeOf<_Texture>()) {
+    ref = result;
+    _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
 	// ==================================== Constructor =====================================
 
@@ -171,17 +171,20 @@ class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
     _drawBillboardPro(camera.ref, texture.ref, source.ref, position.ref, up.ref, size.ref, origin.ref, rotation, tint.ref);
   }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeTexture);
+  static final _finalizer = Finalizer<Pointer<_Texture2D>>((token) {
+    _unloadTexture(token.ref);
+    malloc.free(token);
+  });
 
-	// Unload texture from GPU memory (VRAM)
-	@override
-	Free() {
-		_unloadTexture(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload texture from GPU memory (VRAM)
+  @override
+  Free() {
+    _unloadTexture(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 typedef Texture = Texture2D;
@@ -202,9 +205,9 @@ class TextureCubemap extends Texture2D {
 //------------------------------------------------------------------------------------
 
 // Unload render texture from GPU memory (VRAM)
-typedef _FreeRenderTextureC    = Void Function(Pointer<Void> token);
+// typedef _FreeRenderTextureC    = Void Function(Pointer<Void> token);
 // typedef _FreeRenderTextureDart = void Function(Pointer<Void> token);
-final _freeRenderTexture = _dyReleaseLib.lookup<NativeFunction<_FreeRenderTextureC>>('FreeRenderTexture');
+// final _freeRenderTexture = _dyReleaseLib.lookup<NativeFunction<_FreeRenderTextureC>>('FreeRenderTexture');
 
 /// RenderTexture, fbo for texture rendering
 class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finalizable {
@@ -235,14 +238,14 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finaliz
   RenderTexture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
 
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   RenderTexture2D._Recieve(_RenderTexture result) : super(sizeOf<_RenderTexture>()) {
     ref = result;
     _setReferences();
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ==================================== Constructor =====================================
@@ -256,17 +259,20 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finaliz
   /// Check if a render texture is valid (loaded in GPU)
   bool isValid() => _isRenderTextureValid(ref);
   
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeRenderTexture);
+  static final _finalizer = Finalizer<Pointer<_RenderTexture2D>>((token) {
+    _unloadRenderTexture(token.ref);
+    malloc.free(token);
+  });
 
-	// Unload render texture from GPU memory (VRAM)
-	@override
-	Free() {
-		_unloadRenderTexture(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload render texture from GPU memory (VRAM)
+  @override
+  Free() {
+    _unloadRenderTexture(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 typedef RenderTexture = RenderTexture2D;

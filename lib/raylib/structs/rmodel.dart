@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                   BoneInfo
 //------------------------------------------------------------------------------------
 
-typedef _FreeBoneInfoC    = Void Function(Pointer<Void> token);
+// typedef _FreeBoneInfoC    = Void Function(Pointer<Void> token);
 // typedef _FreeBoneInfoDart = void Function(Pointer<Void> token);
-final _freeBoneInfo = _dyReleaseLib.lookup<NativeFunction<_FreeBoneInfoC>>('FreeBoneInfo');
+// final _freeBoneInfo = _dyReleaseLib.lookup<NativeFunction<_FreeBoneInfoC>>('FreeBoneInfo');
 
 /// Bone, skeletal animation bone
 class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
@@ -31,16 +31,16 @@ class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
   // ignore: unused_element_parameter
   BoneInfo._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    	if (IsOwner)
+    		_finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ignore: unused_element_parameter, unused_element
-	BoneInfo._Recieve(_BoneInfo result): super(sizeOf<_BoneInfo>()) {
+  // ignore: unused_element_parameter, unused_element
+  BoneInfo._Recieve(_BoneInfo result): super(sizeOf<_BoneInfo>()) {
     _setReferences();
-		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+    ref = result;
+    _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
 	// ===================================== Operators ======================================
 
@@ -60,15 +60,17 @@ class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
 			yield this[x];
 	}
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeBoneInfo);
+  static final _finalizer = Finalizer<Pointer<_BoneInfo>>((token) {
+    malloc.free(token);
+  });
 
-	@override
-	void Free() {
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  @override
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 //------------------------------------------------------------------------------------
@@ -76,9 +78,9 @@ class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
 //------------------------------------------------------------------------------------
 
 // Unload model (including meshes) from memory (RAM and/or VRAM)
-typedef _FreeModelC    = Void Function(Pointer<Void> token);
+// typedef _FreeModelC    = Void Function(Pointer<Void> token);
 // typedef _FreeModelDart = void Function(Pointer<Void> token);
-final _freeModel = _dyReleaseLib.lookup<NativeFunction<_FreeModelC>>('FreeModel');
+// final _freeModel = _dyReleaseLib.lookup<NativeFunction<_FreeModelC>>('FreeModel');
 
 /// Model, meshes, materials and animation data
 class Model extends NativeWrapper<_Model> implements Finalizable {
@@ -172,13 +174,13 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   Model._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   Model._Recieve(_Model result) : super(sizeOf<_Model>()) {
     ref = result;
     _setReferences();
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
   }
   
 	// ==================================== Constructor =====================================
@@ -281,15 +283,18 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeModel);
+  static final _finalizer = Finalizer<Pointer<_Model>>((token) {
+    _unloadModel(token.ref);
+    malloc.free(token);
+  });
 
-	// Unload model (including meshes) from memory (RAM and/or VRAM)
-	@override
-	void Free() {
-		_unloadModel(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload model (including meshes) from memory (RAM and/or VRAM)
+  @override
+  void Free() {
+    _unloadModel(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 //------------------------------------------------------------------------------------
@@ -418,9 +423,9 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizab
 //                                      Ray
 //------------------------------------------------------------------------------------
 
-typedef _FreeRayC    = Void Function(Pointer<Void> token);
+// typedef _FreeRayC    = Void Function(Pointer<Void> token);
 // typedef _FreeRayDart = void Function(Pointer<Void> token);
-final _freeRay = _dyReleaseLib.lookup<NativeFunction<_FreeRayC>>('FreeRay');
+// final _freeRay = _dyReleaseLib.lookup<NativeFunction<_FreeRayC>>('FreeRay');
 
 /// Ray, ray for raycasting
 class Ray extends NativeWrapper<_Ray> implements Finalizable {
@@ -449,8 +454,8 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
   Ray._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
 
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ignore: unused_element_parameter, unused_element
@@ -458,7 +463,7 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
     ref = result;
     _setReferences();
 
-    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ==================================== Constructor =====================================
@@ -471,7 +476,7 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
     _setReferences();
 
     arena?.register(this);
-    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ===================================== Operators ======================================
@@ -492,20 +497,22 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
 			yield this[x];
 	}
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeRay);
+  static final _finalizer = Finalizer<Pointer<_Ray>>((token) {
+    malloc.free(token);
+  });
 
-	@override
-	void Free() {
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  @override
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
-typedef _FreeRayCollisionC    = Void Function(Pointer<Void> token);
+// typedef _FreeRayCollisionC    = Void Function(Pointer<Void> token);
 // typedef _FreeRayCollisionDart = void Function(Pointer<Void> token);
-final _freeRayCollision = _dyReleaseLib.lookup<NativeFunction<_FreeRayCollisionC>>('FreeRayCollision');
+// final _freeRayCollision = _dyReleaseLib.lookup<NativeFunction<_FreeRayCollisionC>>('FreeRayCollision');
 
 /// RayCollision, ray hit information
 class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
@@ -542,14 +549,14 @@ class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
   RayCollision._Encapsulate(super.pointer,{ super.IsOwner, super.length, super.arena }) : super.fromAddress() {
     _setReferences();
     if(IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		  _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ignore: unused_element_parameter, unused_element
   RayCollision._Recieve(_RayCollision result,[ RaylibArena? arena ]) : super(sizeOf<_RayCollision>(), arena: arena) {
     ref = result;
     _setReferences();
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ===================================== Operators ======================================
@@ -570,13 +577,15 @@ class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
 			yield this[x];
 	}
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeRayCollision);
+  static final _finalizer = Finalizer<Pointer<_RayCollision>>((token) {
+    malloc.free(token);
+  });
 
-	@override
-	void Free() {
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  @override
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
+  }
 }

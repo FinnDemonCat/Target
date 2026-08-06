@@ -876,7 +876,7 @@ enum NPatchLayout {
 //------------------------------------------------------------------------------------
 
 final DynamicLibrary _dylib = _load();
-final DynamicLibrary _dyReleaseLib = _loadRelease();
+// final DynamicLibrary _dyReleaseLib = _loadRelease();
 
 DynamicLibrary _load() {
   // String sdkPath = path.dirname(Platform.script.toFilePath());
@@ -895,6 +895,7 @@ DynamicLibrary _load() {
   else throw UnsupportedError("Operational system not supported");
 }
 
+/* 
 DynamicLibrary _loadRelease() {
   String dirPath = path.dirname(Platform.script.toFilePath());
   dirPath = path.join(path.dirname(dirPath), 'lib', 'Target', 'lib', 'raylib', 'release_pointers'); // lib\Target\lib\raylib\release_pointers\release_functions.dll
@@ -904,6 +905,7 @@ DynamicLibrary _loadRelease() {
   else if (Platform.isMacOS) return DynamicLibrary.open(path.join(dirPath, 'release_functions.dylib'));
   else throw UnsupportedError("Operational system not supported");
 }
+ */
 
 //------------------------------------------------------------------------------------
 // Window and Graphics Device Functions (Module: core)

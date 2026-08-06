@@ -1,8 +1,8 @@
 part of '../raylib.dart';
 
-typedef _FreeColorC    = Void Function(Pointer<Void> token);
+// typedef _FreeColorC    = Void Function(Pointer<Void> token);
 // typedef _FreeColorDart = void Function(Pointer<Void> token);
-final _freeColor = _dyReleaseLib.lookup<NativeFunction<_FreeColorC>>('FreeColor');
+// final _freeColor = _dyReleaseLib.lookup<NativeFunction<_FreeColorC>>('FreeColor');
 
 /// Color, 4 components, R8G8B8A8 (32bit)
 class Color extends NativeWrapper<_Color> implements Finalizable {
@@ -48,29 +48,29 @@ class Color extends NativeWrapper<_Color> implements Finalizable {
 	set b(int value) => ref.b = value;
 	set a(int value) => ref.a = value;
 
-	// ignore: unused_element_parameter, unused_element
-	Color._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  Color._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
-	// ignore: unused_element_parameter, unused_element
-	Color._Recieve(_Color result): super(sizeOf<_Color>()) {
-		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  Color._Recieve(_Color result): super(sizeOf<_Color>()) {
+    ref = result;
+    _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
 	// ==================================== Constructor =====================================
 
-	Color(int r, int g, int b,[int a = 255]) : super(sizeOf<_Color>()) {
-		ref
-			..r = r
-			..g = g
-			..b = b
-			..a = a;
+  Color(int r, int g, int b,[int a = 255]) : super(sizeOf<_Color>()) {
+    ref
+      ..r = r
+      ..g = g
+      ..b = b
+      ..a = a;
 
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+    _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
   /// Get Color from normalized values [0..1]
   factory Color.FromNormalized(Vector4 normalized) {
@@ -171,13 +171,15 @@ class Color extends NativeWrapper<_Color> implements Finalizable {
 			yield this[x];
 	}
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeColor);
-  
+  static final _finalizer = Finalizer<Pointer<_Color>>((token) {
+    malloc.free(token);
+  });
+	  
   @override
   void Free() {
-    _nativeFinalizer.detach(this);
+    _finalizer.detach(this);
     super.Free();
   }
 }

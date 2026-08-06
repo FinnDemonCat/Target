@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                 NPatchInfo
 //------------------------------------------------------------------------------------
 
-typedef _FreeNPatchInfoC    = Void Function(Pointer<Void> token);
+// typedef _FreeNPatchInfoC    = Void Function(Pointer<Void> token);
 // typedef _FreeNPatchInfoDart = void Function(Pointer<Void> token);
-final _freeNPatchInfo = _dyReleaseLib.lookup<NativeFunction<_FreeNPatchInfoC>>('FreeNPatchInfo');
+// final _freeNPatchInfo = _dyReleaseLib.lookup<NativeFunction<_FreeNPatchInfoC>>('FreeNPatchInfo');
 
 /// NPatchInfo, n-patch layout info
 class NPatchInfo extends NativeWrapper<_NPatchInfo> implements Finalizable {
@@ -59,16 +59,18 @@ class NPatchInfo extends NativeWrapper<_NPatchInfo> implements Finalizable {
 			..bottom = bottom
 			..layout = layout.index;
 
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeNPatchInfo);
-  
-  @override
-  void Free() {
-    _nativeFinalizer.detach(this);
-    super.Free();
-  }
+	static final _finalizer = Finalizer<Pointer<_NPatchInfo>>((token) {
+	  malloc.free(token);
+	});
+
+	@override
+	void Free() {
+	  _finalizer.detach(this);
+	  super.Free();
+	}
 }

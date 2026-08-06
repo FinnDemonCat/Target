@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                   Image
 //------------------------------------------------------------------------------------
 
-typedef _FreeImageC    = Void Function(Pointer<Void> token);
+// typedef _FreeImageC    = Void Function(Pointer<Void> token);
 // typedef _FreeImageDart = void Function(Pointer<Void> token);
-final _freeImage = _dyReleaseLib.lookup<NativeFunction<_FreeImageC>>('FreeImage');
+// final _freeImage = _dyReleaseLib.lookup<NativeFunction<_FreeImageC>>('FreeImage');
 
 /// Image, pixel data stored in CPU memory (RAM)
 class Image extends NativeWrapper<_Image> implements Finalizable {
@@ -35,14 +35,14 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
 
 	// ignore: unused_element_parameter, unused_element
 	Image._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	Image._Recieve(_Image result): super(sizeOf<_Image>()) {
-		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    ref = result;
+    _finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ==================================== Constructor =====================================
@@ -568,22 +568,25 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeImage);
+  static final _finalizer = Finalizer<Pointer<_Image>>((token) {
+    _unloadImage(token.ref);
+    malloc.free(token);
+  });
 
   /// Unload image from CPU memory (RAM)
   void Unload() => Free();
-  
+	
   /// Unload image from CPU memory (RAM)
   @override
   void Free() {
     _unloadImage(ref);
-  
+	
     if (_colors != null)
       _unloadImageColors(_colors!.pointer);
     if (_pallet != null)
       _unloadImageColors(_pallet!.pointer);
-    
-    _nativeFinalizer.detach(this);
+		
+    _finalizer.detach(this);
     super.Free();
   }
 }

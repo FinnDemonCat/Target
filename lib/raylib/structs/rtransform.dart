@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                   Transform
 //------------------------------------------------------------------------------------
 
-typedef _FreeTransformC    = Void Function(Pointer<Void> token);
+// typedef _FreeTransformC    = Void Function(Pointer<Void> token);
 // typedef _FreeTransformDart = void Function(Pointer<Void> token);
-final _freeTransform = _dyReleaseLib.lookup<NativeFunction<_FreeTransformC>>('FreeTransform');
+// final _freeTransform = _dyReleaseLib.lookup<NativeFunction<_FreeTransformC>>('FreeTransform');
 
 /// Transform, vertex transformation data
 class Transform extends NativeWrapper<_Transform> implements Finalizable {
@@ -43,14 +43,14 @@ class Transform extends NativeWrapper<_Transform> implements Finalizable {
   Transform._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ignore: unused_element_parameter, unused_element
   Transform._Recieve(_Transform result) : super(sizeOf<_Transform>()) {
     ref = result;
     _setReferences();
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ==================================== Constructor =====================================
@@ -62,7 +62,7 @@ class Transform extends NativeWrapper<_Transform> implements Finalizable {
       ..scale = scale.ref;
 
     _setReferences();
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ===================================== Operators ======================================
@@ -85,11 +85,13 @@ class Transform extends NativeWrapper<_Transform> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeTransform);
+	static final _finalizer = Finalizer<Pointer<_Transform>>((token) {
+    malloc.free(token);
+  });
 
 	@override
 	void Free() {
-		_nativeFinalizer.detach(this);
+		_finalizer.detach(this);
 		super.Free();
 	}
 }

@@ -1,8 +1,8 @@
 part of '../raylib.dart';
 
-typedef _FreeVector2C    = Void Function(Pointer<Void> token);
+// typedef _FreeVector2C    = Void Function(Pointer<Void> token);
 // typedef _FreeVector2Dart = void Function(Pointer<Void> token);
-final _freeVector2 = _dyReleaseLib.lookup<NativeFunction<_FreeVector2C>>('FreeVector2');
+// final _freeVector2 = _dyReleaseLib.lookup<NativeFunction<_FreeVector2C>>('FreeVector2');
 
 //------------------------------------------------------------------------------------
 /// Module Functions Definition - Vector2 math
@@ -34,7 +34,7 @@ class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
       ..y = y;
 
     if (IsOwner)
-      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element_parameter
@@ -42,14 +42,14 @@ class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
     ref = result;
 
     if (IsOwner)
-      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+      _finalizer.attach(this, pointer.cast(), detach: this);
 
   }
 
   // ignore: unused_element_parameter
   Vector2._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     if (IsOwner)
-      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   /// Vector with components value 0.0f
@@ -142,26 +142,17 @@ class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeVector2);
-  
-  // static final Finalizer _finalizer = Finalizer<Pointer<_Vector2>>((pointer) {
-  //   if (pointer.address == 0) return;
-
-  //   malloc.free(pointer);
-  // });
+	static final _finalizer = Finalizer<Pointer<_Vector2>>((token) {
+    malloc.free(token);
+  });
   
   @override
   void Free() {
-    _nativeFinalizer.detach(this);
+    _finalizer.detach(this);
     super.Free();
   }
 }
 
-/// **Performance Note:** Performed *in-place* to prevent GC pressure 
-/// and avoid redundant `malloc` calls in the loop.
-///
-/// * **Address:** Remains constant.
-/// * **Memory:** Zero new allocations.
 extension Vector2Math on Vector2 {
   /// Add two vectors (v1 + v2)
   void Add(Vector2 other) { this.x += other.x; this.y += other.y; }
@@ -303,9 +294,9 @@ extension Vector2Math on Vector2 {
 /// Module Functions Definition - Vector3 math
 //------------------------------------------------------------------------------------
 
-typedef _FreeVector3C    = Void Function(Pointer<Void> token);
+// typedef _FreeVector3C    = Void Function(Pointer<Void> token);
 // typedef _FreeVector3Dart = void Function(Pointer<Void> token);
-final _freeVector3 = _dyReleaseLib.lookup<NativeFunction<_FreeVector3C>>('FreeVector3');
+// final _freeVector3 = _dyReleaseLib.lookup<NativeFunction<_FreeVector3C>>('FreeVector3');
 
 /// Vector3, 3 components
 class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
@@ -333,13 +324,13 @@ class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
 	// ignore: unused_element_parameter, unused_element
 	Vector3._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	Vector3._Recieve(_Vector3 result): super(sizeOf<_Vector3>()) {
 		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ==================================== Constructor =====================================
@@ -350,7 +341,8 @@ class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
       ..y = y
       ..z = z;
 
-    _finalizer.attach(this, pointer, detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   /// Vector with components value 0.0f
@@ -450,10 +442,6 @@ class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
       arena
     );
   }
-
-  static final Finalizer _finalizer = Finalizer<Pointer<_Vector3>>((pointer) {
-    malloc.free(pointer);
-  });
 
   /// Orthonormalize provided vectors
   /// Makes vectors normalized and orthogonal to each other
@@ -722,7 +710,9 @@ class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
 
   // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeVector3);
+	static final _finalizer = Finalizer<Pointer<_Vector3>>((token) {
+    malloc.free(token);
+  });
 
   @override
   void Free() {
@@ -962,9 +952,9 @@ extension Vector3Math on Vector3 {
 /// Module Functions Definition - Vector4 math
 //----------------------------------------------------------------------------------
 
-typedef _FreeVector4C    = Void Function(Pointer<Void> token);
+// typedef _FreeVector4C    = Void Function(Pointer<Void> token);
 // typedef _FreeVector4Dart = void Function(Pointer<Void> token);
-final _freeVector4 = _dyReleaseLib.lookup<NativeFunction<_FreeVector4C>>('FreeVector4');
+// final _freeVector4 = _dyReleaseLib.lookup<NativeFunction<_FreeVector4C>>('FreeVector4');
 
 class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
   _Vector4 get ref => pointer.ref;
@@ -987,13 +977,13 @@ class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
 	// ignore: unused_element_parameter, unused_element
 	Vector4._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	Vector4._Recieve(_Vector4 result): super(sizeOf<_Vector4>()) {
 		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
   void Set([num? x, num? y, num? z, num? w]) {
@@ -1010,7 +1000,8 @@ class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
       ..z = z
       ..w = w;
 
-    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
 
   }
 
@@ -1097,7 +1088,15 @@ class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeVector4);
+	static final _finalizer = Finalizer<Pointer<_Vector4>>((token) {
+    malloc.free(token);
+  });
+
+  @override
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 extension Vector4Math on Vector4 {

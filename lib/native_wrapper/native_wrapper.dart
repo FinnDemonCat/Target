@@ -112,6 +112,7 @@ class NativeWrapper<T extends NativeType> {
     if (!IsOwner)
       return;
     
+    // print("[Target] Freeing ${pointer.runtimeType}");
     _disposed = true;
     malloc.free(this.pointer);
   }

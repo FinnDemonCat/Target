@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                 BoundingBox
 //------------------------------------------------------------------------------------
 
-typedef _FreeBoundingBoxC    = Void Function(Pointer<Void> token);
+// typedef _FreeBoundingBoxC    = Void Function(Pointer<Void> token);
 // typedef _FreeBoundingBoxDart = void Function(Pointer<Void> token);
-final _freeBoundingBox = _dyReleaseLib.lookup<NativeFunction<_FreeBoundingBoxC>>('FreeBoundingBox');
+// final _freeBoundingBox = _dyReleaseLib.lookup<NativeFunction<_FreeBoundingBoxC>>('FreeBoundingBox');
 
 /// BoundingBox
 class BoundingBox extends NativeWrapper<_BoundingBox> implements Finalizable {
@@ -35,14 +35,14 @@ class BoundingBox extends NativeWrapper<_BoundingBox> implements Finalizable {
 	BoundingBox._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences(pointer);
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	BoundingBox._Recieve(_BoundingBox result): super(sizeOf<_BoundingBox>()) {
 		ref = result;
     _setReferences(pointer);
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
 	}
   
   BoundingBox(Vector3 min, Vector3 max,{ super.arena }) : super(sizeOf<_BoundingBox>()) {
@@ -50,7 +50,7 @@ class BoundingBox extends NativeWrapper<_BoundingBox> implements Finalizable {
       ..min = min.ref
       ..max = max.ref;
 
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
     _setReferences(pointer);
   }
 
@@ -74,11 +74,13 @@ class BoundingBox extends NativeWrapper<_BoundingBox> implements Finalizable {
   
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeBoundingBox);
+	static final _finalizer = Finalizer<Pointer<_BoundingBox>>((token) {
+		malloc.free(token);
+	});
 
 	@override
 	void Free() {
-		_nativeFinalizer.detach(this);
+		_finalizer.detach(this);
 		super.Free();
 	}
 }

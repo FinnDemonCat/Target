@@ -5,9 +5,9 @@ part of '../raylib.dart';
 //------------------------------------------------------------------------------------
 
 // Unload mesh data from CPU and GPU
-typedef _FreeMeshC    = Void Function(Pointer<Void> token);
+// typedef _FreeMeshC    = Void Function(Pointer<Void> token);
 // typedef _FreeMeshDart = void Function(Pointer<Void> token);
-final _freeMesh = _dyReleaseLib.lookup<NativeFunction<_FreeMeshC>>('FreeMesh');
+// final _freeMesh = _dyReleaseLib.lookup<NativeFunction<_FreeMeshC>>('FreeMesh');
 
 /// Mesh, vertex data and vao/vbo
 class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
@@ -116,14 +116,14 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   Mesh._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences();
 
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element
   Mesh._Recieve(_Mesh result) : super(sizeOf<_Mesh>()) {
     ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
     _setReferences();
   }
 
@@ -331,15 +331,18 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeMesh);
+  static final _finalizer = Finalizer<Pointer<_Mesh>>((token) {
+    _unloadMesh(token.ref);
+    malloc.free(token);
+  });
 
-	// Unload mesh data from CPU and GPU
-	@override
-	void Free() {
-		_unloadMesh(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload mesh data from CPU and GPU
+  @override
+  void Free() {
+    _unloadMesh(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 
@@ -348,9 +351,9 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
 //------------------------------------------------------------------------------------
 
 // Unload shader from GPU memory (VRAM)
-typedef _FreeShaderC    = Void Function(Pointer<Void> token);
+// typedef _FreeShaderC    = Void Function(Pointer<Void> token);
 // typedef _FreeShaderDart = void Function(Pointer<Void> token);
-final _freeShader = _dyReleaseLib.lookup<NativeFunction<_FreeShaderC>>('FreeShader');
+// final _freeShader = _dyReleaseLib.lookup<NativeFunction<_FreeShaderC>>('FreeShader');
 
 /// Shader
 class Shader extends NativeWrapper<_Shader> implements Finalizable {
@@ -374,15 +377,15 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
 	Shader._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
     _setReferences();
 
-		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner)
+      _finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	Shader._Recieve(_Shader result): super(sizeOf<_Shader>()) {
 		ref = result;
     _setReferences();
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ==================================== Constructor =====================================
@@ -557,20 +560,23 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
   /// Set shader uniform value and bind the texture (sampler2d)
   void SetValueTexture(int locIndex, Texture2D texture) => _setShaderValueTexture(ref, locIndex, texture.ref);
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeShader);
+  static final _finalizer = Finalizer<Pointer<_Shader>>((token) {
+    _unloadShader(token.ref);
+    malloc.free(token);
+  });
 
   /// Unload shader from GPU memory (VRAM)
   void Unload() => Free();
 
-	// Unload shader from GPU memory (VRAM)
-	@override
-	void Free() {
-		_unloadShader(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload shader from GPU memory (VRAM)
+  @override
+  void Free() {
+    _unloadShader(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 }
 
 //------------------------------------------------------------------------------------
@@ -640,13 +646,15 @@ class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
   /* 
-	static final _nativeFinalizer = NativeFinalizer(_freeMaterialMap);
+  static final _finalizer = Finalizer<Pointer<_MaterialMap>>((token) {
+    malloc.free(token);
+  });
 
-	@override
-	void Free() {
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  @override
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
+  }
    */
 }
 
@@ -655,9 +663,9 @@ class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
 //------------------------------------------------------------------------------------
 
 // Unload material from GPU memory (VRAM)
-typedef _FreeMaterialC    = Void Function(Pointer<Void> token);
+// typedef _FreeMaterialC    = Void Function(Pointer<Void> token);
 // typedef _FreeMaterialDart = void Function(Pointer<Void> token);
-final _freeMaterial = _dyReleaseLib.lookup<NativeFunction<_FreeMaterialC>>('FreeMaterial');
+// final _freeMaterial = _dyReleaseLib.lookup<NativeFunction<_FreeMaterialC>>('FreeMaterial');
 
 /// Material, includes shader and maps
 class Material extends NativeWrapper<_Material> implements Finalizable {
@@ -689,13 +697,13 @@ class Material extends NativeWrapper<_Material> implements Finalizable {
   Material._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
     _setReferences();
     if (IsOwner)
-      _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+      _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   Material._Recieve(_Material result) : super(sizeOf<_Material>()) {
     ref = result;
     _setReferences();
-    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ==================================== Constructor =====================================
@@ -759,15 +767,18 @@ class Material extends NativeWrapper<_Material> implements Finalizable {
 			yield this[x];
 	}
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeMaterial);
+  static final _finalizer = Finalizer<Pointer<_Material>>((token) {
+    _unloadMaterial(token.ref);
+    malloc.free(token);
+  });
 
-	// Unload material from GPU memory (VRAM)
-	@override
-	void Free() {
-		_unloadMaterial(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload material from GPU memory (VRAM)
+  @override
+  void Free() {
+    _unloadMaterial(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 }

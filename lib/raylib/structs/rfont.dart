@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                    Font
 //------------------------------------------------------------------------------------
 
-typedef _FreeFontC    = Void Function(Pointer<Void> token);
+// typedef _FreeFontC    = Void Function(Pointer<Void> token);
 // typedef _FreeFontDart = void Function(Pointer<Void> token);
-final _freeFont = _dyReleaseLib.lookup<NativeFunction<_FreeFontC>>('FreeFont');
+// final _freeFont = _dyReleaseLib.lookup<NativeFunction<_FreeFontC>>('FreeFont');
 
 /// Font, font texture and GlyphInfo array data
 class Font extends NativeWrapper<_Font> implements Finalizable {
@@ -16,7 +16,7 @@ class Font extends NativeWrapper<_Font> implements Finalizable {
   int get baseSize => ref.baseSize;
   int get glyphPadding => ref.glyphPadding;
 
-  late final Texture texture;
+  late final Texture texture; // TODO: define as private
   late final GlyphInfo glyphs;
   late final Rectangle recs;
 
@@ -27,7 +27,7 @@ class Font extends NativeWrapper<_Font> implements Finalizable {
     recs = Rectangle._Encapsulate(Pointer<_Rectangle>.fromAddress(result.recs.address), length: result.glyphCount, IsOwner: false);
     texture = Texture._Recieve(result.texture);
 
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   /// Get the default Font
@@ -245,17 +245,20 @@ class Font extends NativeWrapper<_Font> implements Finalizable {
     return size;
   }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeFont);
+  static final _finalizer = Finalizer<Pointer<_Font>>((token) {
+    _unloadFont(token.ref);
+    malloc.free(token);
+  });
 
-	// Unload font from GPU memory (VRAM)
-	@override
-	Free() {
-		_unloadFont(ref);
-		_nativeFinalizer.detach(this);
-		super.Free();
-	}
+  // Unload font from GPU memory (VRAM)
+  @override
+  Free() {
+    _unloadFont(ref);
+    _finalizer.detach(this);
+    super.Free();
+  }
 
   /// Unload font from GPU memory (VRAM)
   void Unload() => Free();

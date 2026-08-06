@@ -4,9 +4,9 @@ part of '../raylib.dart';
 //                                  Rectangle
 //------------------------------------------------------------------------------------
 
-typedef _FreeRectangleC    = Void Function(Pointer<Void> token);
+// typedef _FreeRectangleC    = Void Function(Pointer<Void> token);
 // typedef _FreeRectangleDart = void Function(Pointer<Void> token);
-final _freeRectangle = _dyReleaseLib.lookup<NativeFunction<_FreeRectangleC>>('FreeRectangle');
+// final _freeRectangle = _dyReleaseLib.lookup<NativeFunction<_FreeRectangleC>>('FreeRectangle');
 
 /// Rectangle, 4 components
 class Rectangle extends NativeWrapper<_Rectangle> implements Finalizable {
@@ -30,13 +30,13 @@ class Rectangle extends NativeWrapper<_Rectangle> implements Finalizable {
 	// ignore: unused_element_parameter, unused_element
 	Rectangle._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	Rectangle._Recieve(_Rectangle result): super(sizeOf<_Rectangle>()) {
 		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
   void Set({num? x, num? y, num? width, num? height}) {
@@ -55,7 +55,7 @@ class Rectangle extends NativeWrapper<_Rectangle> implements Finalizable {
       ..width = width.toDouble()
       ..height = height.toDouble();
 
-    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+	  _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
 	// ===================================== Operators ======================================
@@ -78,11 +78,13 @@ class Rectangle extends NativeWrapper<_Rectangle> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeRectangle);
-  
+	static final _finalizer = Finalizer<Pointer<_Rectangle>>((token) {
+		malloc.free(token);
+	});
+	  
   @override
   void Free() {
-    _nativeFinalizer.detach(this);
-    super.Free();
+		_finalizer.detach(this);
+		super.Free();
   }
 }

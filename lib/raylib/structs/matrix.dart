@@ -4,9 +4,9 @@ part of '../raylib.dart';
 // Module Functions Definition - Matrix math
 //------------------------------------------------------------------------------------
 
-typedef _FreeMatrixC    = Void Function(Pointer<Void> token);
+// typedef _FreeMatrixC    = Void Function(Pointer<Void> token);
 // typedef _FreeMatrixDart = void Function(Pointer<Void> token);
-final _freeMatrix = _dyReleaseLib.lookup<NativeFunction<_FreeMatrixC>>('FreeMatrix');
+// final _freeMatrix = _dyReleaseLib.lookup<NativeFunction<_FreeMatrixC>>('FreeMatrix');
 
 /// Matrix, 4x4 components, column major, OpenGL style, right-handed
 class Matrix extends NativeWrapper<_Matrix> implements Finalizable {
@@ -50,13 +50,13 @@ class Matrix extends NativeWrapper<_Matrix> implements Finalizable {
 	// ignore: unused_element_parameter, unused_element
 	Matrix._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
 		if (IsOwner)
-			_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+			_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
 	// ignore: unused_element_parameter, unused_element
 	Matrix._Recieve(_Matrix result): super(sizeOf<_Matrix>()) {
 		ref = result;
-		_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+		_finalizer.attach(this, pointer.cast(), detach: this);
 	}
 
   set column1(Vector4 v) {
@@ -101,7 +101,7 @@ class Matrix extends NativeWrapper<_Matrix> implements Finalizable {
       ..m2 = m2   ..m6 = m6   ..m10 = m10 ..m14 = m14
       ..m3 = m3   ..m7 = m7   ..m11 = m11 ..m15 = m15;
 
-    _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
   
   /// Get identity matrix
@@ -659,11 +659,13 @@ class Matrix extends NativeWrapper<_Matrix> implements Finalizable {
 
 	// =================================== Deconstructor ====================================
 
-	static final _nativeFinalizer = NativeFinalizer(_freeMatrix);
+	static final _finalizer = Finalizer<Pointer<_Matrix>>((token) {
+      malloc.free(token);
+  });
 
   @override
   void Free() {
-    _nativeFinalizer.detach(this);
+    _finalizer.detach(this);
     super.Free();
   }
 }
