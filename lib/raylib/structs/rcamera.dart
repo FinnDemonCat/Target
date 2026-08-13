@@ -18,8 +18,13 @@ class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
   double get zoom => ref.zoom;
   set zoom (double value) => ref.zoom = value;
 
-  late final Vector2 offset; // TODO: Update to private
-  late final Vector2 target;
+  late final Vector2 _offset;
+  Vector2 get offset => _offset;
+  set offset(Vector2 value) => ref.offset = value.ref;
+
+  late final Vector2 _target;
+  Vector2 get target => _target;
+  set target(Vector2 value) => ref.target = value.ref;
 
 	// ==================================== Constructor =====================================
 
@@ -37,9 +42,9 @@ class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
     ..zoom = zoom;
 
     int address = pointer.address;
-    offset = Vector2._Encapsulate(.fromAddress(address));
+    _offset = Vector2._Encapsulate(.fromAddress(address));
     address += sizeOf<_Vector2>();
-    target = Vector2._Encapsulate(.fromAddress(address));
+    _target = Vector2._Encapsulate(.fromAddress(address));
 
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
@@ -72,9 +77,17 @@ class Camera extends NativeWrapper<_Camera> implements Finalizable {
   CameraProjection get projection => CameraProjection.values[ref.projection];
   set projection(CameraProjection value) => ref.projection = value.index;
 
-  late final Vector3 position;
-  late final Vector3 target;
-  late final Vector3 up;
+  late final Vector3 _position;
+  Vector3 get position => _position;
+  set position(Vector3 value) => ref.position = value.ref;
+
+  late final Vector3 _target;
+  Vector3 get target => _target;
+  set target(Vector3 value) => ref.target = value.ref;
+
+  late final Vector3 _up;
+  Vector3 get up => _up;
+  set up(Vector3 value) => ref.up = value.ref;
 
   Camera({
     required Vector3 pos,
@@ -83,9 +96,7 @@ class Camera extends NativeWrapper<_Camera> implements Finalizable {
     required double fovy,
     required CameraProjection projection,
     super.arena
-  })
-    : super(sizeOf<_Camera>())
-  {
+  }) : super(sizeOf<_Camera>()) {
     pointer.ref
     ..position = pos.ref
     ..target = target.ref
@@ -94,15 +105,15 @@ class Camera extends NativeWrapper<_Camera> implements Finalizable {
     ..projection = projection.index;
 
     int address = pointer.address;
-    this.position = Vector3._Encapsulate(.fromAddress(address));
+    _position = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    this.target = Vector3._Encapsulate(.fromAddress(address));
+    _target = Vector3._Encapsulate(.fromAddress(address));
 
     address += sizeOf<_Vector3>();
-    this.up = Vector3._Encapsulate(.fromAddress(address));
+    _up = Vector3._Encapsulate(.fromAddress(address));
 
-    _finalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer, detach: this);
   }
 
 	// =================================== Deconstructor ====================================

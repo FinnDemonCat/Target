@@ -601,27 +601,29 @@ class Row extends Widget
 class TextBox extends Widget {
   Font font;
   final TextCodepoint _text;
-  bool _linesDirty = true;
+  bool _isDirty = true;
 
   TextCodepoint get text => _text;
   set text(String value) {
     _text.text = value;
-    _linesDirty = true;
+    _isDirty = true;
   }
 
   HayXAxisAlign textAlign;
+  HayYAxisAlign textVerticalAlign;
   double fontSize;
-  double spacing;
+  double lineSpacing;
   Color color;
-
+  
   List<({int cut, double width})> lines = [];
 
   TextBox({
     Font? font,
     required String text,
     this.textAlign = .LEFT,
-    required this.fontSize,
-    this.spacing = 2.0,
+    this.textVerticalAlign = .TOP,
+    this.fontSize = 24.0,
+    this.lineSpacing = 2.0,
     Color? color
   }) :
     _text = TextCodepoint.fromString(text),
@@ -630,16 +632,15 @@ class TextBox extends Widget {
     super(sizing: .Expand());
 
   @override
-  void Mount()
-  {
-    if (!_linesDirty) return;
+  void Mount() {
+    if (!_isDirty) return;
 
     lines.clear();
-    Vector2 size = font.MeasureCodepoints(_text, fontSize: fontSize, spacing: spacing);
+    Vector2 size = font.MeasureCodepoints(_text, fontSize: fontSize, spacing: lineSpacing);
 
     if (size.x <= width) {
       lines.add((cut: _text.length, width: size.x));
-      _linesDirty = false;
+      _isDirty = false;
       return;
     }
 
@@ -664,7 +665,7 @@ class TextBox extends Widget {
       // Get glyph info of codepoints `index`
       GlyphInfo glyph = font.GetGlyphInfo(glyphIndex);
 
-      double advanceX = (glyph.advanceX + spacing) * scale;
+      double advanceX = (glyph.advanceX + lineSpacing) * scale;
 
       if (codepoint == '\n'.codeUnitAt(0) || codepoint == '\r'.codeUnitAt(0)) {
         lines.add((cut: index, width: textWidth));
@@ -695,24 +696,36 @@ class TextBox extends Widget {
       }
     }
 
-    _linesDirty = false;
+    _isDirty = false;
   }
 
   @override
-  void DrawWidget()
-  {
-    if (_linesDirty) Mount();
+  void DrawWidget() {
+    if (_isDirty) Mount();
 
     Draw.WithScissorMode(rect: this, renderLogic: () {
       if (lines.isEmpty) return;
       Vector2 pos = Vector2();
+      double startY = y;
+
+      switch (textVerticalAlign) {
+        case .BOTTOM:
+          double textHeight = (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
+          startY = height - textHeight;
+          startY += y;
+          break;
+        case .CENTER:
+          double textHeight = (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
+          startY = (height - textHeight) / 2;
+          startY += y;
+          break;
+        default:
+      }
 
       for(int index = 0; index < lines.length; index++) {
         double posX = 0.0;
-        double posY = 0.0;
 
-        switch (textAlign)
-        {
+        switch (textAlign) {
           case HayXAxisAlign.RIGHT:
             posX = width - lines[index].width;
             posX = math.min(width, posX);
@@ -727,8 +740,7 @@ class TextBox extends Widget {
         }
         
         pos.x = posX + x;
-        posY = index * (fontSize + spacing);
-        pos.y = posY + y;
+        pos.y = index * (fontSize + lineSpacing) + startY;
 
         int start = 0;
         if (index > 0) {
@@ -749,7 +761,7 @@ class TextBox extends Widget {
           _text,
           length,
           fontSize: fontSize,
-          spacing: spacing,
+          spacing: lineSpacing,
           position: pos,
           tint: color,
           index: start
