@@ -16,16 +16,25 @@ class Font extends NativeWrapper<_Font> implements Finalizable {
   int get baseSize => ref.baseSize;
   int get glyphPadding => ref.glyphPadding;
 
-  late final Texture texture; // TODO: define as private
-  late final GlyphInfo glyphs;
-  late final Rectangle recs;
+  late final Texture _texture;
+  Texture get texture => _texture;
+  set texture(Texture value) => ref.texture = value.ref;
+
+  late final GlyphInfo _glyphs;
+  GlyphInfo get glyphs => _glyphs;
+  // set glyphs(GlyphInfo value) => ref.glyphs = value.ref;
+
+  late final Rectangle _recs;
+  Rectangle get recs => _recs;
+  // set recs(Rectangle value) => ref.recs = value.ref;
+  
 
   Font._Recieve(_Font result) : super(sizeOf<_Font>()) {
     ref = result;
 
-    glyphs = GlyphInfo._Encapsulate(Pointer<_GlyphInfo>.fromAddress(result.glyphs.address), length: result.glyphCount, IsOwner: false);
-    recs = Rectangle._Encapsulate(Pointer<_Rectangle>.fromAddress(result.recs.address), length: result.glyphCount, IsOwner: false);
-    texture = Texture._Recieve(result.texture);
+    _texture = Texture._Recieve(result.texture);
+    _glyphs = GlyphInfo._Encapsulate(Pointer<_GlyphInfo>.fromAddress(result.glyphs.address), length: result.glyphCount, IsOwner: false);
+    _recs = Rectangle._Encapsulate(Pointer<_Rectangle>.fromAddress(result.recs.address), length: result.glyphCount, IsOwner: false);
 
     _finalizer.attach(this, pointer.cast(), detach: this);
   }

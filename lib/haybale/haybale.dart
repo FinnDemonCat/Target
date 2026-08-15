@@ -231,21 +231,21 @@ class Padding extends Widget {
   Widget widget;
   Padding({required this.padding, required Widget child}) : widget = child, super(sizing: .Expand());
 
-  @override
-  double get x => super.x + padding.left;
+  // @override
+  // double get x => super.x + padding.left;
 
-  @override
-  double get y => super.y + padding.top;
+  // @override
+  // double get y => super.y + padding.top;
 
-  @override
-  double get width => super.width - (padding.left + padding.right);
-  @override
-  double get height => super.height - (padding.top + padding.bottom);
+  // @override
+  // double get width => super.width - (padding.left + padding.right);
+  // @override
+  // double get height => super.height - (padding.top + padding.bottom);
 
   @override
   void Mount() {
-    widget.SetSizing(width, height);
-    widget.Set(x: x, y: y);
+    widget.SetSizing(width - (padding.left + padding.right), height - (padding.top + padding.bottom));
+    widget.Set(x: x + padding.left, y: y + padding.top);
 
     widget.Mount();
   }
@@ -333,10 +333,7 @@ class Column extends Widget
   Iterable<Widget> get children => widgets;
 
   @override
-  void DrawWidget()
-  {
-    // Shapes.DrawRectangleLines(x, y, width, height);
-
+  void DrawWidget() {
     for (Widget widget in widgets)
       widget.DrawWidget();
     
@@ -344,8 +341,7 @@ class Column extends Widget
   }
 
   @override
-  void Mount()
-  {
+  void Mount() {
     double startY = super.y;
     double widHeight = widgets.fold(0, (x, y) => x + y.height);
 
@@ -815,7 +811,7 @@ enum InteractState {
 /// Interactible.MousePosition = currentMousePos;
 /// Interactible.UpdateWidgets(myWidgetList); 
 /// ```
-class IInteractible extends Widget
+abstract class IInteractible extends Widget
 {
   /// Inner member which computer the interaction state of the active widget.
   InteractState state;
@@ -1416,8 +1412,10 @@ class Stack extends Widget
 
   @override
   void Mount() {
-    for (Widget widget in widgets)
+    for (Widget widget in widgets) {
       widget.SetSizing(width, height);
+      widget.Set(x: x, y: y);
+    }
     
     for (Widget widget in widgets)
       widget.Mount();
@@ -1526,8 +1524,7 @@ typedef WidgetTransition = bool Function(Widget, double);
 /// 
 /// Since the `Router` manages global state, ensure [Release] is called 
 /// when the engine shuts down to free GPU resources held by the active widgets.
-abstract class Router
-{
+abstract class Router {
   static Widget? _activeWidget;
   static Widget? get activeWidget => _activeWidget;
   static Widget? _destWidget;

@@ -306,7 +306,6 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
 // typedef _FreeModelAnimationDart = void Function(Pointer<Void> token);
 // final _freeModelAnimation = _dyReleaseLib.lookup<NativeFunction<_FreeModelAnimationC>>('FreeModelAnimation');
 
-// TODO: Fix NativeFinalizer implementation
 /// ModelAnimation
 class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizable {
   _ModelAnimation get ref => pointer.ref;
