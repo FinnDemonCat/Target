@@ -875,25 +875,25 @@ enum NPatchLayout {
 // Initializing Dynamic Library
 //------------------------------------------------------------------------------------
 
+DynamicLibrary _load() {
+  String sdkPath = path.dirname(Platform.script.toFilePath());
+  sdkPath = path.dirname(sdkPath);
+  
+  if (Platform.isWindows) sdkPath = path.joinAll([sdkPath, 'lib', 'Target', 'lib', 'raylib', 'libraylib.dll']);
+  else if (Platform.isLinux) sdkPath = path.joinAll([sdkPath, 'lib', 'Target', 'lib', 'raylib', 'libraylib.so']);
+  else if (Platform.isMacOS) sdkPath = path.joinAll([sdkPath, 'lib', 'Target', 'lib', 'raylib', 'libraylib.dylib']);
+  else throw UnsupportedError("Operational system not supported");
+  
+  return DynamicLibrary.open(sdkPath);
+
+  // if (Platform.isWindows) return DynamicLibrary.open('libraylib.dll');
+  // else if (Platform.isLinux) return DynamicLibrary.open('libraylib.so');
+  // else if (Platform.isMacOS) return DynamicLibrary.open('libraylib.dylib');
+  // else throw UnsupportedError("Operational system not supported");
+}
+
 final DynamicLibrary _dylib = _load();
 // final DynamicLibrary _dyReleaseLib = _loadRelease();
-
-DynamicLibrary _load() {
-  // String sdkPath = path.dirname(Platform.script.toFilePath());
-  // sdkPath = sdkPath.replaceFirst('src', 'lib');
-  
-  // if (Platform.isWindows) sdkPath = path.joinAll([sdkPath, 'raylib', 'libraylib.dll']);
-  // else if (Platform.isLinux) sdkPath = path.joinAll([sdkPath, 'raylib', 'libraylib.so']);
-  // else if (Platform.isMacOS) sdkPath = path.joinAll([sdkPath, 'raylib', 'libraylib.dylib']);
-  // else throw UnsupportedError("Operational system not supported");
-  
-  // return DynamicLibrary.open(sdkPath);
-
-  if (Platform.isWindows) return DynamicLibrary.open('libraylib.dll');
-  else if (Platform.isLinux) return DynamicLibrary.open('libraylib.so');
-  else if (Platform.isMacOS) return DynamicLibrary.open('libraylib.dylib');
-  else throw UnsupportedError("Operational system not supported");
-}
 
 /* 
 DynamicLibrary _loadRelease() {
@@ -905,7 +905,7 @@ DynamicLibrary _loadRelease() {
   else if (Platform.isMacOS) return DynamicLibrary.open(path.join(dirPath, 'release_functions.dylib'));
   else throw UnsupportedError("Operational system not supported");
 }
- */
+*/
 
 //------------------------------------------------------------------------------------
 // Window and Graphics Device Functions (Module: core)

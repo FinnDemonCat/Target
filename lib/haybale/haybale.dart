@@ -1398,8 +1398,7 @@ class ListView extends Widget
 ///   ],
 /// );
 /// ```
-class Stack extends Widget
-{
+class Stack extends Widget {
   List<Widget> widgets;
   Stack({
     super.sizing = const .Expand(),
@@ -1624,3 +1623,36 @@ abstract class Router {
     _destWidget?.DrawWidget();
   }
 }
+
+/* /// Creates a gate to avoid 
+class ReadOnlyWidget extends Widget {
+  final Widget widget;
+
+  @override double get x => widget.x;
+  @override double get y => widget.y;
+  @override double get width => widget.width;
+  @override double get height => widget.height;
+
+  @override set x(num value) => widget.x = value;
+  @override set y(num value) => widget.y = value;
+  @override set width(num value) => widget.width = value;
+  @override set height(num value) => widget.height = value;
+
+  ReadOnlyWidget(Widget child)
+    : widget = child,
+    super(sizing: child.sizing);
+  
+  @override
+  void Mount() => widget.Mount();
+  
+  @override
+  void DrawWidget() => widget.DrawWidget();
+
+  @override
+  void SetSizing([double width = 0.0, double height = 0.0])
+      => widget.SetSizing(width, height);
+  
+  @override
+  void Set({num? x, num? y, num? width, num? height})
+      => widget.Set(x: x, y: y, width: width, height: height);
+} */
