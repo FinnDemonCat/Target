@@ -5,64 +5,59 @@ import 'dart:math' as math;
 export '../raylib/raylib.dart';
 export 'package:meta/meta.dart';
 
+// Implement Context data class
+// Turn Router into instantiable class and pass through Context
+// Implement Tween tool for animations
+
 /// ## HayXAxisAlign Enum
-/// 
+///
 /// Defines horizontal text and widget alignment options.
-/// 
+///
 /// - **LEFT**: Align to the left edge
 /// - **CENTER**: Center horizontally
 /// - **RIGHT**: Align to the right edge
-enum HayXAxisAlign {
-  LEFT,
-  RIGHT,
-  CENTER
-}
+enum HayXAxisAlign { LEFT, RIGHT, CENTER }
 
 /// ## HayYAxisAlign Enum
-/// 
+///
 /// Defines vertical text and widget alignment options.
 /// - **TOP**: Align to the top edge
 /// - **CENTER**: Center vertically
 /// - **BOTTOM**: Align to the bottom edge
-enum HayYAxisAlign {
-  TOP,
-  CENTER,
-  BOTTOM
-}
+enum HayYAxisAlign { TOP, CENTER, BOTTOM }
 
 /// ## HaySize Parameter
-/// 
+///
 /// Defines widget sizing with support for fixed and flexible dimensions.
-/// 
+///
 /// ## Purpose
-/// 
+///
 /// The `HaySize` parameter class controls how widgets are sized within the layout system:
 /// - Specifies both width and height for a widget
 /// - Supports fixed pixel values or dynamic expansion
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **Fixed Sizing**: Define exact pixel dimensions
 /// - **Factory Constructors**: Predefined patterns like `Grow()`, `FullWidth()`, `FullHeight()`
 /// - **Responsive Design**: Widgets automatically adjust size based on parent constraints
-/// 
+///
 /// ## Usage
-/// 
+///
 /// ```dart
 /// // Fixed size: 200x100 pixels
 /// HaySize fixed = HaySize(width: 200, heigth: 100);
-/// 
+///
 /// // Expand to fill all available space
 /// HaySize grow = HaySize.Grow();
-/// 
+///
 /// // Expand width, fixed height
 /// HaySize fullWidth = HaySize.FullWidth(heigth: 50);
-/// 
+///
 /// // Fixed width, expand height
 /// HaySize fullHeight = HaySize.FullHeight(width: 150);
 /// ```
-class HaySize
-{
+class HaySize {
   final double width, height;
 
   static const double ExpandWidth = -1;
@@ -82,60 +77,70 @@ class HayPosition
 */
 
 /// # HayPadding Parameter
-/// 
+///
 /// Defines spacing around widget content in a Container.
-/// 
+///
 /// ## Usage
-/// 
+///
 /// ```dart
 /// // Equal padding on all sides: 10 pixels
 /// HayPadding uniform = HayPadding.All(10);
-/// 
+///
 /// // Symmetric padding: 5px vertical, 10px horizontal
 /// HayPadding symmetric = HayPadding.Symetric(5, 10);
-/// 
+///
 /// // Custom padding: bottom, top, left, right
 /// HayPadding custom = HayPadding.BTLR(5, 10, 15, 20);
 /// ```
-class HayPadding
-{
+class HayPadding {
   double bottom, top, left, right;
 
   HayPadding.All([double value = 0])
-    : bottom = value, top = value, left = value, right = value;
+    : bottom = value,
+      top = value,
+      left = value,
+      right = value;
 
-  HayPadding.BTLR([this.bottom = 0, this.top = 0, this.left = 0, this.right = 0]);
+  HayPadding.BTLR([
+    this.bottom = 0,
+    this.top = 0,
+    this.left = 0,
+    this.right = 0,
+  ]);
 
   HayPadding.Symetric([double vertical = 0, double horizontal = 0])
-    : bottom = vertical, top = vertical, left = horizontal, right = horizontal;
+    : bottom = vertical,
+      top = vertical,
+      left = horizontal,
+      right = horizontal;
 }
 
 /// # Widget Base Class
-/// 
+///
 /// The foundational class for all UI widgets in the Haybale layout system.
-/// 
+///
 /// ## Purpose
-/// 
+///
 /// The `Widget` class serves as the base class for all UI components in the Haybale framework:
 /// - Extends `Rectangle` to provide positioning and sizing capabilities
 /// - Defines the core lifecycle methods: `Mount()`, `DrawWidget()`, and `Dispose()`
 /// - Establishes a consistent interface that all widget subclasses must implement
 /// - Manages widget sizing through the `HaySize` parameter class
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```dart
 /// // Create a custom widget by extending Widget
 /// class MyCustomWidget extends Widget {
 ///   MyCustomWidget() : super(sizing: HaySize.Grow());
-///   
+///
 ///   @override
 ///   void Mount() {
 ///     // Initialize or recalculate widget layout
 ///     super.x = 0;
 ///     super.y = 0;
 ///   }
-///   
+///
 ///   @override
 ///   void DrawWidget() {
 ///     // Render the widget to screen
@@ -143,28 +148,28 @@ class HayPadding
 ///   }
 /// }
 /// ```
-class Widget extends Rectangle
-{
+class Widget extends Rectangle {
   final HaySize sizing;
 
   // Implement -> Iterable<Widget> get children => const []; ✅
   // And apply to all existinging widgets ✅
   // Define Center and other widgets sizing defaults ✅
 
-  Widget({
-    required this.sizing
-  }) :
-    super(0.0, 0.0, sizing.width, sizing.height);
+  Widget({required this.sizing}) : super(0.0, 0.0, sizing.width, sizing.height);
 
   void Mount() {}
   void DrawWidget() {}
 
   void SetSizing([double width = 0.0, double height = 0.0]) {
-    if (sizing.width == -1) this.width = width;
-    else this.width = sizing.width;
+    if (sizing.width == -1)
+      this.width = width;
+    else
+      this.width = sizing.width;
 
-    if (sizing.height == -1) this.height = height;
-    else this.height = sizing.height;
+    if (sizing.height == -1)
+      this.height = height;
+    else
+      this.height = sizing.height;
   }
 
   Iterable<Widget> get children => const [];
@@ -176,31 +181,29 @@ class Widget extends Rectangle
   }
 }
 
-class Center extends Widget
-{
+class Center extends Widget {
   Widget widget;
 
-  Center({
-    super.sizing = const .Expand(),
-    required this.widget,
-  });
-  
+  Center({super.sizing = const .Expand(), required this.widget});
+
   @override
   Iterable<Widget> get children => [widget];
 
   @override
   void Mount() {
     widget.SetSizing(width, height);
-    widget.Set(x: (width - widget.width) / 2 + x, y: (height - widget.height) / 2 + y);
+    widget.Set(
+      x: (width - widget.width) / 2 + x,
+      y: (height - widget.height) / 2 + y,
+    );
 
     widget.Mount();
   }
 
   @override
   void DrawWidget() {
-    if (widget case IInteractible interactible)
-      interactible.UpdateState();
-    
+    if (widget case IInteractible interactible) interactible.UpdateState();
+
     widget.DrawWidget();
   }
 
@@ -229,7 +232,12 @@ class Center extends Widget
 class Padding extends Widget {
   HayPadding padding;
   Widget widget;
-  Padding({required this.padding, required Widget child}) : widget = child, super(sizing: .Expand());
+  Padding({required this.padding, required Widget child})
+    : widget = child,
+      super(sizing: .Expand());
+
+  @override
+  Iterable<Widget> get children => [widget];
 
   // @override
   // double get x => super.x + padding.left;
@@ -244,7 +252,10 @@ class Padding extends Widget {
 
   @override
   void Mount() {
-    widget.SetSizing(width - (padding.left + padding.right), height - (padding.top + padding.bottom));
+    widget.SetSizing(
+      width - (padding.left + padding.right),
+      height - (padding.top + padding.bottom),
+    );
     widget.Set(x: x + padding.left, y: y + padding.top);
 
     widget.Mount();
@@ -252,9 +263,8 @@ class Padding extends Widget {
 
   @override
   void DrawWidget() {
-    if (widget case IInteractible interactible)
-      interactible.UpdateState();
-    
+    if (widget case IInteractible interactible) interactible.UpdateState();
+
     widget.DrawWidget();
   }
 
@@ -266,18 +276,18 @@ class Padding extends Widget {
 }
 
 /// # Column Widget
-/// 
+///
 /// A layout widget that arranges child widgets vertically with customizable alignment and spacing.
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **Flexible Alignment**: `mainAxis` controls vertical alignment (TOP, CENTER, BOTTOM)
 /// - **Cross Axis Control**: `crossAxis` controls horizontal alignment (LEFT, CENTER, RIGHT)
 /// - **Spacing**: Configurable gap between child widgets
 /// - **Responsive Sizing**: Expands children to fill available space when configured
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```dart
 /// Column myColumn = Column(
 ///   sizing: HaySize.FullHeight(width: 200),
@@ -290,29 +300,28 @@ class Padding extends Widget {
 ///     ChildWidget()
 ///   ]
 /// );
-/// 
+///
 /// void main() {
 ///   Window.Init(width: 800, height: 600, title: "Column Example");
 ///   Canvas canvas = Canvas(800.0, 600.0);
 ///   canvas.AddWidgetToLayer([myColumn], "default", 1);
 ///   canvas.Mount();
-///   
+///
 ///   while(!Window.ShouldClose()) {
 ///     Draw.RenderFrame(renderLogic: DrawScreen);
 ///   }
-///   
+///
 ///   canvas.Dispose();
 ///   Window.Close();
 /// }
-/// 
+///
 /// void DrawScreen() {
 ///   Draw.ClearBackground(Color.WHITE);
 ///   if (Window.IsResized()) canvas.Mount();
 ///   canvas.DrawWidget();
 /// }
 /// ```
-class Column extends Widget
-{
+class Column extends Widget {
   HayYAxisAlign MainAxis;
   HayXAxisAlign CrossAxis;
   List<Widget> widgets;
@@ -324,19 +333,17 @@ class Column extends Widget
     this.spacing = 0.0,
     HayYAxisAlign? mainAxis,
     HayXAxisAlign? crossAxis,
-  }) : 
-    widgets = children ?? const [],
-    MainAxis = mainAxis ?? HayYAxisAlign.TOP,
-    CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
-  
+  }) : widgets = children ?? const [],
+       MainAxis = mainAxis ?? HayYAxisAlign.TOP,
+       CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
+
   @override
   Iterable<Widget> get children => widgets;
 
   @override
   void DrawWidget() {
-    for (Widget widget in widgets)
-      widget.DrawWidget();
-    
+    for (Widget widget in widgets) widget.DrawWidget();
+
     IInteractible.UpdateWidgets(widgets);
   }
 
@@ -348,8 +355,7 @@ class Column extends Widget
     widHeight += (widgets.length - 1) * spacing;
     if (widHeight > height) widHeight = height;
 
-    switch(MainAxis)
-    {
+    switch (MainAxis) {
       case HayYAxisAlign.CENTER:
         startY = (height - widHeight) / 2;
         break;
@@ -359,15 +365,13 @@ class Column extends Widget
       default:
         break;
     }
-    
+
     double totalHeight = 0.0;
 
-    for (int index = 0; index < widgets.length; index++)
-    {
+    for (int index = 0; index < widgets.length; index++) {
       widgets[index].SetSizing(width, height - totalHeight);
 
-      switch (CrossAxis)
-      {
+      switch (CrossAxis) {
         case HayXAxisAlign.CENTER:
           widgets[index].x = (width - widgets[index].width) / 2;
           widgets[index].x += x;
@@ -393,26 +397,25 @@ class Column extends Widget
 
   @override
   void Free() {
-    for (Widget widget in widgets)
-      widget.Free();
-    
+    for (Widget widget in widgets) widget.Free();
+
     super.Free();
   }
 }
 
 /// # Row Widget
-/// 
+///
 /// A layout widget that arranges child widgets horizontally with customizable alignment and spacing.
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **Flexible Alignment**: `mainAxis` controls vertical alignment (TOP, CENTER, BOTTOM)
 /// - **Cross Axis Control**: `crossAxis` controls horizontal alignment (LEFT, CENTER, RIGHT)
 /// - **Spacing**: Configurable gap between child widgets
 /// - **Responsive Sizing**: Expands children to fill available space when configured
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```dart
 /// Row myRow = Row(
 ///   sizing: HaySize.Grow(),
@@ -425,29 +428,28 @@ class Column extends Widget
 ///     ChildWidget()
 ///   ]
 /// );
-/// 
+///
 /// void main() {
 ///   Window.Init(width: 800, height: 600, title: "Row Example");
 ///   Canvas canvas = Canvas(800.0, 600.0);
 ///   canvas.AddWidgetToLayer([myRow], "default", 1);
 ///   canvas.Mount();
-///   
+///
 ///   while(!Window.ShouldClose()) {
 ///     Draw.RenderFrame(renderLogic: DrawScreen);
 ///   }
-///   
+///
 ///   canvas.Dispose();
 ///   Window.Close();
 /// }
-/// 
+///
 /// void DrawScreen() {
 ///   Draw.ClearBackground(Color.WHITE);
 ///   if (Window.IsResized()) canvas.Mount();
 ///   canvas.DrawWidget();
 /// }
 /// ```
-class Row extends Widget
-{
+class Row extends Widget {
   HayYAxisAlign MainAxis = HayYAxisAlign.TOP;
   HayXAxisAlign CrossAxis = HayXAxisAlign.LEFT;
 
@@ -460,25 +462,22 @@ class Row extends Widget
     this.spacing = 0.0,
     HayYAxisAlign? mainAxis,
     HayXAxisAlign? crossAxis,
-  }) :
-    widgets = children ?? [],
-    MainAxis = mainAxis ?? HayYAxisAlign.TOP,
-    CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
+  }) : widgets = children ?? [],
+       MainAxis = mainAxis ?? HayYAxisAlign.TOP,
+       CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
 
   @override
   Iterable<Widget> get children => widgets;
 
   @override
-  void Mount()
-  {
+  void Mount() {
     double widWidth = widgets.fold(0, (x, y) => x + y.width);
     widWidth += (widgets.length - 1) * spacing;
     if (widWidth > width) widWidth = width;
 
     double startX = x;
 
-    switch(CrossAxis)
-    {
+    switch (CrossAxis) {
       case HayXAxisAlign.CENTER:
         startX = (width - widWidth) / 2;
         startX += x;
@@ -493,12 +492,10 @@ class Row extends Widget
 
     double totalWidth = 0.0;
 
-    for (int index = 0; index < widgets.length; index++)
-    {
+    for (int index = 0; index < widgets.length; index++) {
       widgets[index].SetSizing(width - totalWidth, height);
-      
-      switch(MainAxis)
-      {
+
+      switch (MainAxis) {
         case HayYAxisAlign.BOTTOM:
           widgets[index].y = height - widgets[index].height;
           widgets[index].y += y;
@@ -511,7 +508,7 @@ class Row extends Widget
           widgets[index].y = y;
           break;
       }
-      
+
       widgets[index].x = startX + totalWidth;
 
       widgets[index].y = widgets[index].y.round();
@@ -523,47 +520,44 @@ class Row extends Widget
   }
 
   @override
-  void DrawWidget()
-  {
-    for (Widget widget in widgets)
-      widget.DrawWidget();
+  void DrawWidget() {
+    for (Widget widget in widgets) widget.DrawWidget();
 
     IInteractible.UpdateWidgets(widgets);
   }
 
   @override
   void Free() {
-    for (Widget widget in widgets)
-      widget.Free();
-    
+    for (Widget widget in widgets) widget.Free();
+
     super.Free();
   }
 }
 
 /// # TextBox Widget
-/// 
+///
 /// A widget for displaying and rendering multi-line text with custom font, size, and alignment.
-/// 
+///
 /// ## Purpose
-/// 
+///
 /// The `TextBox` widget handles text rendering with advanced layout features:
 /// - Displays text with custom fonts and sizes
 /// - Automatically wraps text when it exceeds available width
 /// - Manages line breaking and text metrics
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **Font Support**: Uses custom fonts for text rendering
 /// - **Text Wrapping**: Automatically wraps text to fit container width
 /// - **Alignment Options**: Horizontal alignment for wrapped text
 /// - **Color Customization**: Supports custom text colors (defaults to white)
 /// - **Spacing Control**: Configurable character spacing
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```dart
 /// Font arialFont = Font("assets/arial.ttf");
-/// 
+///
 /// TextBox myTextBox = TextBox(
 ///   font: arialFont,
 ///   text: "Hello, this is some sample text that will wrap!",
@@ -572,22 +566,22 @@ class Row extends Widget
 ///   spacing: 2,
 ///   color: Color.BLACK
 /// );
-/// 
+///
 /// void main() {
 ///   Window.Init(width: 800, height: 600, title: "TextBox Example");
 ///   Canvas canvas = Canvas(800.0, 600.0);
 ///   canvas.AddWidgetToLayer([myTextBox], "default", 1);
 ///   canvas.Mount();
-///   
+///
 ///   while(!Window.ShouldClose()) {
 ///     Draw.RenderFrame(renderLogic: DrawScreen);
 ///   }
-///   
+///
 ///   canvas.Dispose();
 ///   arialFont.Dispose();
 ///   Window.Close();
 /// }
-/// 
+///
 /// void DrawScreen() {
 ///   Draw.ClearBackground(Color.WHITE);
 ///   if (Window.IsResized()) canvas.Mount();
@@ -610,7 +604,7 @@ class TextBox extends Widget {
   double fontSize;
   double lineSpacing;
   Color color;
-  
+
   List<({int cut, double width})> lines = [];
 
   TextBox({
@@ -620,19 +614,22 @@ class TextBox extends Widget {
     this.textVerticalAlign = .TOP,
     this.fontSize = 24.0,
     this.lineSpacing = 2.0,
-    Color? color
-  }) :
-    _text = TextCodepoint.fromString(text),
-    color = color ?? Color.WHITE,
-    font = font ?? Font.Default(),
-    super(sizing: .Expand());
+    Color? color,
+  }) : _text = TextCodepoint.fromString(text),
+       color = color ?? Color.WHITE,
+       font = font ?? Font.Default(),
+       super(sizing: .Expand());
 
   @override
   void Mount() {
     if (!_isDirty) return;
 
     lines.clear();
-    Vector2 size = font.MeasureCodepoints(_text, fontSize: fontSize, spacing: lineSpacing);
+    Vector2 size = font.MeasureCodepoints(
+      _text,
+      fontSize: fontSize,
+      spacing: lineSpacing,
+    );
 
     if (size.x <= width) {
       lines.add((cut: _text.length, width: size.x));
@@ -647,7 +644,7 @@ class TextBox extends Widget {
     int pin = 0;
     int lineBreak = 0;
 
-    for (int index = 0; index <= _text.length; index++) {      
+    for (int index = 0; index <= _text.length; index++) {
       if (index == _text.length) {
         lines.add((cut: index, width: textWidth));
         break;
@@ -669,8 +666,7 @@ class TextBox extends Widget {
         textWidth = 0.0;
         textHeight += fontSize;
         continue;
-      }
-      else if (textWidth + advanceX > width) {
+      } else if (textWidth + advanceX > width) {
         if (pin > lineBreak) {
           textWidth = widthAtLastSpace;
           index = pin - 1;
@@ -699,71 +695,74 @@ class TextBox extends Widget {
   void DrawWidget() {
     if (_isDirty) Mount();
 
-    Draw.WithScissorMode(rect: this, renderLogic: () {
-      if (lines.isEmpty) return;
-      Vector2 pos = Vector2();
-      double startY = y;
+    Draw.WithScissorMode(
+      rect: this,
+      renderLogic: () {
+        if (lines.isEmpty) return;
+        Vector2 pos = Vector2();
+        double startY = y;
 
-      switch (textVerticalAlign) {
-        case .BOTTOM:
-          double textHeight = (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
-          startY = height - textHeight;
-          startY += y;
-          break;
-        case .CENTER:
-          double textHeight = (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
-          startY = (height - textHeight) / 2;
-          startY += y;
-          break;
-        default:
-      }
-
-      for(int index = 0; index < lines.length; index++) {
-        double posX = 0.0;
-
-        switch (textAlign) {
-          case HayXAxisAlign.RIGHT:
-            posX = width - lines[index].width;
-            posX = math.min(width, posX);
+        switch (textVerticalAlign) {
+          case .BOTTOM:
+            double textHeight =
+                (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
+            startY = height - textHeight;
+            startY += y;
             break;
-          case HayXAxisAlign.CENTER:
-            posX = width - lines[index].width;
-            posX = math.min(width, posX);
-            posX /= 2;
+          case .CENTER:
+            double textHeight =
+                (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
+            startY = (height - textHeight) / 2;
+            startY += y;
             break;
           default:
-            break;
-        }
-        
-        pos.x = posX + x;
-        pos.y = index * (fontSize + lineSpacing) + startY;
-
-        int start = 0;
-        if (index > 0) {
-          start = lines[index - 1].cut;
-
-          if (start < _text.length
-            && (
-              _text.buffer[start] == '\n'.codeUnitAt(0) 
-              || _text.buffer[start] == '\r'.codeUnitAt(0)
-          ))
-            start++;
         }
 
-        int length = lines[index].cut - start;
+        for (int index = 0; index < lines.length; index++) {
+          double posX = 0.0;
 
-        TextCodepoint.DrawCodepoints(
-          font,
-          _text,
-          length,
-          fontSize: fontSize,
-          spacing: lineSpacing,
-          position: pos,
-          tint: color,
-          index: start
-        );
-      }
-    });
+          switch (textAlign) {
+            case HayXAxisAlign.RIGHT:
+              posX = width - lines[index].width;
+              posX = math.min(width, posX);
+              break;
+            case HayXAxisAlign.CENTER:
+              posX = width - lines[index].width;
+              posX = math.min(width, posX);
+              posX /= 2;
+              break;
+            default:
+              break;
+          }
+
+          pos.x = posX + x;
+          pos.y = index * (fontSize + lineSpacing) + startY;
+
+          int start = 0;
+          if (index > 0) {
+            start = lines[index - 1].cut;
+
+            if (start < _text.length &&
+                (_text.buffer[start] == '\n'.codeUnitAt(0) ||
+                    _text.buffer[start] == '\r'.codeUnitAt(0)))
+              start++;
+          }
+
+          int length = lines[index].cut - start;
+
+          TextCodepoint.DrawCodepoints(
+            font,
+            _text,
+            length,
+            fontSize: fontSize,
+            spacing: lineSpacing,
+            position: pos,
+            tint: color,
+            index: start,
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -775,51 +774,48 @@ class TextBox extends Widget {
   }
 }
 
-enum InteractState {
-  Idle,
-  Selected,
-  Pressed
-}
+enum InteractState { Idle, Selected, Pressed }
 
 /// # Interactible Widget
-/// 
-/// A utility base class designed to provide standardized interaction logic 
+///
+/// A utility base class designed to provide standardized interaction logic
 /// for widgets that respond to mouse input.
-/// 
+///
 /// ## Architectural Responsibility
-/// 
-/// `Interactible` is a **passive utility**. For it to function, the **Mouse Position must be set manually** before processing interactions. 
-/// 
-/// - **Manual Setup**: The user or parent container must update the static [MousePosition] field 
+///
+/// `Interactible` is a **passive utility**. For it to function, the **Mouse Position must be set manually** before processing interactions.
+///
+/// - **Manual Setup**: The user or parent container must update the static [MousePosition] field
 ///   at the beginning of every frame/update cycle.
-/// - **Canvas Automation**: The [Canvas] widget performs this operation by default, 
+/// - **Canvas Automation**: The [Canvas] widget performs this operation by default,
 ///   ensuring all its children have access to the correct global mouse coordinates with the layer defined scale.
-/// - **Event Consumption**: It is responsible for breaking interaction loops via [UpdateState] 
+/// - **Event Consumption**: It is responsible for breaking interaction loops via [UpdateState]
 ///   returning `true`, effectively preventing "click-through" on overlapping elements.
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **State Processing**: Encapsulates logic for `Idle`, `Selected`, and `Pressed` states.
-/// - **Global Focus Lock**: Uses [PinnedWidget] to maintain interaction (like dragging) 
+/// - **Global Focus Lock**: Uses [PinnedWidget] to maintain interaction (like dragging)
 ///   even if the mouse leaves the widget bounds during a hold.
 /// - **Visual Feedback**: Automatically requests system [cursor] changes upon interaction.
-/// 
+///
 /// ## Example: Parent Orchestration
-/// 
+///
 /// ```dart
 /// // Manual orchestration (if not using Canvas)
 /// Interactible.MousePosition = currentMousePos;
-/// Interactible.UpdateWidgets(myWidgetList); 
+/// Interactible.UpdateWidgets(myWidgetList);
 /// ```
-abstract class IInteractible extends Widget
-{
+abstract class IInteractible extends Widget {
   /// Inner member which computer the interaction state of the active widget.
   InteractState state;
   final MouseCursor cursor;
+
   /// Static member used to lock onto a single widget on interaction and prevent conflicts;
   static IInteractible? PinnedWidget;
+
   /// Conveniency member used to compute mouse position in collision checks.
-  /// 
+  ///
   /// This member is automatically updated on [Canvas] widgets to correctly determine the
   /// mouse position, independent of the canvas scale itself
   static Vector2 MousePosition = Vector2.Zero();
@@ -829,14 +825,15 @@ abstract class IInteractible extends Widget
   void OnPress() => _OnPress?.call();
 
   final bool Function() _OnFocus;
+
   /// Function to determine when there is an interaction
-  /// 
+  ///
   /// Override this function to set a custom interact behavior
-  /// 
+  ///
   /// ### Example
   /// ***
   /// ```
-  /// 
+  ///
   /// bool OnFocus() {
   ///   if (Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT))
   ///     return true;
@@ -847,14 +844,15 @@ abstract class IInteractible extends Widget
   bool OnFocus() => _OnFocus.call();
 
   final bool Function() _OnUnfocus;
+
   /// Function to determine when the interaction has stopped
-  /// 
+  ///
   /// Override this function to set a custom stop interact behavior
-  /// 
+  ///
   /// ### Example
   /// ***
   /// ```
-  /// 
+  ///
   /// bool OnUnfocus() {
   ///   if (Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT))
   ///     return true;
@@ -865,14 +863,15 @@ abstract class IInteractible extends Widget
   bool OnUnfocus() => _OnUnfocus.call();
 
   late final bool Function() _OnSelect;
+
   /// Function to determine how an widget on the screen will compute an interaction
-  /// 
+  ///
   /// Override this function to set a custom interaction behavior
-  /// 
+  ///
   /// ### Example
   /// ***
   /// ```
-  /// 
+  ///
   /// bool OnSelect() {
   ///   if (Collision.CheckPointRec(MousePosition, interactArea))
   ///     return true;
@@ -883,36 +882,47 @@ abstract class IInteractible extends Widget
   bool OnSelect() => _OnSelect.call();
 
   /// Used in UpdateState to run the interaction area check.
-  /// 
+  ///
   /// Override this parameter to define a custom interaction area.
   Rectangle get interactArea => this;
-  
+
   IInteractible({
     required super.sizing,
     void Function()? OnPress,
     bool Function()? OnSelect,
     bool Function()? OnFocus,
     bool Function()? OnUnfocus,
-    this.cursor = .POINTING_HAND
-  }) :
-    _OnPress = OnPress,
-    _OnFocus = OnFocus ?? (() { return Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT); }),
-    _OnUnfocus = OnUnfocus ?? (() { return Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT); }),
-    state = .Idle {
-      _OnSelect = OnSelect ?? (() { return Collision.CheckPointRec(MousePosition, interactArea); });
-    }
+    this.cursor = .POINTING_HAND,
+  }) : _OnPress = OnPress,
+       _OnFocus =
+           OnFocus ??
+           (() {
+             return Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT);
+           }),
+       _OnUnfocus =
+           OnUnfocus ??
+           (() {
+             return Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT);
+           }),
+       state = .Idle {
+    _OnSelect =
+        OnSelect ??
+        (() {
+          return Collision.CheckPointRec(MousePosition, interactArea);
+        });
+  }
 
   /// ## Processes interaction status.
-  /// 
+  ///
   /// ### Logic Flow:
-  /// 1. **Pinned Priority**: If this is the [PinnedWidget], it handles [_OnUnfocus] 
+  /// 1. **Pinned Priority**: If this is the [PinnedWidget], it handles [_OnUnfocus]
   ///    logic and returns `true` to maintain exclusive focus.
   /// 2. **Interaction Test**: Checks if [this] OnSelect() computes false, allowing other widgets to be checked.
-  /// 
-  /// 3. **Capture**: If an interaction occurs, it updates [state], sets the [cursor], 
+  ///
+  /// 3. **Capture**: If an interaction occurs, it updates [state], sets the [cursor],
   ///    and checks [_OnFocus] to capture the [PinnedWidget].
-  /// 
-  /// Returns true when an interaction occurs. Useful for breaking an update loop. 
+  ///
+  /// Returns true when an interaction occurs. Useful for breaking an update loop.
   bool UpdateState() {
     if (this == PinnedWidget) {
       if (OnUnfocus()) {
@@ -930,10 +940,10 @@ abstract class IInteractible extends Widget
         Cursor.Set(.DEFAULT);
         state = .Idle;
       }
-      
+
       return false;
     }
-    
+
     if (state == .Idle) {
       state = .Selected;
       Cursor.Set(cursor);
@@ -950,9 +960,9 @@ abstract class IInteractible extends Widget
   }
 
   /// ## Centralized logic to update multiple Widgets
-  /// 
-  /// Orchestrates interaction for a list of widgets. It gives absolute priority 
-  /// to the [PinnedWidget] if it exists. Otherwise, it iterates through 
+  ///
+  /// Orchestrates interaction for a list of widgets. It gives absolute priority
+  /// to the [PinnedWidget] if it exists. Otherwise, it iterates through
   /// [IInteractible] widgets and breaks the loop as soon as one triggers the input.
   static void UpdateWidgets(List<Widget> list) {
     if (PinnedWidget != null) {
@@ -967,8 +977,7 @@ abstract class IInteractible extends Widget
       if (skip) {
         widget.state = .Idle;
         continue;
-      }
-      else if (widget.UpdateState())
+      } else if (widget.UpdateState())
         skip = true;
     }
   }
@@ -985,38 +994,38 @@ abstract class IInteractible extends Widget
 }
 
 /// # Canvas Widget
-/// 
-/// A high-level container designed to isolate UI rendering into a dedicated 
+///
+/// A high-level container designed to isolate UI rendering into a dedicated
 /// [RenderTexture2D], enabling independent scaling and post-processing.
-/// 
-/// `Canvas` acts as a **Rendering Bridge** and **Input Transformer**. It decouples 
+///
+/// `Canvas` acts as a **Rendering Bridge** and **Input Transformer**. It decouples
 /// the internal widget hierarchy from the main backbuffer.
-/// 
-/// - **Input Scaling**: Automatically scales and updates the global [IInteractible.MousePosition] 
-///   before dispatching it to children. This ensures coordinate precision regardless of 
+///
+/// - **Input Scaling**: Automatically scales and updates the global [IInteractible.MousePosition]
+///   before dispatching it to children. This ensures coordinate precision regardless of
 ///   the UI's internal resolution.
-/// - **Interaction Control**: Through [blockInteraction], the widget can be instructed 
+/// - **Interaction Control**: Through [blockInteraction], the widget can be instructed
 ///   to skip mouse coordinate updates, which is vital in layered (stacked) environments.
-/// - **Texture Isolation**: Renders all children into an internal GPU buffer, 
+/// - **Texture Isolation**: Renders all children into an internal GPU buffer,
 ///   allowing for independent scaling (e.g., pixel-art upscaling).
-/// 
+///
 /// ## Example: Manual Interaction Override
-/// 
+///
 /// ```dart
 /// final myCanvas = Canvas(
 ///   scale: 2.0,
 ///   child: GameWorld(),
 /// );
-/// 
+///
 /// // Disable mouse authority for this specific canvas layer
-/// myCanvas.blockInteraction = true; 
+/// myCanvas.blockInteraction = true;
 /// ```
-class Canvas extends Widget
-{
+class Canvas extends Widget {
   Widget widget;
   final double scale;
   RenderTexture2D _renderTexture;
   final Rectangle _dest = Rectangle();
+
   /// When drawing and updating [IInteractible.MousePosition] for Interactible widgets,
   /// this boolean blocks this update to cases where the Canvas its not alone (eg. Stacked)
   bool blockInteraction = false;
@@ -1024,11 +1033,10 @@ class Canvas extends Widget
   Canvas({
     super.sizing = const .Expand(),
     required Widget child,
-    this.scale = 1.0
-  }) :
-    widget = child,
-    _renderTexture = RenderTexture2D(10, 10);
-  
+    this.scale = 1.0,
+  }) : widget = child,
+       _renderTexture = RenderTexture2D(10, 10);
+
   @override
   Iterable<Widget> get children => [widget];
 
@@ -1038,29 +1046,37 @@ class Canvas extends Widget
     widget.SetSizing(width * scale, height * scale);
     widget.Mount();
 
-    if (
-      (_renderTexture.width - width).abs() > EPSILON
-      || (_renderTexture.height - height).abs() > EPSILON
-    ) {
+    if ((_renderTexture.width - width).abs() > EPSILON ||
+        (_renderTexture.height - height).abs() > EPSILON) {
       _renderTexture.Free();
-      _renderTexture = RenderTexture2D((width * scale).toInt(), (height * scale).toInt());
+      _renderTexture = RenderTexture2D(
+        (width * scale).toInt(),
+        (height * scale).toInt(),
+      );
     }
   }
 
   @override
   void DrawWidget() {
     if (!blockInteraction)
-      IInteractible.MousePosition.Set(x: Mouse.GetX() * scale, y: Mouse.GetY() * scale);
+      IInteractible.MousePosition.Set(
+        x: Mouse.GetX() * scale,
+        y: Mouse.GetY() * scale,
+      );
 
-    Draw.WithTextureMode(renderLogic: () {
-      Draw.ClearBackground(.BLANK);
-      widget.DrawWidget();
-    }, render: _renderTexture);
+    Draw.WithTextureMode(
+      renderLogic: () {
+        Draw.ClearBackground(.BLANK);
+        widget.DrawWidget();
+      },
+      render: _renderTexture,
+    );
 
     _dest.Set(
-      x: x, y: y,
+      x: x,
+      y: y,
       width: _renderTexture.width.toDouble(),
-      height: -_renderTexture.height.toDouble()
+      height: -_renderTexture.height.toDouble(),
     );
 
     Texture2D.DrawPro(_renderTexture.texture, _dest, this);
@@ -1076,26 +1092,26 @@ class Canvas extends Widget
 }
 
 /// # Grid Widget
-/// 
+///
 /// A layout container that organizes child widgets into an adaptive grid system with vertical scrolling.
-/// 
+///
 /// ## Purpose
-/// 
+///
 /// The `Grid` widget is designed to efficiently display large collections of items by:
 /// - Calculating the optimal number of columns based on available [width] and [cellSize].
 /// - Distributing [spacing] evenly between columns to fill the container (when spacing is set to `0.0`).
 /// - Implementing a vertical scroll system with adjustable [sensitivity].
 /// - Optimizing performance by only rendering rows currently visible in the viewport (Row-based Culling).
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **Automatic Column Calculation**: Dynamically adapts the column count based on parent constraints and cell size.
 /// - **Integrated Padding**: Supports [HayPadding] to manage internal spacing without affecting external layout.
 /// - **Smart Scrolling**: Automatically manages the vertical [_scroll] state using mouse wheel input.
 /// - **Memory Efficient**: Only processes and draws widgets that are within the active scrollable area.
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```dart
 /// Grid inventoryGrid = Grid(
 ///   sizing: HaySize.Fixed(400, 600),
@@ -1104,12 +1120,11 @@ class Canvas extends Widget
 ///   sensitivity: 20.0,
 ///   children: myItemIcons,
 /// );
-/// 
+///
 /// // During the Mount phase, it determines if it fits 4, 5, or more columns.
 /// inventoryGrid.Mount();
 /// ```
-class Grid extends Widget
-{
+class Grid extends Widget {
   late int _rows, _cols;
   int get columns => _cols;
   int get rows => _rows;
@@ -1123,7 +1138,7 @@ class Grid extends Widget
   double _colStride = 0.0;
 
   double get sensitivity => _sensitivity;
-  set sensitivity (double value) {
+  set sensitivity(double value) {
     if (value <= 0.0) value = 0.0;
     _sensitivity = value;
   }
@@ -1146,13 +1161,12 @@ class Grid extends Widget
     this.spacing = 0.0,
     HayPadding? padding,
     double sensitivity = 0.0,
-    List<Widget>? children
-  }) :
-    widgets = children ?? [],
-    padding = padding ?? .All(0.0) {
+    List<Widget>? children,
+  }) : widgets = children ?? [],
+       padding = padding ?? .All(0.0) {
     this.sensitivity = sensitivity;
   }
-  
+
   @override
   Iterable<Widget> get children => widgets;
 
@@ -1182,14 +1196,13 @@ class Grid extends Widget
 
         widgets[index].Set(
           x: x + col * _colStride,
-          y: y + (row * _rowStride) - _scroll
+          y: y + (row * _rowStride) - _scroll,
         );
       }
     }
-    
-    for (Widget widget in widgets)
-      widget.Mount();
-    
+
+    for (Widget widget in widgets) widget.Mount();
+
     super.Mount();
   }
 
@@ -1199,31 +1212,35 @@ class Grid extends Widget
     _scroll -= Mouse.GetWheelMove() * _sensitivity;
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
-    Draw.WithScissorMode(rect: this, renderLogic: () {
-      for (int row = (math.max(0.0, _scroll) / _rowStride).floor(); row < _rows; row++)
-      {
-        bool skip = false;
-        for (int col = 0; col < _cols; col++) {
-          int index = (row * _cols) + col;
-          if (index >= widgets.length) break;
+    Draw.WithScissorMode(
+      rect: this,
+      renderLogic: () {
+        for (
+          int row = (math.max(0.0, _scroll) / _rowStride).floor();
+          row < _rows;
+          row++
+        ) {
+          bool skip = false;
+          for (int col = 0; col < _cols; col++) {
+            int index = (row * _cols) + col;
+            if (index >= widgets.length) break;
 
-          widgets[index].Set(
-            x: (x + col * _colStride).round(),
-            y: (y + (row * _rowStride) - _scroll).round()
-          );
+            widgets[index].Set(
+              x: (x + col * _colStride).round(),
+              y: (y + (row * _rowStride) - _scroll).round(),
+            );
 
-          widgets[index].DrawWidget();
+            widgets[index].DrawWidget();
 
-          if (widgets[index] case IInteractible widget)
-          {
-            if (skip)
-              widget.state = .Idle;
-            else
-              skip = widget.UpdateState();
+            if (widgets[index] case IInteractible widget) {
+              if (skip)
+                widget.state = .Idle;
+              else
+                skip = widget.UpdateState();
+            }
           }
-        }
 
-        /*
+          /*
         for (int col = 0; col < _cols; col++) {
           int index = (row * _cols) + col;
           if (index >= widgets.length) break;
@@ -1234,40 +1251,40 @@ class Grid extends Widget
             if (widget.UpdateState()) break;
         }
         */
-      }
-    });
+        }
+      },
+    );
 
     super.DrawWidget();
   }
 
   @override
   void Free() {
-    for (Widget widget in widgets)
-      widget.Free();
-    
+    for (Widget widget in widgets) widget.Free();
+
     super.Free();
   }
 }
 
 /// # ListView Widget
-/// 
+///
 /// A linear layout container that arranges child widgets in a single vertical column with scrolling support.
-/// 
+///
 /// ## Purpose
-/// 
+///
 /// The `ListView` is the primary tool for creating expanded vertical menus and lists where:
 /// - Widgets are placed sequentially in a vertical stack with optional [spacing].
 /// - Horizontal positioning is governed by the [alignment] property (LEFT, CENTER, RIGHT).
 /// - Large lists are efficiently handled via a clipping-based culling system to maintain performance.
-/// 
+///
 /// ## Features
-/// 
+///
 /// - **Flexible Alignment**: Automatically calculates horizontal offsets for each child based on [HayXAxisAlign].
 /// - **Interactive Scrolling**: Features a built-in scroll system mapped to the mouse wheel with configurable [sensitivity].
 /// - **Collision Culling**: During [DrawWidget], only widgets intersecting the current viewport are rendered, saving draw calls.
-/// 
+///
 /// ## Example
-/// 
+///
 /// ```dart
 /// ListView sideMenu = ListView(
 ///   sizing: HaySize.Fixed(200, 400),
@@ -1276,12 +1293,11 @@ class Grid extends Widget
 ///   spacing: 10.0,
 ///   children: [buttonHome, buttonSettings, buttonExit],
 /// );
-/// 
+///
 /// // Mount calculates the total height and initial internal positions.
 /// sideMenu.Mount();
 /// ```
-class ListView extends Widget
-{
+class ListView extends Widget {
   HayXAxisAlign aligment;
   HayPadding padding;
   List<Widget> widgets;
@@ -1292,7 +1308,7 @@ class ListView extends Widget
   double _sensitivity = 1.0;
 
   double get sensitivity => _sensitivity;
-  set sensitivity (double value) {
+  set sensitivity(double value) {
     if (value <= 0.0) value = 0.0;
     _sensitivity = value;
   }
@@ -1312,13 +1328,12 @@ class ListView extends Widget
     HayPadding? padding,
     List<Widget>? children,
     this.spacing = 0.0,
-    double sensitivity = 0.0
-  }) :
-    widgets = children ?? [],
-    this.padding = padding ?? .All(0.0) {
+    double sensitivity = 0.0,
+  }) : widgets = children ?? [],
+       this.padding = padding ?? .All(0.0) {
     this.sensitivity = sensitivity;
   }
-  
+
   @override
   Iterable<Widget> get children => widgets;
 
@@ -1355,19 +1370,21 @@ class ListView extends Widget
     _scroll -= Mouse.GetWheelMove() * _sensitivity;
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
-    Draw.WithScissorMode(rect: this, renderLogic: () {
-      for (int index = 0; index < widgets.length; index++){
-        Widget widget = widgets[index];
+    Draw.WithScissorMode(
+      rect: this,
+      renderLogic: () {
+        for (int index = 0; index < widgets.length; index++) {
+          Widget widget = widgets[index];
 
-        widget.Set(y: y + (widget.height + spacing) * index);
-        widget.y -= _scroll;
+          widget.Set(y: y + (widget.height + spacing) * index);
+          widget.y -= _scroll;
 
-        if (!Collision.CheckRecs(this, widget))
-          continue;
+          if (!Collision.CheckRecs(this, widget)) continue;
 
-        widget.DrawWidget();
-      }
-    });
+          widget.DrawWidget();
+        }
+      },
+    );
 
     IInteractible.UpdateWidgets(widgets);
     super.DrawWidget();
@@ -1375,20 +1392,19 @@ class ListView extends Widget
 
   @override
   void Free() {
-    for (Widget widget in widgets)
-      widget.Free();
-    
+    for (Widget widget in widgets) widget.Free();
+
     super.Free();
   }
 }
 
 /// # Stack Widget
-/// 
-/// A layout container that overlaps its children in a back-to-front Z-order, 
+///
+/// A layout container that overlaps its children in a back-to-front Z-order,
 /// allowing multiple widgets to occupy the same visual space.
-/// 
+///
 /// ## Example: Multi-Scale Layers
-/// 
+///
 /// ```dart
 /// Stack(
 ///   sizing: .Grow(),
@@ -1400,12 +1416,9 @@ class ListView extends Widget
 /// ```
 class Stack extends Widget {
   List<Widget> widgets;
-  Stack({
-    super.sizing = const .Expand(),
-    required List<Widget> children
-  }) : 
-    widgets = children;
-  
+  Stack({super.sizing = const .Expand(), required List<Widget> children})
+    : widgets = children;
+
   @override
   Iterable<Widget> get children => widgets;
 
@@ -1415,40 +1428,94 @@ class Stack extends Widget {
       widget.SetSizing(width, height);
       widget.Set(x: x, y: y);
     }
-    
-    for (Widget widget in widgets)
-      widget.Mount();
+
+    for (Widget widget in widgets) widget.Mount();
   }
 
   @override
   void DrawWidget() {
-    for (Widget widget in widgets)
-      widget.DrawWidget();
+    for (Widget widget in widgets) widget.DrawWidget();
+    IInteractible.UpdateWidgets(widgets);
   }
 
   @override
   void Free() {
-    for (Widget widget in widgets)
-      widget.Free();
+    for (Widget widget in widgets) widget.Free();
     super.Free();
   }
 }
 
+/// Positions a child widget within the available space using horizontal and
+/// vertical alignment settings.
+///
+/// Defaults to [HayXAxisAlign.LEFT] and [HayYAxisAlign.TOP].
+class Aling extends Widget {
+  final Widget widget;
+  final HayXAxisAlign hayXAxisAlign;
+  final HayYAxisAlign hayYAxisAlign;
+
+  @override
+  Iterable<Widget> get children => [widget];
+
+  Aling({
+    required Widget child,
+    this.hayXAxisAlign = .LEFT,
+    this.hayYAxisAlign = .TOP,
+  }) : widget = child,
+       super(sizing: .Expand());
+
+  @override
+  void DrawWidget() => widget.DrawWidget();
+
+  @override
+  void Mount() {
+    widget.SetSizing(width, height);
+    int posX = 0, posY = 0;
+
+    switch (hayXAxisAlign) {
+      case HayXAxisAlign.LEFT:
+        posX = x.round();
+        break;
+      case HayXAxisAlign.RIGHT:
+        posX = (width - widget.width).round();
+        break;
+      case HayXAxisAlign.CENTER:
+        posX = ((width / 2) - (widget.width / 2)).round();
+        break;
+    }
+
+    switch (hayYAxisAlign) {
+      case HayYAxisAlign.TOP:
+        posY = y.round();
+        break;
+      case HayYAxisAlign.BOTTOM:
+        posY = (height - widget.height).round();
+        break;
+      case HayYAxisAlign.CENTER:
+        posY = ((height / 2) - (widget.height / 2)).round();
+        break;
+    }
+
+    widget.Set(x: posX, y: posY);
+    widget.Mount();
+  }
+}
+
 /// # Widget Builder
-/// 
-/// A functional factory pattern used to defer the creation of a [Widget] 
+///
+/// A functional factory pattern used to defer the creation of a [Widget]
 /// until it is explicitly needed by the [Router] or a parent container.
-/// 
-/// Allows the [Router] to store "recipes" for pages 
-/// without needing to know the specific parameters or internal state of 
+///
+/// Allows the [Router] to store "recipes" for pages
+/// without needing to know the specific parameters or internal state of
 /// the widgets themselves.
-/// 
-/// It also ensures that widgets are only created when 
-/// navigating to a URI, and can be recreated fresh every time a page is 
+///
+/// It also ensures that widgets are only created when
+/// navigating to a URI, and can be recreated fresh every time a page is
 /// re-pushed.
-/// 
+///
 /// ## Example: Defining a Route
-/// 
+///
 /// ```dart
 /// // The builder is the anonymous function () => MyPage()
 /// Router.Init(() => MainMenu(), {
@@ -1457,26 +1524,27 @@ class Stack extends Widget {
 /// });
 /// ```
 typedef WidgetBuilder = Widget Function();
+
 /// # Widget Transition
-/// 
+///
 /// Ccoordinate the Router visual
 /// switch between the current page and the next one.
-/// 
+///
 /// ## Parameters
-/// 
-/// - **[Widget]**: The incoming destination widget ([_destWidget]) currently 
+///
+/// - **[Widget]**: The incoming destination widget ([_destWidget]) currently
 ///   being transitioned into the active state.
-/// - **[double]**: The [elapsedTime] since the transition started, typically 
+/// - **[double]**: The [elapsedTime] since the transition started, typically
 ///   used to calculate interpolation (Lerp), opacity, or offset.
-/// 
+///
 /// ## Returns
-/// 
-/// - **[bool]**: Must return `true` when the transition is **complete**. 
-///   At this point, the [Router] will dispose of the old widget and 
+///
+/// - **[bool]**: Must return `true` when the transition is **complete**.
+///   At this point, the [Router] will dispose of the old widget and
 ///   officially promote the destination widget to [_activeWidget].
-/// 
+///
 /// ## Example: Simple Fade-In
-/// 
+///
 /// ```dart
 /// WidgetTransition fadeIn = (widget, time) {
 ///   widget.opacity = Math.Min(time / 0.5, 1.0); // 500ms fade
@@ -1486,31 +1554,31 @@ typedef WidgetBuilder = Widget Function();
 typedef WidgetTransition = bool Function(Widget, double);
 
 /// # Router Manager
-/// 
-/// A static orchestration engine responsible for managing the application's 
+///
+/// A static orchestration engine responsible for managing the application's
 /// navigation stack, widget lifecycle, and page transitions.
-/// 
+///
 /// ## Technical Overview
-/// 
-/// - **Stack Management**: Maintains a [history] of URIs to allow for sequential 
+///
+/// - **Stack Management**: Maintains a [history] of URIs to allow for sequential
 ///   navigation and "Pop" operations without losing the navigation context.
-/// - **Lifecycle Control**: Strictly manages the [Mount] and [Dispose] cycles 
-///   of pages. It ensures that when a new widget is instantiated via a 
+/// - **Lifecycle Control**: Strictly manages the [Mount] and [Dispose] cycles
+///   of pages. It ensures that when a new widget is instantiated via a
 ///   [WidgetBuilder], the previous one is properly cleaned up to prevent memory leaks.
-/// - **Deferred Transition Logic**: Uses a "Destination Buffer" ([_destWidget]) 
-///   pattern. Instead of swapping pages instantly, it allows a [WidgetTransition] 
+/// - **Deferred Transition Logic**: Uses a "Destination Buffer" ([_destWidget])
+///   pattern. Instead of swapping pages instantly, it allows a [WidgetTransition]
 ///   to coordinate how and when the old page is replaced by the new one.
-/// 
+///
 /// ## Navigation Flow
-/// 
+///
 /// 1. **Push**: Creates the new widget, mounts it, and moves it to the destination buffer.
-/// 2. **Transition**: During [DrawPage], both active and destination widgets 
+/// 2. **Transition**: During [DrawPage], both active and destination widgets
 ///    are rendered. The transition function dictates the swap timing.
-/// 3. **Commit**: Once the transition returns `true`, the old widget is 
+/// 3. **Commit**: Once the transition returns `true`, the old widget is
 ///    disposed of, and the destination becomes the new active widget.
-/// 
+///
 /// ## Example: Global Navigation
-/// 
+///
 /// ```dart
 /// // From anywhere in the app (e.g., a Button inside a deeply nested Canvas)
 /// Button(
@@ -1518,10 +1586,10 @@ typedef WidgetTransition = bool Function(Widget, double);
 ///   onPressed: () => Router.PushPage("settings/"),
 /// );
 /// ```
-/// 
+///
 /// ## Technical Warning
-/// 
-/// Since the `Router` manages global state, ensure [Release] is called 
+///
+/// Since the `Router` manages global state, ensure [Release] is called
 /// when the engine shuts down to free GPU resources held by the active widgets.
 abstract class Router {
   static Widget? _activeWidget;
@@ -1530,15 +1598,16 @@ abstract class Router {
   static Widget? get destWidget => _destWidget;
   // static Map<String, WidgetBuilder> overlays = {};
   // static Widget? _activeOverlay;
-  
+
   /// Used by Router class to compute what route builder should be called when called Push/Pop methods
   static List<String> history = [];
+
   /// Map os String / Widget builder, a funcion instance to create the widget on the go
   static Map<String, WidgetBuilder> routes = {};
 
   /// Initializer function set the [home] page and the [routes] map
   static void Init(
-    WidgetBuilder home,[
+    WidgetBuilder home, [
     Map<String, WidgetBuilder>? routes,
     // Map<String, WidgetBuilder> overlays = const {}
   ]) {
@@ -1566,7 +1635,7 @@ abstract class Router {
   }
 
   /// When called by an [IIteractible] widget or another function, computes what route should the class go to, defaults to home/
-  static void PushPage([ String uri = 'home/' ]) {
+  static void PushPage([String uri = 'home/']) {
     if (!_PutPage(uri)) return;
     history.add(uri);
   }
@@ -1592,7 +1661,7 @@ abstract class Router {
     _activeWidget?.Mount();
     _destWidget?.Mount();
   }
-  
+
   /// Simply free the active widgets memory
   static void Release() {
     _activeWidget?.Free();
@@ -1601,26 +1670,29 @@ abstract class Router {
   }
 
   static double _elapsedTime = 0.0;
+
   /// Draws the Widget on the destination page with [transition].
-  /// 
+  ///
   /// Set [transition] to compute a custom transition animation to [destWidget] with [_elapsedTime], return [true] when complete.
   static void DrawPage([WidgetTransition? transition]) {
-    transition ??= (destWidget, elapsedTime) { return true; };
+    transition ??= (destWidget, elapsedTime) {
+      return true;
+    };
 
     if (_destWidget != null) {
       if (!transition(_destWidget!, _elapsedTime)) {
         _elapsedTime += Frame.GetTime();
-      }
-      else {
+      } else {
         _elapsedTime = 0.0;
         _activeWidget?.Free();
         _activeWidget = _destWidget;
         _destWidget = null;
       }
+
+      _destWidget?.DrawWidget();
     }
-    
+
     _activeWidget?.DrawWidget();
-    _destWidget?.DrawWidget();
   }
 }
 
