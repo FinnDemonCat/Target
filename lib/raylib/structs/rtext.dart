@@ -10,15 +10,17 @@ class Text implements Disposeable {
   bool _isDirt = true;
 
   int get length => _length;
-  StringBuffer get text { _isDirt = true; return _buffer; }
+  StringBuffer get text {
+    _isDirt = true;
+    return _buffer;
+  }
 
-  void _EnsureCapacity(int size)
-  {
+  void _EnsureCapacity(int size) {
     final int required = size + 1;
     if (required <= length) return;
 
     int newlength = length;
-    while(newlength < size) newlength *= 2;
+    while (newlength < size) newlength *= 2;
 
     _finalizer.detach(this);
     malloc.free(_array);
@@ -28,9 +30,8 @@ class Text implements Disposeable {
 
     _finalizer.attach(this, _array, detach: this);
   }
-  
-  Pointer<Utf8> get ref
-  {
+
+  Pointer<Utf8> get ref {
     if (_isDirt) {
       final units = utf8.encode(_buffer.toString());
       _EnsureCapacity(units.length);
@@ -53,35 +54,63 @@ class Text implements Disposeable {
   static void DrawFPS(int posX, int posY) => _drawFPS(posX, posY);
 
   /// Draw text (using default font)
-  static void Draw(Text text, int fontSize, { int posX = 0, int posY = 0, Color? color })
-  {
+  static void Draw(
+    Text text,
+    int fontSize, {
+    int posX = 0,
+    int posY = 0,
+    Color? color,
+  }) {
     final finalColor = color ?? Color.WHITE;
     _drawText(text.ref, posX, posY, fontSize, finalColor.ref);
   }
 
   /// Draw text using font and additional parameters
-  static void DrawEx(Font font, Text text,{ Vector2? position, required double fontSize, required double spacing, Color? tint })
-  {
+  static void DrawEx(
+    Font font,
+    Text text, {
+    Vector2? position,
+    required double fontSize,
+    required double spacing,
+    Color? tint,
+  }) {
     final finalPos = position ?? Vector2.Zero();
     final colorTint = tint ?? Color.WHITE;
-    _drawTextEx(font.ref, text.ref, finalPos.ref, fontSize, spacing, colorTint.ref); 
+    _drawTextEx(
+      font.ref,
+      text.ref,
+      finalPos.ref,
+      fontSize,
+      spacing,
+      colorTint.ref,
+    );
   }
 
   /// Draw text using Font and pro parameters (rotation)
   static void DrawPro(
-    Font font, Text text,
-    {Vector2? position, Vector2? origin,
-     double rotation = 0.0, required double fontSize,
-     required double spacing, Color? tint}
-  ) {
+    Font font,
+    Text text, {
+    Vector2? position,
+    Vector2? origin,
+    double rotation = 0.0,
+    required double fontSize,
+    required double spacing,
+    Color? tint,
+  }) {
     final finalPos = position ?? Vector2.Zero();
     final finalOrigin = origin ?? Vector2.Zero();
     final colorTint = tint ?? Color.WHITE;
 
     _drawTextPro(
-      font.ref, text.ref, finalPos.ref, finalOrigin.ref,
-      rotation, fontSize, spacing, colorTint.ref
-    ); 
+      font.ref,
+      text.ref,
+      finalPos.ref,
+      finalOrigin.ref,
+      rotation,
+      fontSize,
+      spacing,
+      colorTint.ref,
+    );
   }
 
   /// Open URL with default system browser (if available)
@@ -92,8 +121,7 @@ class Text implements Disposeable {
   });
 
   @override
-  void Free()
-  {
+  void Free() {
     _finalizer.detach(this);
     _length = 1024;
     malloc.free(_array);
@@ -131,11 +159,10 @@ class TextCodepoint implements Disposeable {
   set text(String value) {
     if (value.length >= capacity) {
       int newCapacity = _capacity;
-      while (newCapacity < value.length)
-        newCapacity *= 2;
-      
+      while (newCapacity < value.length) newCapacity *= 2;
+
       _capacity = newCapacity;
-      
+
       final newBuffer = Int32List(newCapacity)..setAll(0, value.runes);
       _buffer = newBuffer;
     } else {
@@ -146,11 +173,11 @@ class TextCodepoint implements Disposeable {
     _isDirty = true;
   }
 
-  TextCodepoint({int capacity = 64}) :
-    _capacity = capacity,
-    _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * capacity),
-    _buffer = Int32List(capacity),
-    _length = 0 {
+  TextCodepoint({int capacity = 64})
+    : _capacity = capacity,
+      _codepoints = malloc.allocate<Int32>(sizeOf<Int32>() * capacity),
+      _buffer = Int32List(capacity),
+      _length = 0 {
     _finalizer.attach(this, _codepoints, detach: this);
   }
 
@@ -162,20 +189,34 @@ class TextCodepoint implements Disposeable {
 
   /// Draw one character (codepoint)
   static void DrawCodepoint(
-    Font font, int codepoint,
-   {Vector2? position, required double fontSize, Color? tint}
-  ) {
+    Font font,
+    int codepoint, {
+    Vector2? position,
+    required double fontSize,
+    Color? tint,
+  }) {
     final finalPos = position ?? Vector2.Zero();
     final finalTint = tint ?? Color.WHITE;
 
-    _drawTextCodepoint(font.ref, codepoint, finalPos.ref, fontSize, finalTint.ref);
+    _drawTextCodepoint(
+      font.ref,
+      codepoint,
+      finalPos.ref,
+      fontSize,
+      finalTint.ref,
+    );
   }
 
   /// Draw multiple character (codepoint)
   static void DrawCodepoints(
-    Font font, TextCodepoint codepoints, int length, {
-    required double fontSize, required double spacing, Vector2? position, Color? tint,
-    int index = 0
+    Font font,
+    TextCodepoint codepoints,
+    int length, {
+    required double fontSize,
+    required double spacing,
+    Vector2? position,
+    Color? tint,
+    int index = 0,
   }) {
     final finalPos = position ?? Vector2.Zero();
     final finalTint = Color.WHITE;
@@ -187,7 +228,7 @@ class TextCodepoint implements Disposeable {
       finalPos.ref,
       fontSize,
       spacing,
-      finalTint.ref
+      finalTint.ref,
     );
   }
 

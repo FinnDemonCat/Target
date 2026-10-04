@@ -11,14 +11,14 @@ part of '../raylib.dart';
 /// Bone, skeletal animation bone
 class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
   _BoneInfo get ref => pointer.ref;
-  set ref (_BoneInfo value) => pointer.ref = value;
+  set ref(_BoneInfo value) => pointer.ref = value;
 
-	/// Bone name
+  /// Bone name
   late final String name;
-  
-	/// Bone parent
+
+  /// Bone parent
   int get parent => ref.parent;
-	set parent(int value) => ref.parent = value;
+  set parent(int value) => ref.parent = value;
 
   void _setReferences() {
     List<int> stringList = [];
@@ -29,36 +29,35 @@ class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
   }
 
   // ignore: unused_element_parameter
-  BoneInfo._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+  BoneInfo._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
-    	if (IsOwner)
-    		_finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element_parameter, unused_element
-  BoneInfo._Recieve(_BoneInfo result): super(sizeOf<_BoneInfo>()) {
+  BoneInfo._Recieve(_BoneInfo result) : super(sizeOf<_BoneInfo>()) {
     _setReferences();
     ref = result;
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	BoneInfo operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return BoneInfo._Encapsulate(pointer + index, IsOwner: false);
-	}
+  BoneInfo operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return BoneInfo._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(BoneInfo value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(BoneInfo value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<BoneInfo> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<BoneInfo> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
   // =================================== Deconstructor ====================================
 
@@ -87,18 +86,18 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   _Model get ref => pointer.ref;
   set ref(_Model value) => pointer.ref = value;
 
-	/// Number of meshes
+  /// Number of meshes
   int get meshCount => ref.meshCount;
-	set meshCount(int value) => ref.meshCount = value;
+  set meshCount(int value) => ref.meshCount = value;
 
-	/// Number of bones
+  /// Number of bones
   int get boneCount => ref.boneCount;
-	set boneCount(int value) => ref.boneCount = value;
+  set boneCount(int value) => ref.boneCount = value;
 
-	/// Number of materials
+  /// Number of materials
   int get materialCount => ref.materialCount;
-	set materialCount(int value) => ref.materialCount = value;
-  
+  set materialCount(int value) => ref.materialCount = value;
+
   late Matrix _transform;
   late Mesh? _meshes;
   late Material? _materials;
@@ -106,11 +105,11 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   late Transform? _bindPose;
   late Int32List meshMaterial;
 
-	/// Local transform matrix
+  /// Local transform matrix
   Matrix get transform => _transform;
   set transform(Matrix value) => _transform.ref = value.ref;
 
-	/// Number of meshes
+  /// Number of meshes
   Mesh? get meshes => _meshes;
   set meshes(Mesh? value) {
     if (_meshes == null)
@@ -119,7 +118,7 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
       _meshes!.ref = value.ref;
   }
 
-	/// Materials array
+  /// Materials array
   Material? get materials => _materials;
   set materials(Material? value) {
     if (_materials == null)
@@ -128,7 +127,7 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
       _materials!.ref = value.ref;
   }
 
-	/// Bones information (skeleton)
+  /// Bones information (skeleton)
   BoneInfo? get bones => _bones;
   set bones(BoneInfo? value) {
     if (_bones == null)
@@ -137,7 +136,7 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
       _bones!.ref = value.ref;
   }
 
-	/// Bones base transformation (pose)
+  /// Bones base transformation (pose)
   Transform? get bindPose => _bindPose;
   set bindPose(Transform? value) {
     if (_bindPose == null)
@@ -147,56 +146,64 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   }
 
   void _setReferences() {
-    _transform = Matrix._Encapsulate(Pointer<_Matrix>.fromAddress(pointer.address));
-    
+    _transform = Matrix._Encapsulate(
+      Pointer<_Matrix>.fromAddress(pointer.address),
+    );
+
     _meshes = ref.meshes.IsNotNull
-      ? Mesh._Encapsulate(ref.meshes, length: meshCount, IsOwner: false)
-      : null;
+        ? Mesh._Encapsulate(ref.meshes, length: meshCount, IsOwner: false)
+        : null;
 
     _materials = ref.materials.IsNotNull
-      ? Material._Encapsulate(ref.materials, length: materialCount, IsOwner: false)
-      : null;
-    
+        ? Material._Encapsulate(
+            ref.materials,
+            length: materialCount,
+            IsOwner: false,
+          )
+        : null;
+
     _bones = ref.bones.IsNotNull
-      ? BoneInfo._Encapsulate(ref.bones, length: boneCount, IsOwner: false)
-      : null;
+        ? BoneInfo._Encapsulate(ref.bones, length: boneCount, IsOwner: false)
+        : null;
 
     _bindPose = ref.bindPose.IsNotNull
-      ? Transform._Encapsulate(ref.bindPose, length: boneCount, IsOwner: false)
-      : null;
+        ? Transform._Encapsulate(
+            ref.bindPose,
+            length: boneCount,
+            IsOwner: false,
+          )
+        : null;
 
     meshMaterial = ref.meshMaterial.IsNotNull
-      ? ref.meshMaterial.asTypedList(meshCount)
-      : Int32List(meshCount);
+        ? ref.meshMaterial.asTypedList(meshCount)
+        : Int32List(meshCount);
   }
 
   // ignore: unused_element_parameter, unused_element
-  Model._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+  Model._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
-		if (IsOwner)
-			_finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   Model._Recieve(_Model result) : super(sizeOf<_Model>()) {
     ref = result;
     _setReferences();
-		_finalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
-  
-	// ==================================== Constructor =====================================
+
+  // ==================================== Constructor =====================================
 
   /// Load model from files (meshes and materials)
-  factory Model(String fileName,[ RaylibArena? arena ]) {
+  factory Model(String fileName, [RaylibArena? arena]) {
     Pointer<Utf8> cfileName = fileName.toNativeUtf8();
     _Model result;
 
     try {
       result = _loadModel(cfileName);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cfileName);
     }
 
@@ -206,7 +213,7 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   }
 
   /// Load model from generated mesh (default material)
-  factory Model.FromMesh(Mesh mesh,[ RaylibArena? arena ]) {
+  factory Model.FromMesh(Mesh mesh, [RaylibArena? arena]) {
     _Model result = _loadModelFromMesh(mesh.ref);
     Model model = Model._Recieve(result);
     arena?.register(model);
@@ -214,74 +221,119 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   }
 
   /// Compute model bounding box limits (considers all meshes)
-  BoundingBox GetBoundingBox() => BoundingBox._Recieve(_getModelBoundingBox(ref));
+  BoundingBox GetBoundingBox() =>
+      BoundingBox._Recieve(_getModelBoundingBox(ref));
 
   /// Check if a model is valid (loaded in GPU, VAO/VBOs)
   bool IsValid() => _isModelValid(ref);
 
   /// Draw a model (with texture if set)
-  static void Draw(Model model, Vector3 position,{ double scale = 1.0, Color? tint }) {
+  static void Draw(
+    Model model,
+    Vector3 position, {
+    double scale = 1.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     _drawModel(model.ref, position.ref, scale, tint.ref);
   }
 
   /// Draw a model with extended parameters
   static void DrawEx(
-    Model model, Vector3 position, Vector3 rotationAxis, double rotationAngle,
-   {Vector3? scale, Color? tint}
-  ) {
+    Model model,
+    Vector3 position,
+    Vector3 rotationAxis,
+    double rotationAngle, {
+    Vector3? scale,
+    Color? tint,
+  }) {
     scale ??= Vector3.One();
     tint ??= Color.WHITE;
-    _drawModelEx(model.ref, position.ref, rotationAxis.ref, rotationAngle, scale.ref, tint.ref);
+    _drawModelEx(
+      model.ref,
+      position.ref,
+      rotationAxis.ref,
+      rotationAngle,
+      scale.ref,
+      tint.ref,
+    );
   }
 
   /// Draw a model wires (with texture if set)
   static void DrawWires(
-    Model model, Vector3 position,
-   {double scale = 1.0, Color? tint}
-  ) {
+    Model model,
+    Vector3 position, {
+    double scale = 1.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     _drawModelWires(model.ref, position.ref, scale, tint.ref);
   }
 
   /// Draw a model wires (with texture if set) with extended parameters
   static void DrawWiresEx(
-    Model model, Vector3 position,
-    Vector3 rotationAxis, double rotationAngle,
-   {Vector3? scale, Color? tint}
-  ) {
+    Model model,
+    Vector3 position,
+    Vector3 rotationAxis,
+    double rotationAngle, {
+    Vector3? scale,
+    Color? tint,
+  }) {
     scale ??= Vector3.One();
     tint ??= Color.WHITE;
-    _drawModelWiresEx(model.ref, position.ref, rotationAxis.ref, rotationAngle, scale.ref, tint.ref);
+    _drawModelWiresEx(
+      model.ref,
+      position.ref,
+      rotationAxis.ref,
+      rotationAngle,
+      scale.ref,
+      tint.ref,
+    );
   }
 
   /// Draw a model as points
   static void DrawPoints(
-    Model model, Vector3 position,
-    {double scale = 1.0, Color? tint }
-  ) {
+    Model model,
+    Vector3 position, {
+    double scale = 1.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     _drawModelPoints(model.ref, position.ref, scale, tint.ref);
   }
 
   /// Draw a model as points with extended parameters
   static void DrawPointsEx(
-    Model model, Vector3 position,
-    Vector3 rotationAxis, double rotationAngle,
-   {Vector3? scale, Color? tint}
-  ) {
+    Model model,
+    Vector3 position,
+    Vector3 rotationAxis,
+    double rotationAngle, {
+    Vector3? scale,
+    Color? tint,
+  }) {
     scale ??= Vector3.One();
     tint ??= Color.WHITE;
-    _drawModelPointsEx(model.ref, position.ref, rotationAxis.ref, rotationAngle, scale.ref, tint.ref);
+    _drawModelPointsEx(
+      model.ref,
+      position.ref,
+      rotationAxis.ref,
+      rotationAngle,
+      scale.ref,
+      tint.ref,
+    );
   }
 
   /// Draw bounding box (wires)
-  static void DrawBoundingBox({required BoundingBox bounds, required Color color}) => _drawBoundingBox(bounds.ref, color.ref);
+  static void DrawBoundingBox({
+    required BoundingBox bounds,
+    required Color color,
+  }) => _drawBoundingBox(bounds.ref, color.ref);
 
   /// Set material for a mesh
-  void SetMeshMaterial(int meshId, int materialId) => _setModelMeshMaterial(pointer, meshId, materialId);
+  void SetMeshMaterial(int meshId, int materialId) =>
+      _setModelMeshMaterial(pointer, meshId, materialId);
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
   static final _finalizer = Finalizer<Pointer<_Model>>((token) {
     _unloadModel(token.ref);
@@ -307,52 +359,77 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
 // final _freeModelAnimation = _dyReleaseLib.lookup<NativeFunction<_FreeModelAnimationC>>('FreeModelAnimation');
 
 /// ModelAnimation
-class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizable {
+class ModelAnimation extends NativeWrapper<_ModelAnimation>
+    implements Finalizable {
   _ModelAnimation get ref => pointer.ref;
-  set ref (_ModelAnimation value) => pointer.ref = value;
+  set ref(_ModelAnimation value) => pointer.ref = value;
 
-	/// Animation name
+  /// Animation name
   late final String name;
-	/// Bones information (skeleton)
+
+  /// Bones information (skeleton)
   late final BoneInfo? bones;
-	/// Poses array by frame
+
+  /// Poses array by frame
   late final List<Transform?> framePoses;
-	/// Number of animation frames
+
+  /// Number of animation frames
   int get frameCount => ref.frameCount;
-	/// Number of bones
+
+  /// Number of bones
   int get boneCount => ref.boneCount;
+
   /// Number of animations
   late final int animationCount;
 
   void _setReferences() {
     bones = ref.bones.IsNotNull
-      ? BoneInfo._Encapsulate(ref.bones, length: boneCount, IsOwner: false)
-      : null;
+        ? BoneInfo._Encapsulate(ref.bones, length: boneCount, IsOwner: false)
+        : null;
 
     name = fromCharArray(ref.name, 32);
-    
-    for(int x = 0; x < frameCount; x++) {
-      framePoses.add(Transform._Encapsulate(ref.framePoses[x], length: boneCount, IsOwner: false));
+
+    for (int x = 0; x < frameCount; x++) {
+      framePoses.add(
+        Transform._Encapsulate(
+          ref.framePoses[x],
+          length: boneCount,
+          IsOwner: false,
+        ),
+      );
     }
   }
-  
+
   // ignore: unused_element_parameter
-  ModelAnimation._Encapsulate(super.pointer, this.animationCount,{ super.IsOwner, super.length }) : super.fromAddress() {
+  ModelAnimation._Encapsulate(
+    super.pointer,
+    this.animationCount, {
+    super.IsOwner,
+    // ignore: unused_element_parameter, unused_element
+    super.length,
+  }) : super.fromAddress() {
     _setReferences();
-    
+
     if (IsOwner)
-      _finalizer.attach(this, {'ptr': pointer, 'len': animationCount}, detach: this);
+      _finalizer.attach(this, {
+        'ptr': pointer,
+        'len': animationCount,
+      }, detach: this);
   }
 
   // ignore: unused_element
-  ModelAnimation._Recieve(_ModelAnimation result, this.animationCount) : super(sizeOf<_ModelAnimation>()) {
+  ModelAnimation._Recieve(_ModelAnimation result, this.animationCount)
+    : super(sizeOf<_ModelAnimation>()) {
     ref = result;
     _setReferences();
-    _finalizer.attach(this, {'ptr': pointer, 'len': animationCount}, detach: this);
+    _finalizer.attach(this, {
+      'ptr': pointer,
+      'len': animationCount,
+    }, detach: this);
   }
 
   /// Load model animations from file
-  factory ModelAnimation.Load(String fileName,[ RaylibArena? arena ]) {
+  factory ModelAnimation.Load(String fileName, [RaylibArena? arena]) {
     Pointer<_ModelAnimation> ptr;
     int animCount = 0;
     final Pointer<Utf8> cfileName = fileName.toNativeUtf8();
@@ -361,11 +438,9 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizab
     try {
       ptr = _loadModelAnimations(cfileName, canimCount);
       animCount = canimCount.value;
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cfileName);
       malloc.free(canimCount);
     }
@@ -376,30 +451,33 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizab
   }
 
   void IsValid(Model model) => _isModelAnimationValid(model.ref, ref);
+
   /// Update model animation pose (CPU)
-  void UpdateAnimation(Model model, int frame) => _updateModelAnimation(model.ref, ref, frame);
+  void UpdateAnimation(Model model, int frame) =>
+      _updateModelAnimation(model.ref, ref, frame);
+
   /// Update model animation mesh bone matrices (GPU skinning)
-  void UpdateAnimationBones(Model model, int frame) => _updateModelAnimationBones(model.ref, ref, frame);
+  void UpdateAnimationBones(Model model, int frame) =>
+      _updateModelAnimationBones(model.ref, ref, frame);
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	ModelAnimation operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return ModelAnimation._Encapsulate(pointer + index, 1, IsOwner: false);
-	}
+  ModelAnimation operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return ModelAnimation._Encapsulate(pointer + index, 1, IsOwner: false);
+  }
 
-	void operator[]=(ModelAnimation value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(ModelAnimation value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<ModelAnimation> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<ModelAnimation> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
   static final Finalizer<Map<String, dynamic>> _finalizer = Finalizer((data) {
     final Pointer<_ModelAnimation> ptr = data['ptr'];
@@ -417,7 +495,6 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizab
   }
 }
 
-
 //------------------------------------------------------------------------------------
 //                                      Ray
 //------------------------------------------------------------------------------------
@@ -429,15 +506,17 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation> implements Finalizab
 /// Ray, ray for raycasting
 class Ray extends NativeWrapper<_Ray> implements Finalizable {
   _Ray get ref => pointer.ref;
-  set ref (_Ray value) => pointer.ref = value;
+  set ref(_Ray value) => pointer.ref = value;
 
   late final Vector3 _position;
-	/// Ray position (origin)
+
+  /// Ray position (origin)
   Vector3 get position => _position;
   set position(Vector3 value) => _position.ref = value.ref;
-  
+
   late final Vector3 _direction;
-	/// Ray direction (normalized)
+
+  /// Ray direction (normalized)
   Vector3 get direction => _direction;
   set direction(Vector3 value) => _direction.ref = value.ref;
 
@@ -450,14 +529,14 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
   }
 
   // ignore: unused_element_parameter, unused_element
-  Ray._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+  Ray._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
 
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ignore: unused_element_parameter, unused_element
+  // ignore: unused_element_parameter, unused_element
   Ray._Recieve(_Ray result) : super(sizeOf<_Ray>()) {
     ref = result;
     _setReferences();
@@ -465,9 +544,10 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
-  Ray(Vector3 position, Vector3 direction,[ RaylibArena? arena ]) : super(sizeOf<_Ray>()) {
+  Ray(Vector3 position, Vector3 direction, [RaylibArena? arena])
+    : super(sizeOf<_Ray>()) {
     ref
       ..position = position.ref
       ..direction = direction.ref;
@@ -478,23 +558,22 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	Ray operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return Ray._Encapsulate(pointer + index, IsOwner: false);
-	}
+  Ray operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Ray._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(Ray value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(Ray value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<Ray> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<Ray> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
   // =================================== Deconstructor ====================================
 
@@ -518,20 +597,23 @@ class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
   _RayCollision get ref => pointer.ref;
   set ref(_RayCollision value) => pointer.ref = value;
 
-	/// Did the ray hit something?
+  /// Did the ray hit something?
   bool get hit => ref.hit;
-	set hit(bool value) => ref.hit = value;
-	/// Distance to the nearest hit
+  set hit(bool value) => ref.hit = value;
+
+  /// Distance to the nearest hit
   double get distance => ref.distance;
-	set distance(num value) => ref.distance = value.toDouble();
-  
+  set distance(num value) => ref.distance = value.toDouble();
+
   late final Vector3 _point;
-	/// Point of the nearest hit
+
+  /// Point of the nearest hit
   Vector3 get point => _point;
   set point(Vector3 value) => _point.ref = value.ref;
-  
+
   late final Vector3 _normal;
-	/// Surface normal of hit
+
+  /// Surface normal of hit
   Vector3 get normal => _normal;
   set normal(Vector3 value) => _normal.ref = value.ref;
 
@@ -544,15 +626,21 @@ class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
     _normal = Vector3._Encapsulate(.fromAddress(address));
   }
 
-  // ignore: unused_element_parameter, unused_element
-  RayCollision._Encapsulate(super.pointer,{ super.IsOwner, super.length, super.arena }) : super.fromAddress() {
+  RayCollision._Encapsulate(
+    super.pointer, {
+    super.IsOwner,
+    // ignore: unused_element_parameter, unused_element
+    super.length,
+    // ignore: unused_element_parameter, unused_element
+    super.arena,
+  }) : super.fromAddress() {
     _setReferences();
-    if(IsOwner)
-		  _finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ignore: unused_element_parameter, unused_element
-  RayCollision._Recieve(_RayCollision result,[ RaylibArena? arena ]) : super(sizeOf<_RayCollision>(), arena: arena) {
+  // ignore: unused_element_parameter, unused_element
+  RayCollision._Recieve(_RayCollision result, [RaylibArena? arena])
+    : super(sizeOf<_RayCollision>(), arena: arena) {
     ref = result;
     _setReferences();
     _finalizer.attach(this, pointer.cast(), detach: this);
@@ -560,21 +648,20 @@ class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {
 
   // ===================================== Operators ======================================
 
-	RayCollision operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return RayCollision._Encapsulate(pointer + index, IsOwner: false);
-	}
+  RayCollision operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return RayCollision._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(RayCollision value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(RayCollision value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<RayCollision> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<RayCollision> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
   // =================================== Deconstructor ====================================
 

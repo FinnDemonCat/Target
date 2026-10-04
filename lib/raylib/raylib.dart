@@ -32,39 +32,53 @@ part 'structs/rvrstereo.dart';
 //------------------------------------------------------------------------------------
 
 /// Window-related functions
-abstract class Window
-{
+abstract class Window {
   // Initialize window and OpenGL context
-  static void Init({required int width, required int height, required String title})
-  {
-    using ((Arena arena) {
+  static void Init({
+    required int width,
+    required int height,
+    required String title,
+  }) {
+    using((Arena arena) {
       final cTitle = title.toNativeUtf8(allocator: arena);
 
       _initWindow(width, height, cTitle);
     });
   }
+
   /// Close window and unload OpenGL context
-  static void Close() => _closeWindow();            
-  /// Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)      
+  static void Close() => _closeWindow();
+
+  /// Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)
   static bool ShouldClose() => _windowShouldClose();
+
   /// Check if window has been initialized successfully
   static bool IsReady() => _isWindowReady();
+
   /// Check if window is currently fullscreen
   static bool IsFullScreen() => _isFullScreen();
+
   /// Check if window is currently hidden
   static bool IsHidden() => _isHidden();
+
   /// Check if window is currently minimized
   static bool IsMinimized() => _isMinimized();
+
   /// Check if window is currently maximized
   static bool IsMaximized() => _isMaximized();
+
   /// Check if window is currently focused
   static bool IsFocused() => _isFocused();
+
   /// Check if window has been resized last frame
   static bool IsResized() => _isResized();
+
   /// Check if one specific window flag is enabled
   static bool IsState(WinFlags flag) => _isWindowState(flag.flag) == true;
+
   /// Set window configuration state using flags
   static void SetState(WinFlags flag) => _setWindowState(flag.flag);
+
   /// Setup init configuration flags (view FLAGS)
   static void SetFlags({
     bool vsync = false,
@@ -86,30 +100,29 @@ abstract class Window
   }) {
     int flags = 0;
 
-    if (vsync)       flags |= WinFlags.VSYNC_HINT.flag;
-    if (fullscreen)  flags |= WinFlags.FULLSCREEN_MODE.flag;
-    if (resizable)   flags |= WinFlags.RESIZABLE.flag;
+    if (vsync) flags |= WinFlags.VSYNC_HINT.flag;
+    if (fullscreen) flags |= WinFlags.FULLSCREEN_MODE.flag;
+    if (resizable) flags |= WinFlags.RESIZABLE.flag;
     if (undecorated) flags |= WinFlags.UNDECORATED.flag;
     if (transparent) flags |= WinFlags.TRANSPARENT.flag;
-    if (msaa4x)      flags |= WinFlags.MSAA_4X_HINT.flag;
-    if (hidden)      flags |= WinFlags.HIDDEN.flag;
-    if (alwaysRun)   flags |= WinFlags.ALWAYS_RUN.flag;
-    if (minimized)   flags |= WinFlags.MINIMIZED.flag;
-    if (maximized)   flags |= WinFlags.MAXIMIZED.flag;
-    if (unfocused)   flags |= WinFlags.UNFOCUSED.flag;
-    if (topmost)     flags |= WinFlags.TOPMOST.flag;
-    if (highDpi)     flags |= WinFlags.HIGHDPI.flag;
+    if (msaa4x) flags |= WinFlags.MSAA_4X_HINT.flag;
+    if (hidden) flags |= WinFlags.HIDDEN.flag;
+    if (alwaysRun) flags |= WinFlags.ALWAYS_RUN.flag;
+    if (minimized) flags |= WinFlags.MINIMIZED.flag;
+    if (maximized) flags |= WinFlags.MAXIMIZED.flag;
+    if (unfocused) flags |= WinFlags.UNFOCUSED.flag;
+    if (topmost) flags |= WinFlags.TOPMOST.flag;
+    if (highDpi) flags |= WinFlags.HIGHDPI.flag;
     if (mousePassthrough) flags |= WinFlags.MOUSE_PASSTHROUGH.flag;
-    if (borderless)  flags |= WinFlags.BORDERLESS_WINDOWED_MODE.flag;
-    if (interlaced)  flags |= WinFlags.INTERLACED_HINT.flag;
+    if (borderless) flags |= WinFlags.BORDERLESS_WINDOWED_MODE.flag;
+    if (interlaced) flags |= WinFlags.INTERLACED_HINT.flag;
 
     _setConfigFlags(flags);
   }
 
   /// Takes a screenshot of current screen (filename extension defines format)
-  static void TakeScreenshoot(String fileName)
-  {
-    using ((Arena arena) {
+  static void TakeScreenshoot(String fileName) {
+    using((Arena arena) {
       Pointer<Utf8> cfileName = fileName.toNativeUtf8(allocator: arena);
 
       _takeScreenshot(cfileName);
@@ -118,33 +131,40 @@ abstract class Window
 
   /// Clear window configuration state flags
   static void ClearState(WinFlags flag) => _clearWindowState(flag.flag);
+
   /// Toggle window state: fullscreen/windowed, resizes monitor to match window resolution
   static void ToggleFullscreen() => _toggleFullscreen();
+
   /// Toggle window state: borderless windowed, resizes window to match monitor resolution
   static void ToggleBorderlessWindowed() => _toggleBorderlessWindowed();
+
   /// Set window state: maximized, if resizable
   static void Maximize() => _maximizeWindow();
+
   /// Set window state: minimized, if resizable
   static void Minimize() => _minimizeWindow();
+
   /// Restore window from being minimized/maximized
   static void Restore() => _restoreWindow();
+
   /// Set icon for window (single image, RGBA 32bit)
   static void SetIcon(Image image) => _setWindowIcon(image.ref);
+
   /// Set icon for window (multiple images, RGBA 32bit)
-  static void SetIcons(List<Image> images)
-  {
+  static void SetIcons(List<Image> images) {
     using((Arena arena) {
-      Pointer<_Image> ref = arena.allocate<_Image>(sizeOf<_Image>() * images.length);
+      Pointer<_Image> ref = arena.allocate<_Image>(
+        sizeOf<_Image>() * images.length,
+      );
 
-      for(int x = 0; x < images.length; x++)
-        ref[x] = images[x].ref;
+      for (int x = 0; x < images.length; x++) ref[x] = images[x].ref;
 
-      _setWindowIcons(ref, images.length);      
+      _setWindowIcons(ref, images.length);
     });
   }
+
   /// Set title for window
-  static void SetTitle(String title)
-  {
+  static void SetTitle(String title) {
     using((Arena arena) {
       Pointer<Utf8> pointer = title.toNativeUtf8(allocator: arena);
 
@@ -154,77 +174,110 @@ abstract class Window
 
   /// Set window position on screen
   static void SetPosition(int x, int y) => _setWindowPosition(x, y);
+
   /// Set monitor for the current window
   static void SetMonitor(int monitor) => _setWindowMonitor(monitor);
+
   /// Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE)
-  static void SetMinSize(int width, int height) => _setWindowMinSize(width, height);
+  static void SetMinSize(int width, int height) =>
+      _setWindowMinSize(width, height);
+
   /// Set window maximum dimensions (for FLAG_WINDOW_RESIZABLE)
-  static void SetMaxSize(int width, int height) => _setWindowMaxSize(width, height);
+  static void SetMaxSize(int width, int height) =>
+      _setWindowMaxSize(width, height);
+
   /// Set window dimensions
   static void SetSize(int width, int height) => _setWindowSize(width, height);
+
   /// Set window opacity [0.0f..1.0f]
   static void SetOpacity(double opacity) => _setWindowOpacity(opacity);
+
   /// Set window focused
   static void SetFocused() => _setWindowFocused();
+
   /// Get native window handle
   static Pointer<Void> GetHandle() => _getWindowHandle();
+
   /// Get current screen width
   static int Width() => _getScreenWidth();
+
   /// Get current screen height
   static int Height() => _getScreenHeight();
+
   /// Get current render width (it considers HiDPI)
   static int RenderWidth() => _getRenderWidth();
+
   /// Get current render height (it considers HiDPI)
   static int RenderHeight() => _getRenderHeight();
+
   /// Get number of connected monitors
   static int GetMonitorCount() => _getMonitorCount();
+
   /// Get specified monitor position
   static int GetCurrentMonitor() => _getCurrentMonitor();
+
   /// Get specified monitor position
   static Vector2 GetMonintorPosition(int monitor) {
     Vector2 position = Vector2._Recieve(_getMonitorPosition(monitor));
     return position;
   }
+
   /// Get specified monitor width (current video mode used by monitor)
   static int GetMonitorWidth(int monitor) => _getMonitorWidth(monitor);
+
   /// Get specified monitor height (current video mode used by monitor)
   static int GetMonitorHeight(int monitor) => _getMonitorHeight(monitor);
+
   /// Get specified monitor physical width in millimetres
-  static int GetMonitorPhysicalWidth(int monitor) => _getMonitorPhysicalWidth(monitor);
+  static int GetMonitorPhysicalWidth(int monitor) =>
+      _getMonitorPhysicalWidth(monitor);
+
   /// Get specified monitor physical height in millimetres
-  static int GetMonitorPhysicalHeight(int monitor) => _getMonitorPhysicalHeight(monitor);
+  static int GetMonitorPhysicalHeight(int monitor) =>
+      _getMonitorPhysicalHeight(monitor);
+
   /// Get specified monitor refresh rate
-  static int GetMonitorRefreshRate(int monitor) => _getMonitorRefreshRate(monitor);
+  static int GetMonitorRefreshRate(int monitor) =>
+      _getMonitorRefreshRate(monitor);
+
   /// Get window position XY on monitor
   static Vector2 GetPosition() {
     Vector2 position = Vector2._Recieve(_getWindowPosition());
 
     return position;
   }
+
   /// Get window scale DPI factor
   static Vector2 GetScaleDPI() {
     Vector2 position = Vector2._Recieve(_getWindowScaleDPI());
     return position;
   }
+
   /// Get the human-readable, UTF-8 encoded name of the specified monitor
-  static String GetMonitorName(int monitor) => _getMonitorName(monitor).toDartString();
+  static String GetMonitorName(int monitor) =>
+      _getMonitorName(monitor).toDartString();
+
   /// Set clipboard text content
-  static void SetClipboardText(String text)
-  {
+  static void SetClipboardText(String text) {
     using((Arena arena) {
       Pointer<Utf8> cText = text.toNativeUtf8(allocator: arena);
 
       _setClipboardText(cText);
     });
   }
+
   /// Get clipboard text content
   static String GetClipboardText() => _getClipboardText().toDartString();
+
   /// Get clipboard image content
   static Image GetClipboardImage() => Image._Recieve(_getClipboardImage());
+
   /// Enable waiting for events on EndDrawing(), no automatic event polling
   static void EnableEventWaiting() => _enableEventWaiting();
+
   /// Disable waiting for events on EndDrawing(), automatic events polling
   static void DisabelEventWaiting() => _disableEventWaiting();
+
   /// Set a custom key to exit program (default is ESC)
   static void SetExitKey(Key key) => _setExitKey(key.index);
 }
@@ -234,14 +287,16 @@ abstract class Window
 //------------------------------------------------------------------------------------
 
 /// Timing-related functions
-abstract class Frame
-{
+abstract class Frame {
   /// Set target FPS (maximum)
   static void SetTargetFPS(int fps) => _setTargetFPS(fps);
+
   /// Get time in seconds for last frame drawn (delta time)
   static double GetFrameTime() => _getFrameTime();
+
   /// Get elapsed time in seconds since InitWindow()
   static double GetTime() => _getTime();
+
   /// Get current FPS
   static int GetFPS() => _getFPS();
 }
@@ -255,14 +310,13 @@ abstract class Frame
   AutomationEventList
 */
 
-
 //------------------------------------------------------------------------------------
 //                                   FilePath List
 //------------------------------------------------------------------------------------
 
 class FilePathList extends NativeWrapper<_FilePathList> {
   _FilePathList get ref => pointer.ref;
-  set ref (_FilePathList value) => pointer.ref = value;
+  set ref(_FilePathList value) => pointer.ref = value;
 
   int get count => ref.count;
   bool droppedFiles = false;
@@ -280,19 +334,23 @@ class FilePathList extends NativeWrapper<_FilePathList> {
     _memory = NativeWrapper<_FilePathList>(pointer);
     _finalizer.attach(this, {'ptr': pointer, 'type': dropped}, detach: this);
   } */
-  
+
   // ignore: unused_element_parameter
-  FilePathList._Recieve(_FilePathList result,{ this.droppedFiles = false }) : super(sizeOf<_FilePathList>()) {
+  FilePathList._Recieve(_FilePathList result, {this.droppedFiles = false})
+    : super(sizeOf<_FilePathList>()) {
     ref = result;
 
     for (int x = 0; x < pointer.ref.count; x++) {
       final cstring = pointer.ref.paths[x].toDartString();
       paths.add(cstring);
     }
-    
-    _finalizer.attach(this, {'ptr': pointer, 'type': droppedFiles}, detach: this);
+
+    _finalizer.attach(this, {
+      'ptr': pointer,
+      'type': droppedFiles,
+    }, detach: this);
   }
- 
+
   /// Load directory filepaths
   factory FilePathList(String dirPath) {
     final cdirPath = dirPath.toNativeUtf8();
@@ -300,11 +358,9 @@ class FilePathList extends NativeWrapper<_FilePathList> {
 
     try {
       result = _loadDirectoryFiles(cdirPath);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cdirPath);
     }
 
@@ -319,11 +375,9 @@ class FilePathList extends NativeWrapper<_FilePathList> {
 
     try {
       result = _loadDirectoryFilesEx(cbasePath, cfilter, scanSubdirs);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cbasePath);
       malloc.free(cfilter);
     }
@@ -339,16 +393,22 @@ class FilePathList extends NativeWrapper<_FilePathList> {
   /// Check if a file has been dropped into window
   static bool IsFileDropped() => _isFileDropped();
 
-  static final Finalizer _finalizer = Finalizer<Map<String, dynamic>>((pointer) {
-    if (pointer['type']) _unloadDroppedFiles(pointer['ptr'].ref);
-    else _unloadDirectoryFiles(pointer['ptr'].ref);
+  static final Finalizer _finalizer = Finalizer<Map<String, dynamic>>((
+    pointer,
+  ) {
+    if (pointer['type'])
+      _unloadDroppedFiles(pointer['ptr'].ref);
+    else
+      _unloadDirectoryFiles(pointer['ptr'].ref);
     malloc.free(pointer['ptr']);
   });
 
   @override
   void Free() {
-    if (droppedFiles) _unloadDroppedFiles(ref);
-    else _unloadDirectoryFiles(ref);
+    if (droppedFiles)
+      _unloadDroppedFiles(ref);
+    else
+      _unloadDirectoryFiles(ref);
 
     _finalizer.detach(this);
     super.Free();
@@ -359,24 +419,50 @@ class FilePathList extends NativeWrapper<_FilePathList> {
 //                                ScreenToWorld
 //------------------------------------------------------------------------------------
 
-abstract class ScreenToWorld
-{
+abstract class ScreenToWorld {
   /// Get a ray trace from screen position (i.e mouse)
-  static Ray GetRay(Vector2 position, Camera camera) => Ray._Recieve(_getScreenToWorldRay(position.ref, camera.ref));
+  static Ray GetRay(Vector2 position, Camera camera) =>
+      Ray._Recieve(_getScreenToWorldRay(position.ref, camera.ref));
+
   /// Get a ray trace from screen position (i.e mouse) in a viewport
-  static Ray GetRayEx(Vector2 position, Camera camera,{ required int width, required int height }) => Ray._Recieve(_getScreenToWorldRayEx(position.ref, camera.ref, width, height));
+  static Ray GetRayEx(
+    Vector2 position,
+    Camera camera, {
+    required int width,
+    required int height,
+  }) => Ray._Recieve(
+    _getScreenToWorldRayEx(position.ref, camera.ref, width, height),
+  );
+
   /// Get the screen space position for a 3d world space position
-  static Vector2 GetWorldToScreen(Vector3 position, Camera camera) => Vector2._Recieve(_getWorldToScreen(position.ref, camera.ref));
+  static Vector2 GetWorldToScreen(Vector3 position, Camera camera) =>
+      Vector2._Recieve(_getWorldToScreen(position.ref, camera.ref));
+
   /// Get size position for a 3d world space position
-  static Vector2 GetWorldToScreenEx(Vector3 position, Camera camera,{ required int width, required int height }) => Vector2._Recieve(_getWorldToScreenEx(position.ref, camera.ref, width, height));
+  static Vector2 GetWorldToScreenEx(
+    Vector3 position,
+    Camera camera, {
+    required int width,
+    required int height,
+  }) => Vector2._Recieve(
+    _getWorldToScreenEx(position.ref, camera.ref, width, height),
+  );
+
   /// Get the screen space position for a 2d camera world space position
-  static Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera) => Vector2._Recieve(_getWorldToScreen2D(position.ref, camera.ref));
+  static Vector2 GetWorldToScreen2D(Vector2 position, Camera2D camera) =>
+      Vector2._Recieve(_getWorldToScreen2D(position.ref, camera.ref));
+
   /// Get the world space position for a 2d camera screen space position
-  static Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera) => Vector2._Recieve(_getScreenToWorld2D(position.ref, camera.ref));
+  static Vector2 GetScreenToWorld2D(Vector2 position, Camera2D camera) =>
+      Vector2._Recieve(_getScreenToWorld2D(position.ref, camera.ref));
+
   /// Get camera transform matrix (view matrix)
-  static Matrix GetMatrix(Camera camera) => Matrix._Recieve(_getCameraMatrix(camera.ref));
+  static Matrix GetMatrix(Camera camera) =>
+      Matrix._Recieve(_getCameraMatrix(camera.ref));
+
   /// Get camera 2d transform matrix
-  static Matrix GetCameraMatrix2D(Camera2D camera) => Matrix._Recieve(_getCameraMatrix2D(camera.ref));
+  static Matrix GetCameraMatrix2D(Camera2D camera) =>
+      Matrix._Recieve(_getCameraMatrix2D(camera.ref));
 }
 
 //------------------------------------------------------------------------------------
@@ -384,18 +470,18 @@ abstract class ScreenToWorld
 //------------------------------------------------------------------------------------
 
 /// Drawing-related functions
-abstract class Draw
-{
+abstract class Draw {
   /// Set background color (framebuffer clear color)
   static void ClearBackground(Color color) => _clearBackground(color.ref);
+
   /// Setup canvas (framebuffer) to start drawing
   static void Begin() => _beginDrawing();
+
   /// End canvas drawing and swap buffers (double buffering)
   static void End() => _endDrawing();
+
   /// Update screen by calling `Begin()` `renderLogic()` and `End()` while also clearing the background
-  static void WithDefault({
-    required void Function() renderLogic,
-  }) {
+  static void WithDefault({required void Function() renderLogic}) {
     Begin();
     renderLogic();
     End();
@@ -403,28 +489,32 @@ abstract class Draw
 
   /// Begin 2D mode with custom camera (2D)
   static void Begin2DMode(Camera2D camera) => _beginMode2D(camera.ref);
+
   /// Ends 2D mode with custom camera
   static void End2DMode() => _endMode2D();
+
   /// Update screen by calling `Begin2D()` `renderLogic()` and `End2D()` while also clearing the backgroundbackground
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
   static void With2DMode({
     required void Function() renderLogic,
     required Camera2D camera,
   }) {
     Begin();
-      Begin2DMode(camera);
-      renderLogic();
-      End2DMode();
+    Begin2DMode(camera);
+    renderLogic();
+    End2DMode();
     End();
   }
 
   /// Begin 3D mode with custom camera (3D)
   static void Begin3DMode(Camera camera) => _beginMode3D(camera.ref);
+
   /// Ends 3D mode and returns to default 2D orthographic mode
   static void End3DMode() => _endMode3D();
+
   /// Update screen by calling `Begin3D()` `renderLogic()` and `End3D()` while also clearing the background
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
   static void With3DMode({
     required void Function() renderLogic,
@@ -436,11 +526,14 @@ abstract class Draw
   }
 
   /// Begin drawing to render texture
-  static void BeginTextureMode(RenderTexture2D render) => _beginTextureMode(render.ref);
+  static void BeginTextureMode(RenderTexture2D render) =>
+      _beginTextureMode(render.ref);
+
   /// Ends drawing to render texture
   static void EndTextureMode() => _endTextureMode();
+
   /// Update screen by calling `BeginTextureMode()` `renderLogic()` and `EndTextureMode()` while also clearing the backgroundbackground
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
   static void WithTextureMode({
     required void Function() renderLogic,
@@ -453,10 +546,12 @@ abstract class Draw
 
   /// Begin custom shader drawing
   static void BeginShaderMode(Shader shader) => _beginShaderMode(shader.ref);
+
   /// End custom shader drawing (use default shader)
   static void EndShaderMode() => _endShaderMode();
+
   /// Update screen by calling `BeginShaderMode()` `renderLogic()` and `EndShaderMode()`
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
   static void WithShaderMode({
     required Shader shader,
@@ -469,10 +564,12 @@ abstract class Draw
 
   /// Begin blending mode (alpha, additive, multiplied, subtract, custom)
   static void BeginBlendMode(int mode) => _beginBlendMode(mode);
+
   /// End blending mode (reset to default: alpha blending)
   static void EndBlendMode() => _endBlendMode();
+
   /// Update screen by calling `BeginBlendMode()` `renderLogic()` and `EndBlendMode()`
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
   static void WithBlendMode({
     required int mode,
@@ -484,32 +581,43 @@ abstract class Draw
   }
 
   /// Begin scissor mode (define screen area for following drawing)
-  static void BeginScissorMode(int x, int y, int width, int height) => _beginScissorMode(x, y, width, height);
+  static void BeginScissorMode(int x, int y, int width, int height) =>
+      _beginScissorMode(x, y, width, height);
+
   /// End scissor mode
   static void EndScissorMode() => _endScissorMode();
+
   /// Update screen by calling `BeginScissorMode()` `renderLogic()` and `EndScissorMode()`
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
   static void WithScissorMode({
     required Rectangle rect,
     required void Function() renderLogic,
   }) {
     BeginScissorMode(
-      rect.x.round(), rect.y.round(),
-      rect.width.round(), rect.height.round()
+      rect.x.round(),
+      rect.y.round(),
+      rect.width.round(),
+      rect.height.round(),
     );
     renderLogic();
     EndScissorMode();
   }
 
   /// Begin stereo rendering (requires VR simulator)
-  static void BeginVrStereoMode(VrStereoConfig config) => _beginVrStereoMode(config.ref);
+  static void BeginVrStereoMode(VrStereoConfig config) =>
+      _beginVrStereoMode(config.ref);
+
   /// End stereo rendering (requires VR simulator)
   static void EndVrStereoMode() => _endVrStereoMode();
+
   /// Update screen by calling `BeginVrStereoMode()` `renderLogic()` and `EndVrStereoMode()`
-  /// 
+  ///
   /// Use this on the main loop to work with Hot Reload
-  static void WithVrStereoMode({required VrStereoConfig config, required void Function() renderLogic}) {
+  static void WithVrStereoMode({
+    required VrStereoConfig config,
+    required void Function() renderLogic,
+  }) {
     BeginVrStereoMode(config);
     renderLogic();
     EndVrStereoMode();

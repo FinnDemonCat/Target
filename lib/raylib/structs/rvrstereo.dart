@@ -2,7 +2,7 @@ part of '../raylib.dart';
 
 class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
   _VrDeviceInfo get ref => pointer.ref;
-  set ref (_VrDeviceInfo value) => pointer.ref = value;
+  set ref(_VrDeviceInfo value) => pointer.ref = value;
 
   int get hResolution => ref.hResolution;
   int get vResolution => ref.vResolution;
@@ -17,8 +17,10 @@ class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
   set hScreenSize(double value) => ref.hScreenSize = value;
   set vScreenSize(double value) => ref.vScreenSize = value;
   set eyeToScreenDistance(double value) => ref.eyeToScreenDistance = value;
-  set lensSeparationDistance(double value) => ref.lensSeparationDistance = value;
-  set interpupillaryDistance(double value) => ref.interpupillaryDistance = value;
+  set lensSeparationDistance(double value) =>
+      ref.lensSeparationDistance = value;
+  set interpupillaryDistance(double value) =>
+      ref.interpupillaryDistance = value;
 
   List<double> _lensDistortionValues = [];
   List<double> get lensDistortionValues {
@@ -37,7 +39,7 @@ class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
     }
     _lensDistortionValues = List.from(value);
   }
-  
+
   List<double> _chromaAbCorrection = [];
   List<double> get chromaAbCorrection {
     if (_chromaAbCorrection.isEmpty) {
@@ -101,12 +103,14 @@ class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_VrDeviceInfo>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_VrDeviceInfo>>((
+    pointer,
+  ) {
     malloc.free(pointer);
   });
 
   @override
-  void Free()   {
+  void Free() {
     _finalizer.detach(this);
     super.Free();
   }
@@ -114,7 +118,7 @@ class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
 
 class VrStereoConfig extends NativeWrapper<_VrStereoConfig> {
   _VrStereoConfig get ref => pointer.ref;
-  set ref (_VrStereoConfig value) => pointer.ref = value;
+  set ref(_VrStereoConfig value) => pointer.ref = value;
 
   Matrix getProjection(int eyeIndex) {
     if (eyeIndex < 0 || eyeIndex >= 2) throw RangeError(eyeIndex);
@@ -150,12 +154,14 @@ class VrStereoConfig extends NativeWrapper<_VrStereoConfig> {
     _finalizer.attach(this, pointer, detach: this);
   }
 
-  static final Finalizer _finalizer = Finalizer<Pointer<_VrStereoConfig>>((pointer) {
+  static final Finalizer _finalizer = Finalizer<Pointer<_VrStereoConfig>>((
+    pointer,
+  ) {
     _unloadVrStereoConfig(pointer.ref);
     malloc.free(pointer);
   });
 
-  void Unload() => Free(); 
+  void Unload() => Free();
 
   @override
   void Free() {
@@ -163,4 +169,4 @@ class VrStereoConfig extends NativeWrapper<_VrStereoConfig> {
     _finalizer.detach(this);
     super.Free();
   }
-} 
+}

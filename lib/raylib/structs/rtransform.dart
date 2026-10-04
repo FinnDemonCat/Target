@@ -11,19 +11,19 @@ part of '../raylib.dart';
 /// Transform, vertex transformation data
 class Transform extends NativeWrapper<_Transform> implements Finalizable {
   _Transform get ref => pointer.ref;
-  set ref (_Transform value) => pointer.ref = value;
+  set ref(_Transform value) => pointer.ref = value;
 
-	/// Translation
+  /// Translation
   late final Vector3 _translation;
   Vector3 get translation => _translation;
   set translation(Vector3 value) => _translation.ref = value.ref;
 
-	/// Rotation
+  /// Rotation
   late final Quaternion _rotation;
   Quaternion get rotation => _rotation;
   set rotation(Quaternion value) => _rotation.ref = value.ref;
 
-	/// Scale
+  /// Scale
   late final Vector3 _scale;
   Vector3 get scale => _scale;
   set scale(Vector3 value) => _scale.ref = value.ref;
@@ -39,59 +39,63 @@ class Transform extends NativeWrapper<_Transform> implements Finalizable {
     this._scale = Vector3._Encapsulate(.fromAddress(address));
   }
 
-	// ignore: unused_element_parameter, unused_element
-  Transform._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+  // ignore: unused_element_parameter, unused_element
+  Transform._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
-		if (IsOwner)
-			_finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ignore: unused_element_parameter, unused_element
+  // ignore: unused_element_parameter, unused_element
   Transform._Recieve(_Transform result) : super(sizeOf<_Transform>()) {
     ref = result;
     _setReferences();
-		_finalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
-  Transform(Vector3 translation, Quaternion rotation, Vector3 scale,[ RaylibArena? arena ]) : super(sizeOf<_Transform>(), arena: arena) {
+  Transform(
+    Vector3 translation,
+    Quaternion rotation,
+    Vector3 scale, [
+    RaylibArena? arena,
+  ]) : super(sizeOf<_Transform>(), arena: arena) {
     ref
       ..translation = translation.ref
       ..rotation = rotation.ref
       ..scale = scale.ref;
 
     _setReferences();
-		_finalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	Transform operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return Transform._Encapsulate(pointer + index, IsOwner: false);
-	}
+  Transform operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Transform._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(Transform value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(Transform value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<Transform> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	} 
+  @override
+  Iterable<Transform> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
-	static final _finalizer = Finalizer<Pointer<_Transform>>((token) {
+  static final _finalizer = Finalizer<Pointer<_Transform>>((token) {
     malloc.free(token);
   });
 
-	@override
-	void Free() {
-		_finalizer.detach(this);
-		super.Free();
-	}
+  @override
+  void Free() {
+    _finalizer.detach(this);
+    super.Free();
+  }
 }

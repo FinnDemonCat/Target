@@ -12,112 +12,124 @@ part of '../raylib.dart';
 /// Mesh, vertex data and vao/vbo
 class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   _Mesh get ref => pointer.ref;
-  set ref (_Mesh value) => pointer.ref = value;
+  set ref(_Mesh value) => pointer.ref = value;
 
-	/// Number of vertices stored in arrays
-	int get vertexCount => ref.vertexCount;
-	/// Number of triangles stored (indexed or not)
-	int get triangleCount => ref.triagleCoung;
+  /// Number of vertices stored in arrays
+  int get vertexCount => ref.vertexCount;
+
+  /// Number of triangles stored (indexed or not)
+  int get triangleCount => ref.triagleCoung;
+
   /// OpenGL Vertex Array Object id
   int get vaoID => ref.vaoID;
-	/// Number of bones
-	int get boneCount => ref.boneCount;
 
-	set vertexCount(int value) => ref.vertexCount = value;
-	set triangleCount(int value) => ref.triagleCoung = value;
-	set vaoId(int value) => ref.vaoID = value;
-	set boneCount(int value) => ref.boneCount = value;
+  /// Number of bones
+  int get boneCount => ref.boneCount;
+
+  set vertexCount(int value) => ref.vertexCount = value;
+  set triangleCount(int value) => ref.triagleCoung = value;
+  set vaoId(int value) => ref.vaoID = value;
+  set boneCount(int value) => ref.boneCount = value;
 
   // Vertex attributes data
   /// Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
   late final Float32List vertices;
+
   /// Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
   late final Float32List texcoords;
+
   /// Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5)
   late final Float32List texcoords2;
+
   /// Vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
   late final Float32List normals;
+
   /// Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
   late final Float32List tangents;
+
   /// Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
   late final Uint8List colors;
+
   /// Vertex indices (in case vertex data comes indexed)
   late final Uint16List indices;
 
   /// Animated vertex positions (after bones transformations)
   late final Float32List animVertices;
+
   /// Animated normals (after bones transformations)
   late final Float32List animNormals;
+
   /// Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
   late final Uint8List boneIds;
+
   /// Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
   late final Float32List boneWeights;
+
   /// Bones animated transformation matrices
   late final Matrix boneMatrices;
+
   /// OpenGL Vertex Buffer Objects id (default vertex data)
   late final Int32List vboId;
 
   void _setReferences() {
-    vertices = ref.vertices.IsNotNull 
-      ? ref.vertices.asTypedList(vertexCount) 
-      : Float32List(vertexCount);
+    vertices = ref.vertices.IsNotNull
+        ? ref.vertices.asTypedList(vertexCount)
+        : Float32List(vertexCount);
 
-    texcoords = ref.texcoords.IsNotNull 
-      ? ref.texcoords.asTypedList(vertexCount * 2) 
-      : Float32List(vertexCount * 2);
+    texcoords = ref.texcoords.IsNotNull
+        ? ref.texcoords.asTypedList(vertexCount * 2)
+        : Float32List(vertexCount * 2);
 
-    texcoords2 = ref.texcoords2.IsNotNull 
-      ? ref.texcoords2.asTypedList(vertexCount * 2) 
-      : Float32List(vertexCount * 2);
+    texcoords2 = ref.texcoords2.IsNotNull
+        ? ref.texcoords2.asTypedList(vertexCount * 2)
+        : Float32List(vertexCount * 2);
 
-    normals = ref.normals.IsNotNull 
-      ? ref.normals.asTypedList(vertexCount * 3) 
-      : Float32List(vertexCount * 3);
+    normals = ref.normals.IsNotNull
+        ? ref.normals.asTypedList(vertexCount * 3)
+        : Float32List(vertexCount * 3);
 
-    tangents = ref.tangents.IsNotNull 
-      ? ref.tangents.asTypedList(vertexCount * 4) 
-      : Float32List(vertexCount * 4);
+    tangents = ref.tangents.IsNotNull
+        ? ref.tangents.asTypedList(vertexCount * 4)
+        : Float32List(vertexCount * 4);
 
-    colors = ref.colors.IsNotNull 
-      ? ref.colors.asTypedList(vertexCount * 4) 
-      : Uint8List(vertexCount * 4);
+    colors = ref.colors.IsNotNull
+        ? ref.colors.asTypedList(vertexCount * 4)
+        : Uint8List(vertexCount * 4);
 
-    indices = ref.indices.IsNotNull 
-      ? ref.indices.asTypedList(triangleCount * 3) 
-      : Uint16List(triangleCount * 3);
+    indices = ref.indices.IsNotNull
+        ? ref.indices.asTypedList(triangleCount * 3)
+        : Uint16List(triangleCount * 3);
 
-    animVertices = ref.animVertices.IsNotNull 
-      ? ref.animVertices.asTypedList(vertexCount * 3) 
-      : Float32List(vertexCount * 3);
+    animVertices = ref.animVertices.IsNotNull
+        ? ref.animVertices.asTypedList(vertexCount * 3)
+        : Float32List(vertexCount * 3);
 
-    animNormals = ref.animNormals.IsNotNull 
-      ? ref.animNormals.asTypedList(vertexCount * 3) 
-      : Float32List(vertexCount * 3);
+    animNormals = ref.animNormals.IsNotNull
+        ? ref.animNormals.asTypedList(vertexCount * 3)
+        : Float32List(vertexCount * 3);
 
-    boneIds = ref.boneIds.IsNotNull 
-      ? ref.boneIds.asTypedList(vertexCount * 4) 
-      : Uint8List(vertexCount * 4);
+    boneIds = ref.boneIds.IsNotNull
+        ? ref.boneIds.asTypedList(vertexCount * 4)
+        : Uint8List(vertexCount * 4);
 
-    boneWeights = ref.boneWeights.IsNotNull 
-      ? ref.boneWeights.asTypedList(vertexCount * 4) 
-      : Float32List(vertexCount * 4);
+    boneWeights = ref.boneWeights.IsNotNull
+        ? ref.boneWeights.asTypedList(vertexCount * 4)
+        : Float32List(vertexCount * 4);
 
     if (ref.boneMatrices.IsNotNull && boneCount > 0)
       boneMatrices = Matrix._Encapsulate(ref.boneMatrices, length: boneCount);
     else
       boneMatrices = Matrix();
 
-    vboId = ref.vboId.IsNotNull 
-      ? ref.vboId.asTypedList(16) 
-      : Int32List(16);
+    vboId = ref.vboId.IsNotNull ? ref.vboId.asTypedList(16) : Int32List(16);
   }
 
   // ignore: unused_element_parameter
-  Mesh._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+  Mesh._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
 
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element
@@ -127,7 +139,7 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
     _setReferences();
   }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
   Mesh({
     Float32List? vertices,
@@ -143,9 +155,7 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
     Float32List? boneWeights,
     Matrix? boneMatrices,
     Int32List? vboId,
-  })
-    : super(sizeOf<_Mesh>())
-  {
+  }) : super(sizeOf<_Mesh>()) {
     this.vertices = vertices ?? Float32List(0);
     this.texcoords = texcoords ?? Float32List(0);
     this.texcoords2 = texcoords2 ?? Float32List(0);
@@ -160,11 +170,11 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
     this.boneMatrices = boneMatrices ?? Matrix();
     this.vboId = vboId ?? Int32List(0);
   }
-  
-	// =============================== Named Constructor ====================================
+
+  // =============================== Named Constructor ====================================
 
   /// Generate polygonal mesh
-  factory Mesh.Poly(int sides, double radius,[ RaylibArena? arena ]) {
+  factory Mesh.Poly(int sides, double radius, [RaylibArena? arena]) {
     _Mesh result = _genMeshPoly(sides, radius);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -172,7 +182,13 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate plane mesh (with subdivisions)
-  factory Mesh.Plane(double width, double length, int resX, int resZ,[ RaylibArena? arena ]) {
+  factory Mesh.Plane(
+    double width,
+    double length,
+    int resX,
+    int resZ, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshPlane(width, length, resX, resZ);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -180,7 +196,12 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate cuboid mesh
-  factory Mesh.Cube(double width, double height, double length,[ RaylibArena? arena ]) {
+  factory Mesh.Cube(
+    double width,
+    double height,
+    double length, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshCube(width, height, length);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -188,7 +209,12 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate sphere mesh (standard sphere)
-  factory Mesh.Sphere(double radius, int rings, int slices,[ RaylibArena? arena ]) {
+  factory Mesh.Sphere(
+    double radius,
+    int rings,
+    int slices, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshSphere(radius, rings, slices);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -196,7 +222,12 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate half-sphere mesh (no bottom cap)
-  factory Mesh.Hemisphere(double radius, int rings, int slices,[ RaylibArena? arena ]) {
+  factory Mesh.Hemisphere(
+    double radius,
+    int rings,
+    int slices, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshHemiSphere(radius, rings, slices);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -204,7 +235,12 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate cylinder mesh
-  factory Mesh.Cylinder(double radius, double height, int slices,[ RaylibArena? arena ]) {
+  factory Mesh.Cylinder(
+    double radius,
+    double height,
+    int slices, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshCylinder(radius, height, slices);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -212,7 +248,12 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate cone/pyramid mesh
-  factory Mesh.Cone(double radius, double height, int slices,[ RaylibArena? arena ]) {
+  factory Mesh.Cone(
+    double radius,
+    double height,
+    int slices, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshCone(radius, height, slices);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -220,9 +261,15 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate torus mesh
-  /// 
+  ///
   /// AKA Donut
-  factory Mesh.Torus(double radius, double size, int radSeg, int sides,[ RaylibArena? arena ]) {
+  factory Mesh.Torus(
+    double radius,
+    double size,
+    int radSeg,
+    int sides, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshTorus(radius, size, radSeg, sides);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -230,7 +277,13 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate torus mesh
-  factory Mesh.Knot(double radius, double size, int radSeg, int sides,[ RaylibArena? arena ]) {
+  factory Mesh.Knot(
+    double radius,
+    double size,
+    int radSeg,
+    int sides, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshKnot(radius, size, radSeg, sides);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -238,7 +291,7 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate heightmap mesh from image data
-  factory Mesh.Heightmap(Image heightMap, Vector3 size,[ RaylibArena? arena ]) {
+  factory Mesh.Heightmap(Image heightMap, Vector3 size, [RaylibArena? arena]) {
     _Mesh result = _genMeshHeightmap(heightMap.ref, size.ref);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -246,7 +299,11 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Generate cubes-based map mesh from image data
-  factory Mesh.CubicMap(Image cubicMap, Vector3 cubeSize,[ RaylibArena? arena ]) {
+  factory Mesh.CubicMap(
+    Image cubicMap,
+    Vector3 cubeSize, [
+    RaylibArena? arena,
+  ]) {
     _Mesh result = _genMeshCubicmap(cubicMap.ref, cubeSize.ref);
     Mesh mesh = Mesh._Recieve(result);
     arena?.register(mesh);
@@ -256,31 +313,46 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   //----------------------------------Utilities-----------------------------------------
 
   /// Upload mesh vertex data in GPU and provide VAO/VBO ids
-  static void Upload({required Mesh mesh, required bool dynamic}) => _uploadMesh(mesh.pointer, dynamic);
+  static void Upload({required Mesh mesh, required bool dynamic}) =>
+      _uploadMesh(mesh.pointer, dynamic);
 
   /// Unload mesh data from CPU and GPU
   void Unload() => Free();
 
   /// Update mesh vertex data in GPU for a specific buffer index
   static void UpdateBuffer({
-    required Mesh mesh, required int index,
-    required Pointer<Void> data, required int dataSize,
-    required int offset
+    required Mesh mesh,
+    required int index,
+    required Pointer<Void> data,
+    required int dataSize,
+    required int offset,
   }) {
     _updateMeshBuffer(mesh.ref, index, data, dataSize, offset);
   }
 
   /// Draw a 3d mesh with material and transform
-  static void Draw(Mesh mesh, Material material, Matrix transform) => _drawMesh(mesh.ref, material.ref, transform.ref);
+  static void Draw(Mesh mesh, Material material, Matrix transform) =>
+      _drawMesh(mesh.ref, material.ref, transform.ref);
 
   /// Draw multiple mesh instances with material and different transforms
-  static void DrawInstanced({ required Mesh mesh, required Material material, required List<Matrix> transforms}) {
-    using ((Arena arena) {
-      Pointer<_Matrix> transformsArray = arena.allocate<_Matrix>(sizeOf<_Matrix>() * transforms.length);
+  static void DrawInstanced({
+    required Mesh mesh,
+    required Material material,
+    required List<Matrix> transforms,
+  }) {
+    using((Arena arena) {
+      Pointer<_Matrix> transformsArray = arena.allocate<_Matrix>(
+        sizeOf<_Matrix>() * transforms.length,
+      );
       for (int x = 0; x < transforms.length; x++)
         (transformsArray + x).ref = transforms[x].ref;
 
-      _drawMeshInstanced(mesh.ref, material.ref, transformsArray, transforms.length);
+      _drawMeshInstanced(
+        mesh.ref,
+        material.ref,
+        transformsArray,
+        transforms.length,
+      );
     });
   }
 
@@ -303,7 +375,7 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 
   /// Export mesh as code file (.h) defining multiple arrays of vertex attributes
-  bool ExportAsCode(String fileName){
+  bool ExportAsCode(String fileName) {
     return using((Arena arena) {
       Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
 
@@ -311,25 +383,24 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
     });
   }
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	Mesh operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return Mesh._Encapsulate(pointer + index, IsOwner: false);
-	}
+  Mesh operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Mesh._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(Mesh value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(Mesh value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<Mesh> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<Mesh> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
   static final _finalizer = Finalizer<Pointer<_Mesh>>((token) {
     _unloadMesh(token.ref);
@@ -345,7 +416,6 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
   }
 }
 
-
 //------------------------------------------------------------------------------------
 //                                   Shader
 //------------------------------------------------------------------------------------
@@ -360,11 +430,11 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
   _Shader get ref => pointer.ref;
   set ref(_Shader value) => pointer.ref = value;
 
-	/// Shader program id
+  /// Shader program id
   int get id => ref.id;
-  set id (int value) => ref.id = value;
-  
-	/// Shader locations array (RL_MAX_SHADER_LOCATIONS)
+  set id(int value) => ref.id = value;
+
+  /// Shader locations array (RL_MAX_SHADER_LOCATIONS)
   late final Int32List locs;
   final Map<String, int> uniformLocIndex = {};
   final Map<String, int> attbLocIndex = {};
@@ -373,41 +443,39 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
     locs = ref.locs.asTypedList(32);
   }
 
-	// ignore: unused_element_parameter, unused_element
-	Shader._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
+  // ignore: unused_element_parameter, unused_element
+  Shader._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
 
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
-	}
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
-	// ignore: unused_element_parameter, unused_element
-	Shader._Recieve(_Shader result): super(sizeOf<_Shader>()) {
-		ref = result;
+  // ignore: unused_element_parameter, unused_element
+  Shader._Recieve(_Shader result) : super(sizeOf<_Shader>()) {
+    ref = result;
     _setReferences();
     _finalizer.attach(this, pointer.cast(), detach: this);
-	}
+  }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
   /// Load shader from files and bind default locations
-  factory Shader(String? vsFileName, String? fsFileName,[ RaylibArena? arena ]) {
+  factory Shader(String? vsFileName, String? fsFileName, [RaylibArena? arena]) {
     Pointer<Utf8> cvsFileName = (vsFileName != null)
-      ? vsFileName.toNativeUtf8()
-      : nullptr;
+        ? vsFileName.toNativeUtf8()
+        : nullptr;
     Pointer<Utf8> cfsFileName = (fsFileName != null)
-      ? fsFileName.toNativeUtf8()
-      : nullptr;
+        ? fsFileName.toNativeUtf8()
+        : nullptr;
 
     _Shader result;
 
     try {
       result = _loadShader(cvsFileName, cfsFileName);
-    }
-    catch(error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cvsFileName);
       malloc.free(cfsFileName);
     }
@@ -418,23 +486,21 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
   }
 
   /// Load shader from code strings and bind default locations
-  factory Shader.FromMemory(Uint8List? vsCode, Uint8List? fsCode,[ RaylibArena? arena ]) {
-    Pointer<Utf8> cvsCode = (vsCode != null)
-      ? vsCode.toUTF8Pointer()
-      : nullptr;
-    Pointer<Utf8> cfsCode = (fsCode != null)
-      ? fsCode.toUTF8Pointer()
-      : nullptr;
-    
+  factory Shader.FromMemory(
+    Uint8List? vsCode,
+    Uint8List? fsCode, [
+    RaylibArena? arena,
+  ]) {
+    Pointer<Utf8> cvsCode = (vsCode != null) ? vsCode.toUTF8Pointer() : nullptr;
+    Pointer<Utf8> cfsCode = (fsCode != null) ? fsCode.toUTF8Pointer() : nullptr;
+
     _Shader result;
 
     try {
       result = _loadShaderFromMemory(cvsCode, cfsCode);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cvsCode);
       malloc.free(cfsCode);
     }
@@ -468,22 +534,20 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
   }
 
   /// Set shader uniform value
-  /// 
+  ///
   /// The class automatically registers the locIndex of an attribute or uniform searched on [uniformLocIndex]
-  /// 
+  ///
   /// map and [attbLocIndex] map.
   void SetValue(int locIndex, Object value, ShaderUniformDataType type) {
     if (value is int) {
       var tempPtr = malloc.allocate<Int32>(sizeOf<Int32>());
       tempPtr.value = value;
       _setShaderValue(ref, locIndex, tempPtr.cast<Void>(), type.index);
-    }
-    else if (value is double) {
+    } else if (value is double) {
       var tempPtr = malloc.allocate<Float>(sizeOf<Float>());
       tempPtr.value = value;
       _setShaderValue(ref, locIndex, tempPtr.cast<Void>(), type.index);
-    }
-    else if (value is Vector2)
+    } else if (value is Vector2)
       _setShaderValue(ref, locIndex, value.pointer.cast<Void>(), type.index);
     else if (value is Vector3)
       _setShaderValue(ref, locIndex, value.pointer.cast<Void>(), type.index);
@@ -497,68 +561,116 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
     else
       return;
   }
-  
+
   /// Set shader uniform value vector
-  void SetValueV(int locIndex, List<Object> values, ShaderUniformDataType type) {
+  void SetValueV(
+    int locIndex,
+    List<Object> values,
+    ShaderUniformDataType type,
+  ) {
     return using((arena) {
       if (values.first is int) {
-        Pointer<Int32> tempPtr = arena.allocate<Int32>(sizeOf<Int32>() * values.length);
+        Pointer<Int32> tempPtr = arena.allocate<Int32>(
+          sizeOf<Int32>() * values.length,
+        );
 
         for (int x = 0; x < values.length; x++)
           tempPtr[x] = (values as List<int>)[x];
-        
-        _setShaderValueV(ref, locIndex, .fromAddress(tempPtr.address), type.index, values.length);
-      }
-      else if (values.first is double) {
-        Pointer<Float> tempPtr = arena.allocate<Float>(sizeOf<Float>() * values.length);
+
+        _setShaderValueV(
+          ref,
+          locIndex,
+          .fromAddress(tempPtr.address),
+          type.index,
+          values.length,
+        );
+      } else if (values.first is double) {
+        Pointer<Float> tempPtr = arena.allocate<Float>(
+          sizeOf<Float>() * values.length,
+        );
 
         for (int x = 0; x < values.length; x++)
           tempPtr[x] = (values as List<double>)[x];
-        
-        _setShaderValueV(ref, locIndex, .fromAddress(tempPtr.address), type.index, values.length);
-      }
-      else if (values.first is Vector2) {
-        Pointer<_Vector2> tempPtr = arena.allocate<_Vector2>(sizeOf<_Vector2>() * values.length);
+
+        _setShaderValueV(
+          ref,
+          locIndex,
+          .fromAddress(tempPtr.address),
+          type.index,
+          values.length,
+        );
+      } else if (values.first is Vector2) {
+        Pointer<_Vector2> tempPtr = arena.allocate<_Vector2>(
+          sizeOf<_Vector2>() * values.length,
+        );
 
         for (int x = 0; x < values.length; x++)
           tempPtr[x] = (values as List<Vector2>)[x].ref;
-        
-        _setShaderValueV(ref, locIndex, .fromAddress(tempPtr.address), type.index, values.length);
-      }
-      else if (values.first is Vector3) {
-        Pointer<_Vector3> tempPtr = arena.allocate<_Vector3>(sizeOf<_Vector3>() * values.length);
+
+        _setShaderValueV(
+          ref,
+          locIndex,
+          .fromAddress(tempPtr.address),
+          type.index,
+          values.length,
+        );
+      } else if (values.first is Vector3) {
+        Pointer<_Vector3> tempPtr = arena.allocate<_Vector3>(
+          sizeOf<_Vector3>() * values.length,
+        );
 
         for (int x = 0; x < values.length; x++)
           tempPtr[x] = (values as List<Vector3>)[x].ref;
-        
-        _setShaderValueV(ref, locIndex, .fromAddress(tempPtr.address), type.index, values.length);
-      }
-      else if (values.first is Vector4) {
-        Pointer<_Vector4> tempPtr = arena.allocate<_Vector4>(sizeOf<_Vector4>() * values.length);
+
+        _setShaderValueV(
+          ref,
+          locIndex,
+          .fromAddress(tempPtr.address),
+          type.index,
+          values.length,
+        );
+      } else if (values.first is Vector4) {
+        Pointer<_Vector4> tempPtr = arena.allocate<_Vector4>(
+          sizeOf<_Vector4>() * values.length,
+        );
 
         for (int x = 0; x < values.length; x++)
           tempPtr[x] = (values as List<Vector4>)[x].ref;
-        
-        _setShaderValueV(ref, locIndex, .fromAddress(tempPtr.address), type.index, values.length);
-      }
-      else if (values.first is Texture) {
-        Pointer<Int32> tempPtr = arena.allocate<Int32>(sizeOf<Int32>() * values.length);
+
+        _setShaderValueV(
+          ref,
+          locIndex,
+          .fromAddress(tempPtr.address),
+          type.index,
+          values.length,
+        );
+      } else if (values.first is Texture) {
+        Pointer<Int32> tempPtr = arena.allocate<Int32>(
+          sizeOf<Int32>() * values.length,
+        );
 
         for (int x = 0; x < values.length; x++)
           tempPtr[x] = (values as List<Texture>)[x].id;
-        
-        _setShaderValueV(ref, locIndex, .fromAddress(tempPtr.address), type.index, values.length);
-      }
-      else
+
+        _setShaderValueV(
+          ref,
+          locIndex,
+          .fromAddress(tempPtr.address),
+          type.index,
+          values.length,
+        );
+      } else
         return;
     });
   }
 
   /// Set shader uniform value (matrix 4x4)
-  void SetValueMatrix(int locIndex, Matrix mat) => _setShaderValueMatrix(ref, locIndex, mat.ref);
-  
+  void SetValueMatrix(int locIndex, Matrix mat) =>
+      _setShaderValueMatrix(ref, locIndex, mat.ref);
+
   /// Set shader uniform value and bind the texture (sampler2d)
-  void SetValueTexture(int locIndex, Texture2D texture) => _setShaderValueTexture(ref, locIndex, texture.ref);
+  void SetValueTexture(int locIndex, Texture2D texture) =>
+      _setShaderValueTexture(ref, locIndex, texture.ref);
 
   // =================================== Deconstructor ====================================
 
@@ -590,21 +702,21 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
 /// MaterialMap
 class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
   _MaterialMap get ref => pointer.ref;
-  set ref(_MaterialMap value) => pointer.ref = value; 
+  set ref(_MaterialMap value) => pointer.ref = value;
 
-	/// Material map texture
+  /// Material map texture
   late final Texture _texture;
   Texture get texture => _texture;
   set texture(Texture value) => _texture.ref = value.ref;
 
-	/// Material map color
+  /// Material map color
   late final Color _color;
   Color get color => _color;
   set color(Color value) => _color.ref = value.ref;
 
-	/// Material map value
+  /// Material map value
   double get value => ref.value;
-	set value(num value) => ref.value = value.toDouble();
+  set value(num value) => ref.value = value.toDouble();
 
   void setReferences(Pointer<_MaterialMap> pointer) {
     int address = pointer.address;
@@ -614,37 +726,37 @@ class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
     color = Color._Encapsulate(.fromAddress(address));
   }
 
-	// ignore: unused_element_parameter, unused_element
-	MaterialMap._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
-		// if (IsOwner)
-		// 	_nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  MaterialMap._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
+    // if (IsOwner)
+    // 	_nativeFinalizer.attach(this, pointer.cast(), detach: this);
+  }
 
-	// ignore: unused_element_parameter, unused_element
-	MaterialMap._Recieve(_MaterialMap result): super(sizeOf<_MaterialMap>()) {
-		ref = result;
-		// _nativeFinalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  MaterialMap._Recieve(_MaterialMap result) : super(sizeOf<_MaterialMap>()) {
+    ref = result;
+    // _nativeFinalizer.attach(this, pointer.cast(), detach: this);
+  }
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	MaterialMap operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return MaterialMap._Encapsulate(pointer + index, IsOwner: false);
-	}
+  MaterialMap operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return MaterialMap._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(MaterialMap value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(MaterialMap value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<MaterialMap> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<MaterialMap> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
   /* 
   static final _finalizer = Finalizer<Pointer<_MaterialMap>>((token) {
     malloc.free(token);
@@ -670,34 +782,34 @@ class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
 /// Material, includes shader and maps
 class Material extends NativeWrapper<_Material> implements Finalizable {
   _Material get ref => pointer.ref;
-  set ref (_Material value) => pointer.ref = value;
+  set ref(_Material value) => pointer.ref = value;
 
-	/// Material shader
+  /// Material shader
   late final Shader _shader;
   Shader get shader => _shader;
   set shader(Shader value) => ref.shader = value.ref;
 
-	/// Material maps array (MAX_MATERIAL_MAPS)
+  /// Material maps array (MAX_MATERIAL_MAPS)
   late final MaterialMap _materialMap;
   MaterialMap get materialMap => _materialMap;
   set materialMap(MaterialMap value) => _materialMap.ref = value.ref;
 
-	/// Material generic parameters (if required)
+  /// Material generic parameters (if required)
   Float32List get params => ref.params.elements;
 
   void _setReferences() {
     int address = pointer.address;
     _shader = Shader._Encapsulate(.fromAddress(address));
-    
+
     address += sizeOf<_Shader>();
     _materialMap = MaterialMap._Encapsulate(.fromAddress(address));
   }
 
   // ignore: unused_element_parameter
-  Material._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+  Material._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   Material._Recieve(_Material result) : super(sizeOf<_Material>()) {
@@ -706,10 +818,10 @@ class Material extends NativeWrapper<_Material> implements Finalizable {
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
   /// Load materials from model file
-  factory Material.LoadMaterials(String fileName,[ RaylibArena? arena ]) {
+  factory Material.LoadMaterials(String fileName, [RaylibArena? arena]) {
     Pointer<Utf8> cfileName = fileName.toNativeUtf8();
     Pointer<Int32> materialCount = malloc.allocate<Int32>(sizeOf<Int32>());
     Pointer<_Material> result;
@@ -718,12 +830,14 @@ class Material extends NativeWrapper<_Material> implements Finalizable {
 
     try {
       result = _loadMaterials(cfileName, materialCount);
-      material = Material._Encapsulate(result, IsOwner: true, length: materialCount.value);
-    }
-    catch (error) {
+      material = Material._Encapsulate(
+        result,
+        IsOwner: true,
+        length: materialCount.value,
+      );
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cfileName);
       malloc.free(materialCount);
     }
@@ -745,27 +859,29 @@ class Material extends NativeWrapper<_Material> implements Finalizable {
   void Unload() => Free();
 
   /// Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...)
-  void SetTexture({ required MaterialMapIndex mapType, required Texture2D texture }) {
+  void SetTexture({
+    required MaterialMapIndex mapType,
+    required Texture2D texture,
+  }) {
     _setMaterialTexture(pointer, mapType.index, texture.ref);
   }
 
-	// ===================================== Operators ======================================
+  // ===================================== Operators ======================================
 
-	Material operator[](int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		return Material._Encapsulate(pointer + index, IsOwner: false);
-	}
+  Material operator [](int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    return Material._Encapsulate(pointer + index, IsOwner: false);
+  }
 
-	void operator[]=(Material value, int index) {
-		if (index < 0 || index >= length) throw RangeError(index);
-		(pointer + index).ref = value.ref;
-	}
+  void operator []=(Material value, int index) {
+    if (index < 0 || index >= length) throw RangeError(index);
+    (pointer + index).ref = value.ref;
+  }
 
-	@override
-	Iterable<Material> get values sync* {
-		for (int x = 0; x < length; x++)
-			yield this[x];
-	}
+  @override
+  Iterable<Material> get values sync* {
+    for (int x = 0; x < length; x++) yield this[x];
+  }
 
   // =================================== Deconstructor ====================================
 

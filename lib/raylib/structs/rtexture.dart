@@ -12,38 +12,42 @@ part of '../raylib.dart';
 /// Texture, tex data stored in GPU memory (VRAM)
 class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
   _Texture2D get ref => pointer.ref;
-  set ref (_Texture2D value) => pointer.ref = value;
+  set ref(_Texture2D value) => pointer.ref = value;
 
-	/// OpenGL texture id
-	int get id => ref.id;
-	/// Texture base width
-	int get width => ref.width;
-	/// Texture base height
-	int get height => ref.height;
-	/// Mipmap levels, 1 by default
-	int get mipmaps => ref.mipmaps;
-	/// Data format (PixelFormat type)
-	int get format => ref.format;
+  /// OpenGL texture id
+  int get id => ref.id;
 
-	set id(int value) => ref.id = value;
-	set width(int value) => ref.width = value;
-	set height(int value) => ref.height = value;
-	set mipmaps(int value) => ref.mipmaps = value;
-	set format(int value) => ref.format = value;
+  /// Texture base width
+  int get width => ref.width;
+
+  /// Texture base height
+  int get height => ref.height;
+
+  /// Mipmap levels, 1 by default
+  int get mipmaps => ref.mipmaps;
+
+  /// Data format (PixelFormat type)
+  int get format => ref.format;
+
+  set id(int value) => ref.id = value;
+  set width(int value) => ref.width = value;
+  set height(int value) => ref.height = value;
+  set mipmaps(int value) => ref.mipmaps = value;
+  set format(int value) => ref.format = value;
 
   // ignore: unused_element_parameter, unused_element
-  Texture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
+  Texture2D._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
   // ignore: unused_element_parameter, unused_element
-  Texture2D._Recieve(_Texture result): super(sizeOf<_Texture>()) {
+  Texture2D._Recieve(_Texture result) : super(sizeOf<_Texture>()) {
     ref = result;
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
   /// Load texture from file into GPU memory (VRAM)
   factory Texture2D(String fileName) {
@@ -52,11 +56,9 @@ class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
 
     try {
       result = _loadTexture(cFileName);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    } 
-    finally {
+    } finally {
       malloc.free(cFileName);
     }
 
@@ -69,8 +71,7 @@ class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
 
     try {
       result = _loadTextureFromImage(image.ref);
-    }
-    catch(error) {
+    } catch (error) {
       rethrow;
     }
 
@@ -80,8 +81,10 @@ class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
   //---------------------------------Utilities-----------------------------------------
   /// Generate GPU mipmaps for a texture
   void GenMipmaps() => _genTextureMipmaps(pointer);
+
   /// Set texture scaling filter mode
   void SetFilter(TextureFilter filter) => _setTextureFilter(ref, filter.index);
+
   /// Set texture wrapping mode
   void SetWrap(TextureWrap wrap) => _setTextureWrap(ref, wrap.index);
 
@@ -101,74 +104,152 @@ class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
   }
 
   /// Draw a Texture2D
-  static void Draw(Texture2D texture,{ int posX = 0, int posY = 0, Color? tint }) {
+  static void Draw(
+    Texture2D texture, {
+    int posX = 0,
+    int posY = 0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     _drawTexture(texture.ref, posX, posY, tint.ref);
   }
 
   /// Draw a Texture2D with position defined as Vector2
-  static void DrawV(Texture2D texture,{ required Vector2 position, Color? tint }) {
+  static void DrawV(
+    Texture2D texture, {
+    required Vector2 position,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     _drawTextureV(texture.ref, position.ref, tint.ref);
   }
 
   /// Draw a Texture2D with extended parameters
-  static void DrawEx(Texture2D texture,{ Vector2? position, double rotation = 0.0, double scale = 1.0, Color? tint })
-  {
+  static void DrawEx(
+    Texture2D texture, {
+    Vector2? position,
+    double rotation = 0.0,
+    double scale = 1.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     position ??= Vector2.Zero();
     _drawTextureEx(texture.ref, position.ref, rotation, scale, tint.ref);
   }
 
   /// Draw a part of a texture defined by a rectangle
-  static void DrawRec(Texture2D texture, Rectangle source,{ Vector2? position, Color? tint })
-  {
+  static void DrawRec(
+    Texture2D texture,
+    Rectangle source, {
+    Vector2? position,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     position ??= Vector2.Zero();
     _drawTextureRec(texture.ref, source.ref, position.ref, tint.ref);
   }
 
   /// Draw a part of a texture defined by a rectangle with 'pro' parameters
-  static void DrawPro(Texture2D texture, Rectangle source, Rectangle dest,{ Vector2? origin, double rotation = 0.0, Color? tint })
-  {
+  static void DrawPro(
+    Texture2D texture,
+    Rectangle source,
+    Rectangle dest, {
+    Vector2? origin,
+    double rotation = 0.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     origin ??= Vector2.Zero();
-    _drawTexturePro(texture.ref, source.ref, dest.ref, origin.ref, rotation, tint.ref);
+    _drawTexturePro(
+      texture.ref,
+      source.ref,
+      dest.ref,
+      origin.ref,
+      rotation,
+      tint.ref,
+    );
   }
 
   /// Draws a texture (or part of it) that stretches or shrinks nicely
   static void DrawNPatch(
-    Texture2D texture, NPatchInfo nPatchInfo, Rectangle dest,
-    { Vector2? origin, double rotation = 0.0, Color? tint }
-  ) {
+    Texture2D texture,
+    NPatchInfo nPatchInfo,
+    Rectangle dest, {
+    Vector2? origin,
+    double rotation = 0.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     origin ??= Vector2.Zero();
-    _drawTextureNPatch(texture.ref, nPatchInfo.ref, dest.ref, origin.ref, rotation, tint.ref);
+    _drawTextureNPatch(
+      texture.ref,
+      nPatchInfo.ref,
+      dest.ref,
+      origin.ref,
+      rotation,
+      tint.ref,
+    );
   }
 
   /// Draw a billboard texture
-  static void DrawBillboard(Texture2D texture, Vector3 position, {required Camera camera, double scale = 0.0, Color? tint})
-  {
+  static void DrawBillboard(
+    Texture2D texture,
+    Vector3 position, {
+    required Camera camera,
+    double scale = 0.0,
+    Color? tint,
+  }) {
     tint ??= Color.WHITE;
     _drawBillboard(camera.ref, texture.ref, position.ref, scale, tint.ref);
   }
 
   /// Draw a billboard texture defined by source
-  static void DrawBillboardRec(Texture2D texture, Vector3 position, Rectangle source,{ required Camera camera, Vector2? size, Color? tint})
-  {
+  static void DrawBillboardRec(
+    Texture2D texture,
+    Vector3 position,
+    Rectangle source, {
+    required Camera camera,
+    Vector2? size,
+    Color? tint,
+  }) {
     size ??= Vector2.One();
     tint ??= Color.WHITE;
-    _drawBillboardRec(camera.ref, texture.ref, source.ref, position.ref, size.ref, tint.ref);
+    _drawBillboardRec(
+      camera.ref,
+      texture.ref,
+      source.ref,
+      position.ref,
+      size.ref,
+      tint.ref,
+    );
   }
 
   /// Draw a billboard texture defined by source and rotation
   static void DrawBillboardPro(
-    Texture2D texture, Rectangle source, Vector3 position,
-   { required Camera camera, required Vector3 up, Vector2? size, Vector2? origin, double rotation = 0.0, Color? tint}) {
+    Texture2D texture,
+    Rectangle source,
+    Vector3 position, {
+    required Camera camera,
+    required Vector3 up,
+    Vector2? size,
+    Vector2? origin,
+    double rotation = 0.0,
+    Color? tint,
+  }) {
     size ??= Vector2.One();
     origin ??= Vector2.One();
     tint ??= Color.WHITE;
-    _drawBillboardPro(camera.ref, texture.ref, source.ref, position.ref, up.ref, size.ref, origin.ref, rotation, tint.ref);
+    _drawBillboardPro(
+      camera.ref,
+      texture.ref,
+      source.ref,
+      position.ref,
+      up.ref,
+      size.ref,
+      origin.ref,
+      rotation,
+      tint.ref,
+    );
   }
 
   // =================================== Deconstructor ====================================
@@ -210,21 +291,22 @@ class TextureCubemap extends Texture2D {
 // final _freeRenderTexture = _dyReleaseLib.lookup<NativeFunction<_FreeRenderTextureC>>('FreeRenderTexture');
 
 /// RenderTexture, fbo for texture rendering
-class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finalizable {
+class RenderTexture2D extends NativeWrapper<_RenderTexture2D>
+    implements Finalizable {
   _RenderTexture2D get ref => pointer.ref;
-  set ref (_RenderTexture2D value) => pointer.ref = value;
+  set ref(_RenderTexture2D value) => pointer.ref = value;
 
   late final Texture texture;
   late final Texture depth;
 
-	/// OpenGL framebuffer object id
-	int get id => ref.id;
-	set id(int value) => ref.id = value;
+  /// OpenGL framebuffer object id
+  int get id => ref.id;
+  set id(int value) => ref.id = value;
 
   int get width => texture.width;
-	set width(int value) => texture.width = value;
+  set width(int value) => texture.width = value;
   int get height => texture.height;
-	set height(int value) => texture.height = value;
+  set height(int value) => texture.height = value;
 
   void _setReferences() {
     int address = pointer.address + sizeOf<Int32>();
@@ -235,21 +317,22 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finaliz
   }
 
   // ignore: unused_element_parameter, unused_element
-  RenderTexture2D._Encapsulate(super.pointer,{ super.IsOwner, super.length }) : super.fromAddress() {
+  RenderTexture2D._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
     _setReferences();
 
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  RenderTexture2D._Recieve(_RenderTexture result) : super(sizeOf<_RenderTexture>()) {
+  RenderTexture2D._Recieve(_RenderTexture result)
+    : super(sizeOf<_RenderTexture>()) {
     ref = result;
     _setReferences();
-		_finalizer.attach(this, pointer.cast(), detach: this);
+    _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// ==================================== Constructor =====================================
-  
+  // ==================================== Constructor =====================================
+
   /// Load texture for rendering (framebuffer)
   factory RenderTexture2D(num width, num height) {
     final renderTexture2D = _loadRenderTexture(width.toInt(), height.toInt());
@@ -258,7 +341,7 @@ class RenderTexture2D extends NativeWrapper<_RenderTexture2D> implements Finaliz
 
   /// Check if a render texture is valid (loaded in GPU)
   bool isValid() => _isRenderTextureValid(ref);
-  
+
   // =================================== Deconstructor ====================================
 
   static final _finalizer = Finalizer<Pointer<_RenderTexture2D>>((token) {

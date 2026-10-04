@@ -11,54 +11,56 @@ part of '../raylib.dart';
 /// Image, pixel data stored in CPU memory (RAM)
 class Image extends NativeWrapper<_Image> implements Finalizable {
   _Image get ref => pointer.ref;
-  set ref (_Image value) => pointer.ref = value;
+  set ref(_Image value) => pointer.ref = value;
 
-	/// Image raw data
-	Pointer<Void> get data => ref.data;
-	/// Image base width
-	int get width => ref.width;
-	/// Image base height
-	int get height => ref.height;
-	/// Mipmap levels, 1 by default
-	int get mipmaps => ref.mipmaps;
-	/// Data format (PixelFormat type)
-	int get format => ref.format;
+  /// Image raw data
+  Pointer<Void> get data => ref.data;
 
-	set data(Pointer value) => ref.data = value.cast();
-	set width(int value) => ref.width = value;
-	set height(int value) => ref.height = value;
-	set mipmaps(int value) => ref.mipmaps = value;
-	set format(int value) => ref.format = value;
+  /// Image base width
+  int get width => ref.width;
+
+  /// Image base height
+  int get height => ref.height;
+
+  /// Mipmap levels, 1 by default
+  int get mipmaps => ref.mipmaps;
+
+  /// Data format (PixelFormat type)
+  int get format => ref.format;
+
+  set data(Pointer value) => ref.data = value.cast();
+  set width(int value) => ref.width = value;
+  set height(int value) => ref.height = value;
+  set mipmaps(int value) => ref.mipmaps = value;
+  set format(int value) => ref.format = value;
 
   int frameCount = 0;
   int fileSize = 0;
 
-	// ignore: unused_element_parameter, unused_element
-	Image._Encapsulate(super.pointer,{ super.IsOwner, super.length }): super.fromAddress() {
-    if (IsOwner)
-      _finalizer.attach(this, pointer.cast(), detach: this);
-	}
+  // ignore: unused_element_parameter, unused_element
+  Image._Encapsulate(super.pointer, {super.IsOwner, super.length})
+    : super.fromAddress() {
+    if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
+  }
 
-	// ignore: unused_element_parameter, unused_element
-	Image._Recieve(_Image result): super(sizeOf<_Image>()) {
+  // ignore: unused_element_parameter, unused_element
+  Image._Recieve(_Image result) : super(sizeOf<_Image>()) {
     ref = result;
     _finalizer.attach(this, pointer.cast(), detach: this);
-	}
+  }
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
   /// Load image from file into CPU memory (RAM)
-  factory Image(String path,[ RaylibArena? arena ]) {
+  factory Image(String path, [RaylibArena? arena]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
     _Image result;
 
     try {
       result = _loadImage(cPath);
-    }
-    catch(error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cPath);
     }
 
@@ -68,17 +70,22 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
   }
 
   /// Load image from RAW file data
-  factory Image.Raw(String path, int width, int height, PixelFormat format, int headerSize,[ RaylibArena? arena ]) {
+  factory Image.Raw(
+    String path,
+    int width,
+    int height,
+    PixelFormat format,
+    int headerSize, [
+    RaylibArena? arena,
+  ]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
     _Image result;
 
     try {
       result = _loadImageRaw(cPath, width, height, format.index, headerSize);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cPath);
     }
 
@@ -88,45 +95,50 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
   }
 
   /// Load image sequence from file (frames appended to image.data)
-  factory Image.Anim(String path,[ RaylibArena? arena ]) {
+  factory Image.Anim(String path, [RaylibArena? arena]) {
     Pointer<Utf8> cPath = path.toNativeUtf8();
     Pointer<Int32> frameCount = malloc.allocate<Int32>(sizeOf<Int32>());
     _Image result;
 
     try {
       result = _loadImageAnim(cPath, frameCount);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cPath);
       malloc.free(frameCount);
     }
 
-    Image image = Image._Recieve(result)..frameCount = frameCount.value; 
+    Image image = Image._Recieve(result)..frameCount = frameCount.value;
     arena?.register(image);
     return image;
   }
 
   /// Load image sequence from memory buffer
-  factory Image.AnimFromMemory(String fileType, Uint8List bytes,[ RaylibArena? arena ]) {
+  factory Image.AnimFromMemory(
+    String fileType,
+    Uint8List bytes, [
+    RaylibArena? arena,
+  ]) {
     if (bytes.isEmpty) throw Exception("[Dart] byte array passed is empty!");
-    
+
     Pointer<Utf8> cFileType = fileType.toNativeUtf8();
     Pointer<Int32> frameCount = malloc.allocate<Int32>(sizeOf<Int32>());
     Pointer<Uint8> data = malloc.allocate<Uint8>(bytes.length);
     data.asTypedList(bytes.length).setAll(0, bytes);
-    
+
     _Image result;
 
     try {
-      result = _loadImageAnimFromMemory(cFileType, data, bytes.length, frameCount);
-    }
-    catch (error) {
+      result = _loadImageAnimFromMemory(
+        cFileType,
+        data,
+        bytes.length,
+        frameCount,
+      );
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cFileType);
       malloc.free(frameCount);
       malloc.free(data);
@@ -138,7 +150,11 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
   }
 
   /// Load image from memory buffer, fileType refers to extension: i.e. '.png'
-  factory Image.FromMemory(String fileType, Uint8List fileData,[ RaylibArena? arena ]) {
+  factory Image.FromMemory(
+    String fileType,
+    Uint8List fileData, [
+    RaylibArena? arena,
+  ]) {
     Pointer<Utf8> cFileType = fileType.toNativeUtf8();
     Pointer<Uint8> data = malloc.allocate<Uint8>(fileData.length);
     data.asTypedList(fileData.length).setAll(0, fileData);
@@ -147,11 +163,9 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
 
     try {
       result = _loadImageFromMemory(cFileType, data, fileData.length);
-    }
-    catch (error) {
+    } catch (error) {
       rethrow;
-    }
-    finally {
+    } finally {
       malloc.free(cFileType);
       malloc.free(data);
     }
@@ -162,9 +176,9 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
   }
 
   /// Load image from GPU texture data
-	//  Texture2D shadow class not yet implemented
-	//  uncommment when done
-  factory Image.LoadFromTexture(Texture2D texture,[ RaylibArena? arena ]) {
+  //  Texture2D shadow class not yet implemented
+  //  uncommment when done
+  factory Image.LoadFromTexture(Texture2D texture, [RaylibArena? arena]) {
     final result = _loadImageFromTexture(texture.ref);
     Image image = Image._Recieve(result);
     arena?.register(image);
@@ -172,112 +186,178 @@ class Image extends NativeWrapper<_Image> implements Finalizable {
   }
 
   /// Load image from screen buffer and (screenshot)
-  factory Image.FromScreen([ RaylibArena? arena ]) {
+  factory Image.FromScreen([RaylibArena? arena]) {
     final result = _loadImageFromScreen();
     Image image = Image._Recieve(result);
     arena?.register(image);
     return image;
   }
 
-//---------------------------------Generators-----------------------------------------
-/// Generate image: plain color
-static Image FromColor(int width, int height, Color color,[ RaylibArena? arena ]) {
-  _Image result = _genImageColor(width, height, color.ref);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
-static Image GradientLinear(
-  int width, int height,{
-  required int direction,
-  required Color start,
-  required Color end,
-  RaylibArena? arena
-}) {
-  _Image result = _genImageGradientLinear(width, height, direction, start.ref, end.ref);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: radial gradient
-static Image GradientRadial(
-  int width, int height,{
-  required double density,
-  required Color inner,
-  required Color outer,
-  RaylibArena? arena
-}) {
-  _Image result = _genImageGradientRadial(width, height, density, inner.ref, outer.ref);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: square gradient
-static Image GradientSquare(
-  int width, int height,{
-  required double density,
-  required Color inner,
-  required Color outer,
-  RaylibArena? arena
-}) {
-  _Image result = _genImageGradientSquare(width, height, density, inner.ref, outer.ref);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: checked
-static Image Checked(
-  int width, int height,
- {required int checksX, required int checksY, required Color col1, required Color col2, RaylibArena? arena}
-) {
-  _Image result = _genImageChecked(width, height, checksX, checksY, col1.ref, col2.ref);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: white noise
-static Image WhiteNoise(int width, int height,{ required double factor, RaylibArena? arena }) {
-  _Image result = _genImageWhiteNoise(width, height, factor);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: perlin noise
-static Image PerlinNoise(int width, int height,{ required int offsetX, required int offsetY, required double scale, RaylibArena? arena }) {
-  _Image result = _genImagePerlinNoise(width, height, offsetX, offsetY, scale);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-/// Generate image: cellular algorithm, bigger tileSize means bigger cells
-static Image Cellular(int width, int height, int tileSize, [RaylibArena? arena]) {
-  _Image result = _genImageCellular(width, height, tileSize);
-  Image image = Image._Recieve(result);
-  arena?.register(image);
-  return image;
-}
-
-static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) {
-  return using ((Arena tempArena) {
-    Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
-
-    _Image result = _genImageText(width, height, ctext);
+  //---------------------------------Generators-----------------------------------------
+  /// Generate image: plain color
+  static Image FromColor(
+    int width,
+    int height,
+    Color color, [
+    RaylibArena? arena,
+  ]) {
+    _Image result = _genImageColor(width, height, color.ref);
     Image image = Image._Recieve(result);
     arena?.register(image);
     return image;
-  });
-}
+  }
+
+  /// Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
+  static Image GradientLinear(
+    int width,
+    int height, {
+    required int direction,
+    required Color start,
+    required Color end,
+    RaylibArena? arena,
+  }) {
+    _Image result = _genImageGradientLinear(
+      width,
+      height,
+      direction,
+      start.ref,
+      end.ref,
+    );
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  /// Generate image: radial gradient
+  static Image GradientRadial(
+    int width,
+    int height, {
+    required double density,
+    required Color inner,
+    required Color outer,
+    RaylibArena? arena,
+  }) {
+    _Image result = _genImageGradientRadial(
+      width,
+      height,
+      density,
+      inner.ref,
+      outer.ref,
+    );
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  /// Generate image: square gradient
+  static Image GradientSquare(
+    int width,
+    int height, {
+    required double density,
+    required Color inner,
+    required Color outer,
+    RaylibArena? arena,
+  }) {
+    _Image result = _genImageGradientSquare(
+      width,
+      height,
+      density,
+      inner.ref,
+      outer.ref,
+    );
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  /// Generate image: checked
+  static Image Checked(
+    int width,
+    int height, {
+    required int checksX,
+    required int checksY,
+    required Color col1,
+    required Color col2,
+    RaylibArena? arena,
+  }) {
+    _Image result = _genImageChecked(
+      width,
+      height,
+      checksX,
+      checksY,
+      col1.ref,
+      col2.ref,
+    );
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  /// Generate image: white noise
+  static Image WhiteNoise(
+    int width,
+    int height, {
+    required double factor,
+    RaylibArena? arena,
+  }) {
+    _Image result = _genImageWhiteNoise(width, height, factor);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  /// Generate image: perlin noise
+  static Image PerlinNoise(
+    int width,
+    int height, {
+    required int offsetX,
+    required int offsetY,
+    required double scale,
+    RaylibArena? arena,
+  }) {
+    _Image result = _genImagePerlinNoise(
+      width,
+      height,
+      offsetX,
+      offsetY,
+      scale,
+    );
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  /// Generate image: cellular algorithm, bigger tileSize means bigger cells
+  static Image Cellular(
+    int width,
+    int height,
+    int tileSize, [
+    RaylibArena? arena,
+  ]) {
+    _Image result = _genImageCellular(width, height, tileSize);
+    Image image = Image._Recieve(result);
+    arena?.register(image);
+    return image;
+  }
+
+  static Image GenText(
+    int width,
+    int height,
+    String text, [
+    RaylibArena? arena,
+  ]) {
+    return using((Arena tempArena) {
+      Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
+
+      _Image result = _genImageText(width, height, ctext);
+      Image image = Image._Recieve(result);
+      arena?.register(image);
+      return image;
+    });
+  }
 
   /// Create an image duplicate (useful for transformations)
-  static Image Copy(Image image,[ RaylibArena? arena ]) {
+  static Image Copy(Image image, [RaylibArena? arena]) {
     _Image result = _imageCopy(image.ref);
     Image copy = Image._Recieve(result);
     arena?.register(copy);
@@ -285,7 +365,7 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
   }
 
   /// Create an image from another image piece
-  static Image FromImage(Image image, Rectangle rect,[ RaylibArena? arena ]) {
+  static Image FromImage(Image image, Rectangle rect, [RaylibArena? arena]) {
     _Image result = _imageFromImage(image.ref, rect.ref);
     Image resultImage = Image._Recieve(result);
     arena?.register(resultImage);
@@ -293,7 +373,11 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
   }
 
   /// Create an image from a selected channel of another image (GRAYSCALE)
-  static Image FromChannel(Image image, int selectedChannel,[ RaylibArena? arena ]) {
+  static Image FromChannel(
+    Image image,
+    int selectedChannel, [
+    RaylibArena? arena,
+  ]) {
     _Image result = _imageFromChannel(image.ref, selectedChannel);
     Image resultImage = Image._Recieve(result);
     arena?.register(resultImage);
@@ -301,8 +385,13 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
   }
 
   /// Create an image from text (default font)
-  static Image Text(String text,{ required int fontSize, Color? color, RaylibArena? arena }) {
-    return using ((Arena tempArena) {
+  static Image Text(
+    String text, {
+    required int fontSize,
+    Color? color,
+    RaylibArena? arena,
+  }) {
+    return using((Arena tempArena) {
       Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
       final finalcolor = color ?? Color.WHITE;
 
@@ -314,123 +403,198 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
   }
 
   /// Create an image from text (custom sprite font)
-  static Image TextEx(Font font, String text,{ required double fontSize, required double spacing, Color? tint, RaylibArena? arena }) {
-    return using ((Arena tempArena) {
+  static Image TextEx(
+    Font font,
+    String text, {
+    required double fontSize,
+    required double spacing,
+    Color? tint,
+    RaylibArena? arena,
+  }) {
+    return using((Arena tempArena) {
       Pointer<Utf8> ctext = text.toNativeUtf8(allocator: tempArena);
       final finaltint = tint ?? Color.WHITE;
 
-      _Image result = _imageTextEx(font.ref, ctext, fontSize, spacing, finaltint.ref);
+      _Image result = _imageTextEx(
+        font.ref,
+        ctext,
+        fontSize,
+        spacing,
+        finaltint.ref,
+      );
       Image image = Image._Recieve(result);
       arena?.register(image);
       return image;
     });
   }
-//----------------------------------Methods-------------------------------------------
+
+  //----------------------------------Methods-------------------------------------------
   /// Convert image data to desired format
   void Format(PixelFormat newFormat) => _imageFormat(pointer, newFormat.index);
+
   /// Convert image to POT (power-of-two)
   void ToPOT(Color fill) => _imageToPOT(pointer, fill.ref);
+
   /// Crop an image to a defined rectangle
   void Crop(Rectangle crop) => _imageCrop(pointer, crop.ref);
+
   /// Crop image depending on alpha value
   void AlphaCrop(double threshold) => _imageAlphaCrop(pointer, threshold);
+
   /// Clear alpha channel to desired color
-  void AlphaClear(Color color, double threshold) => _imageAlphaClear(pointer, color.ref, threshold);
+  void AlphaClear(Color color, double threshold) =>
+      _imageAlphaClear(pointer, color.ref, threshold);
+
   /// Apply alpha mask to image
   void AlphaMask(Image alphaMask) => _imageAlphaMask(pointer, alphaMask.ref);
+
   /// Premultiply alpha channel
   void AlphaPremultiply() => _imageAlphaPremultiply(pointer);
+
   /// Apply Gaussian blur using a box blur approximation
   void BlurGaussian(int blurSize) => _imageBlurGaussian(pointer, blurSize);
-  /// Apply custom square convolution kernel to image
-  void KernelConvolution({ required List<double> kernel, required int kernelSize }) {
-    if (kernel.length != kernelSize*kernelSize) throw ArgumentError("Invalid kernel. Expected: ${kernelSize*kernelSize}, Recieved: ${kernel.length}");
 
-    using ((Arena arena) {
-      Pointer<Float> ckernel = arena.allocate<Float>(sizeOf<Float>() * kernel.length);
+  /// Apply custom square convolution kernel to image
+  void KernelConvolution({
+    required List<double> kernel,
+    required int kernelSize,
+  }) {
+    if (kernel.length != kernelSize * kernelSize)
+      throw ArgumentError(
+        "Invalid kernel. Expected: ${kernelSize * kernelSize}, Recieved: ${kernel.length}",
+      );
+
+    using((Arena arena) {
+      Pointer<Float> ckernel = arena.allocate<Float>(
+        sizeOf<Float>() * kernel.length,
+      );
       ckernel.asTypedList(kernelSize).setAll(0, kernel);
 
       _imageKernelConvolution(pointer, ckernel, kernelSize);
     });
   }
+
   /// Resize image (Bicubic scaling algorithm)
-  void Resize(int newWidth, int newHeight) => _imageResize(pointer, newWidth, newHeight);
+  void Resize(int newWidth, int newHeight) =>
+      _imageResize(pointer, newWidth, newHeight);
+
   /// Resize image (Nearest-Neighbor scaling algorithm)
-  void ResizeNN(int newWidth, int newHeight) => _imageResizeNN(pointer, newWidth, newHeight);
+  void ResizeNN(int newWidth, int newHeight) =>
+      _imageResizeNN(pointer, newWidth, newHeight);
+
   /// Resize canvas and fill with color
-  void ResizeCanvas(int newWidth, int newHeight,{ required int offsetX, required int offsetY, required Color fill }) => _imageResizeCanvas(pointer, newWidth, newHeight, offsetX, offsetY, fill.ref);
+  void ResizeCanvas(
+    int newWidth,
+    int newHeight, {
+    required int offsetX,
+    required int offsetY,
+    required Color fill,
+  }) => _imageResizeCanvas(
+    pointer,
+    newWidth,
+    newHeight,
+    offsetX,
+    offsetY,
+    fill.ref,
+  );
+
   /// Compute all mipmap levels for a provided image
   void Mipmaps() => _imageMipmaps(pointer);
+
   /// Flip image vertically
-  void Dither(int rBpp, int gBpp, int bBpp, int aBpp) => _imageDither(pointer, rBpp, gBpp, bBpp, aBpp);
+  void Dither(int rBpp, int gBpp, int bBpp, int aBpp) =>
+      _imageDither(pointer, rBpp, gBpp, bBpp, aBpp);
+
   /// Flip image vertically
   void FlipVertical() => _imageFlipVertical(pointer);
+
   /// Flip image horizontally
   void FlipHorizontal() => _imageFlipHorizontal(pointer);
+
   /// Rotate image by input angle in degrees (-359 to 359)
   void Rotate(int degrees) => _imageRotate(pointer, degrees);
+
   /// Rotate image clockwise 90deg
   void RotateCW() => _imageRotateCW(pointer);
+
   /// Rotate image counter-clockwise 90deg
   void RotateCCW() => _imageRotateCCW(pointer);
+
   /// Modify image color: tint
   void ColorTint(Color color) => _imageColorTint(pointer, color.ref);
+
   /// Modify image color: invert
   void ColorInvert() => _imageColorInvert(pointer);
+
   /// Modify image color: grayscale
   void ColorGrayscale() => _imageColorGrayscale(pointer);
   // Modify image color: contrast (-100 to 100)
   void ColorContrast(double contrast) => _imageColorContrast(pointer, contrast);
+
   /// Modify image color: brightness (-255 to 255)
-  void ColorBrightness(int brightness) => _imageColorBrightness(pointer, brightness);
+  void ColorBrightness(int brightness) =>
+      _imageColorBrightness(pointer, brightness);
+
   /// Modify image color: replace color
-  void ColorReplace(Color color, Color replace) => _imageColorReplace(pointer, color.ref, replace.ref);
+  void ColorReplace(Color color, Color replace) =>
+      _imageColorReplace(pointer, color.ref, replace.ref);
 
   Color? _colors;
+
   /// Load color data from image as a Color array (RGBA - 32bit)
-  /// 
+  ///
   /// Accessed through instance member [pixels]
   Color get colors {
-    _colors ??= Color._Encapsulate(_loadImageColors(ref), IsOwner: true, length: width * height * 4);
+    _colors ??= Color._Encapsulate(
+      _loadImageColors(ref),
+      IsOwner: true,
+      length: width * height * 4,
+    );
     return _colors!;
   }
 
   Color? _pallet;
+
   /// Load colors palette from image as a Color array (RGBA - 32bit)
-  /// 
+  ///
   /// Accessed through intance member [pallet]
   Color pallet(int maxPalletSize) {
     if (_pallet == null) {
-      Pointer<Int32> colorCount = malloc.allocate<Int32>(sizeOf<Int32>())..value = 0;
+      Pointer<Int32> colorCount = malloc.allocate<Int32>(sizeOf<Int32>())
+        ..value = 0;
       try {
-        _pallet = Color._Encapsulate(_loadImagePalette(ref, maxPalletSize, colorCount), length: colorCount.value, IsOwner: true);
-      }
-      catch (error) {
+        _pallet = Color._Encapsulate(
+          _loadImagePalette(ref, maxPalletSize, colorCount),
+          length: colorCount.value,
+          IsOwner: true,
+        );
+      } catch (error) {
         rethrow;
-      }
-      finally {
+      } finally {
         malloc.free(colorCount);
       }
-    }
-    else {
+    } else {
       _unloadImagePalette(_pallet!.pointer);
     }
-    
+
     return _pallet!;
   }
+
   /// Get image alpha border rectangle
-  Rectangle GetAlphaBorder(double threshold) => Rectangle._Recieve(_getImageAlphaBorder(ref, threshold));
+  Rectangle GetAlphaBorder(double threshold) =>
+      Rectangle._Recieve(_getImageAlphaBorder(ref, threshold));
+
   /// Get image pixel color at (x, y) position
   Color GetColor(int x, int y) => Color._Recieve(_getImageColor(ref, x, y));
 
-//----------------------------------Utility-------------------------------------------
+  //----------------------------------Utility-------------------------------------------
 
   // Check if an image is valid (data and parameters)
   bool IsValid() => _isImageValid(ref);
-  
+
   /// Export image data to file, returns true on success
   bool Export(String fileName) {
-    return using ((Arena arena) {
+    return using((Arena arena) {
       Pointer<Utf8> cFileName = fileName.toNativeUtf8(allocator: arena);
 
       return _exportImage(pointer.ref, cFileName);
@@ -442,33 +606,29 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
     int size = 0;
 
     try {
-      using ((Arena arena) {
+      using((Arena arena) {
         final cFiletype = fileType.toNativeUtf8(allocator: arena);
         final cFileSize = arena.allocate<Int32>(sizeOf<Int32>());
 
         data = _exportImageToMemory(
           pointer.ref,
           cFiletype,
-          cFileSize
+          cFileSize,
         ).cast<Uint8>();
 
         size = cFileSize.value;
       });
 
-      if (data.IsNull || size == 0)
-        return Uint8List(0);
-      
+      if (data.IsNull || size == 0) return Uint8List(0);
+
       fileSize = size;
       final result = Uint8List.fromList(data.asTypedList(fileSize));
       return result;
-    }
-    catch (e) {
+    } catch (e) {
       print("[Dart Error]: Erro ao exportar imagem para memória: $e");
       return Uint8List(0);
-    }
-    finally {
-      if (data.IsNotNull)
-        malloc.free(data);
+    } finally {
+      if (data.IsNotNull) malloc.free(data);
     }
   }
 
@@ -482,74 +642,142 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
 
   /// Clear image background with given color
   void ClearBackgroud(Color color) => _imageClearBackground(pointer, color.ref);
+
   /// Draw pixel within an image
-  void DrawPixel(int posX, int posY, Color color) => _imageDrawPixel(pointer, posX, posY, color.ref);
+  void DrawPixel(int posX, int posY, Color color) =>
+      _imageDrawPixel(pointer, posX, posY, color.ref);
+
   /// Draw pixel within an image (Vector version)
-  void DrawPixelV(Vector2 position, Color color) => _imageDrawPixelV(pointer, position.ref, color.ref);
+  void DrawPixelV(Vector2 position, Color color) =>
+      _imageDrawPixelV(pointer, position.ref, color.ref);
+
   /// Draw line within an image
-  void DrawLine(int startPosX, int startPosY, int endPosX, int endPosY, Color color) => _imageDrawLine(pointer, startPosX, startPosY, endPosX, endPosY, color.ref);
+  void DrawLine(
+    int startPosX,
+    int startPosY,
+    int endPosX,
+    int endPosY,
+    Color color,
+  ) => _imageDrawLine(
+    pointer,
+    startPosX,
+    startPosY,
+    endPosX,
+    endPosY,
+    color.ref,
+  );
+
   /// Draw line within an image (Vector version)
-  void DrawLineV(Vector2 start, Vector2 end, Color color) => _imageDrawLineV(pointer, start.ref, end.ref, color.ref);
+  void DrawLineV(Vector2 start, Vector2 end, Color color) =>
+      _imageDrawLineV(pointer, start.ref, end.ref, color.ref);
+
   /// Draw a line defining thickness within an image
-  void DrawLineEx(Vector2 start, Vector2 end, int thick, Color color) => _imageDrawLineEx(pointer, start.ref, end.ref, thick, color.ref);
+  void DrawLineEx(Vector2 start, Vector2 end, int thick, Color color) =>
+      _imageDrawLineEx(pointer, start.ref, end.ref, thick, color.ref);
+
   /// Draw a filled circle within an image
-  void DrawCircle(int centerX, int centerY, int radius, Color color) => _imageDrawCircle(pointer, centerX, centerY, radius, color.ref);
+  void DrawCircle(int centerX, int centerY, int radius, Color color) =>
+      _imageDrawCircle(pointer, centerX, centerY, radius, color.ref);
+
   /// Draw a filled circle within an image (Vector version)
-  void DrawCircleV(Vector2 center, int radius, Color color) => _imageDrawCircleV(pointer, center.ref, radius, color.ref);
+  void DrawCircleV(Vector2 center, int radius, Color color) =>
+      _imageDrawCircleV(pointer, center.ref, radius, color.ref);
+
   /// Draw circle outline within an image (Vector version)
-  void DrawCircleLines(int centerX, int centerY, int radius, Color color) => _imageDrawCircleLines(pointer, centerX, centerY, radius, color.ref);
+  void DrawCircleLines(int centerX, int centerY, int radius, Color color) =>
+      _imageDrawCircleLines(pointer, centerX, centerY, radius, color.ref);
+
   /// Draw circle outline within an image (Vector version)
-  void DrawCircleLinesV(Vector2 center, int radius, Color color) => _imageDrawCircleLinesV(pointer, center.ref, radius, color.ref);
+  void DrawCircleLinesV(Vector2 center, int radius, Color color) =>
+      _imageDrawCircleLinesV(pointer, center.ref, radius, color.ref);
+
   /// Draw rectangle within an image
-  void DrawRectangle(int posX, int posY, int width, int height, Color color) => _imageDrawRectangle(pointer, posX, posY, width, height, color.ref);
+  void DrawRectangle(int posX, int posY, int width, int height, Color color) =>
+      _imageDrawRectangle(pointer, posX, posY, width, height, color.ref);
+
   /// Draw rectangle within an image (Vector version)
-  void DrawRectangleV(Vector2 position, Vector2 size, Color color) => _imageDrawRectangleV(pointer, position.ref, size.ref, color.ref);
+  void DrawRectangleV(Vector2 position, Vector2 size, Color color) =>
+      _imageDrawRectangleV(pointer, position.ref, size.ref, color.ref);
+
   /// Draw rectangle within an image
-  void DrawRectangleRec(Rectangle rec, Color color) => _imageDrawRectangleRec(pointer, rec.ref, color.ref);
+  void DrawRectangleRec(Rectangle rec, Color color) =>
+      _imageDrawRectangleRec(pointer, rec.ref, color.ref);
+
   /// Draw rectangle lines within an image
-  void DrawRectangleLines(Rectangle rec, int thick, Color color) => _imageDrawRectangleLines(pointer, rec.ref, thick, color.ref);
+  void DrawRectangleLines(Rectangle rec, int thick, Color color) =>
+      _imageDrawRectangleLines(pointer, rec.ref, thick, color.ref);
+
   /// Draw triangle within an image
-  void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color) => _imageDrawTriangle(pointer, v1.ref, v2.ref, v3.ref, color.ref);
+  void DrawTriangle(Vector2 v1, Vector2 v2, Vector2 v3, Color color) =>
+      _imageDrawTriangle(pointer, v1.ref, v2.ref, v3.ref, color.ref);
+
   /// Draw triangle with interpolated colors within an image
-  void DrawTriangleEx(Vector2 v1, Vector2 v2, Vector2 v3, Color c1, Color c2, Color c3) => _imageDrawTriangleEx(pointer, v1.ref, v2.ref, v3.ref, c1.ref, c2.ref, c3.ref );
+  void DrawTriangleEx(
+    Vector2 v1,
+    Vector2 v2,
+    Vector2 v3,
+    Color c1,
+    Color c2,
+    Color c3,
+  ) => _imageDrawTriangleEx(
+    pointer,
+    v1.ref,
+    v2.ref,
+    v3.ref,
+    c1.ref,
+    c2.ref,
+    c3.ref,
+  );
+
   /// Draw triangle outline within an image
-  void DrawTriangleLines(Vector2 v1, Vector2 v2, Vector2 v3, Color color) => _imageDrawTriangleLines(pointer, v1.ref, v2.ref, v3.ref, color.ref);
+  void DrawTriangleLines(Vector2 v1, Vector2 v2, Vector2 v3, Color color) =>
+      _imageDrawTriangleLines(pointer, v1.ref, v2.ref, v3.ref, color.ref);
+
   /// Draw a triangle fan defined by points within an image (first vertex is the center)
   void DrawTriangleFan(List<Vector2> points, Color color) {
     if (points.length < 3 || points.isEmpty) return;
 
-    using ((Arena arena) {
-      Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
+    using((Arena arena) {
+      Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(
+        sizeOf<_Vector2>() * points.length,
+      );
       for (int x = 0; x < points.length; x++) {
         cpoints[x] = points[x].ref;
       }
 
       _imageDrawTriangleFan(pointer, cpoints, points.length, color.ref);
-
     });
   }
-  
+
   /// Draw a triangle strip defined by points within an image
   void DrawTriangleStrip(List<Vector2> points, Color color) {
     if (points.length < 3 || points.isEmpty) return;
 
-    using ((Arena arena) {
-      Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(sizeOf<_Vector2>() * points.length);
+    using((Arena arena) {
+      Pointer<_Vector2> cpoints = arena.allocate<_Vector2>(
+        sizeOf<_Vector2>() * points.length,
+      );
       for (int x = 0; x < points.length; x++) {
         cpoints[x] = points[x].ref;
       }
 
       _imageDrawTriangleStrip(pointer, cpoints, points.length, color.ref);
-
     });
   }
 
   /// Draw a source image within a destination image (tint applied to source)
-  void DrawImage(Image src, Rectangle srcRec, Rectangle dstRec, Color tint) => _imageDraw(pointer, src.ref, srcRec.ref, dstRec.ref, tint.ref);
+  void DrawImage(Image src, Rectangle srcRec, Rectangle dstRec, Color tint) =>
+      _imageDraw(pointer, src.ref, srcRec.ref, dstRec.ref, tint.ref);
 
   /// Draw text (using default font) within an image (destination)
-  void DrawText(String text, int posX, int posY,{ required int fontSize, required Color color }) {
-    using ((Arena arena) {
+  void DrawText(
+    String text,
+    int posX,
+    int posY, {
+    required int fontSize,
+    required Color color,
+  }) {
+    using((Arena arena) {
       Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
 
       _imageDrawText(pointer, ctext, posX, posY, fontSize, color.ref);
@@ -557,16 +785,31 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
   }
 
   /// Draw text (custom sprite font) within an image (destination)
-  void DrawTextEx(Font font, String text, Vector2 position,{ required double fontSize, required double spacing, Color? tint }) {
+  void DrawTextEx(
+    Font font,
+    String text,
+    Vector2 position, {
+    required double fontSize,
+    required double spacing,
+    Color? tint,
+  }) {
     final finaltint = tint ?? Color.WHITE;
-    using ((Arena arena) {
+    using((Arena arena) {
       Pointer<Utf8> ctext = text.toNativeUtf8(allocator: arena);
 
-      _imageDrawTextEx(pointer, font.ref, ctext, position.ref, fontSize, spacing, finaltint.ref);
+      _imageDrawTextEx(
+        pointer,
+        font.ref,
+        ctext,
+        position.ref,
+        fontSize,
+        spacing,
+        finaltint.ref,
+      );
     });
   }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
   static final _finalizer = Finalizer<Pointer<_Image>>((token) {
     _unloadImage(token.ref);
@@ -575,17 +818,15 @@ static Image GenText(int width, int height, String text,[ RaylibArena? arena ]) 
 
   /// Unload image from CPU memory (RAM)
   void Unload() => Free();
-	
+
   /// Unload image from CPU memory (RAM)
   @override
   void Free() {
     _unloadImage(ref);
-	
-    if (_colors != null)
-      _unloadImageColors(_colors!.pointer);
-    if (_pallet != null)
-      _unloadImageColors(_pallet!.pointer);
-		
+
+    if (_colors != null) _unloadImageColors(_colors!.pointer);
+    if (_pallet != null) _unloadImageColors(_pallet!.pointer);
+
     _finalizer.detach(this);
     super.Free();
   }

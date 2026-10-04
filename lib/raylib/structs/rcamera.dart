@@ -11,12 +11,12 @@ part of '../raylib.dart';
 /// Camera2D, defines position/orientation in 2d space
 class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
   _Camera2D get ref => pointer.ref;
-	set ref(_Camera2D value) => pointer.ref = value;
+  set ref(_Camera2D value) => pointer.ref = value;
 
   double get rotation => ref.rotation;
-  set rotation (double value) => ref.rotation = value;
+  set rotation(double value) => ref.rotation = value;
   double get zoom => ref.zoom;
-  set zoom (double value) => ref.zoom = value;
+  set zoom(double value) => ref.zoom = value;
 
   late final Vector2 _offset;
   Vector2 get offset => _offset;
@@ -26,20 +26,20 @@ class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
   Vector2 get target => _target;
   set target(Vector2 value) => ref.target = value.ref;
 
-	// ==================================== Constructor =====================================
+  // ==================================== Constructor =====================================
 
   Camera2D({
     required Vector2 offset,
     required Vector2 target,
     double rotation = 0.0,
     double zoom = 1.0,
-    super.arena
+    super.arena,
   }) : super(sizeOf<_Camera2D>()) {
     ref
-    ..offset = offset.ref
-    ..target = target.ref
-    ..rotation = rotation
-    ..zoom = zoom;
+      ..offset = offset.ref
+      ..target = target.ref
+      ..rotation = rotation
+      ..zoom = zoom;
 
     int address = pointer.address;
     _offset = Vector2._Encapsulate(.fromAddress(address));
@@ -49,7 +49,7 @@ class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
     _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
   static final _finalizer = Finalizer<Pointer<_Camera2D>>((token) {
     malloc.free(token);
@@ -69,7 +69,7 @@ class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
 /// Camera, defines position/orientation in 3d space
 class Camera extends NativeWrapper<_Camera> implements Finalizable {
   _Camera get ref => pointer.ref;
-	set ref(_Camera value) => pointer.ref = value;
+  set ref(_Camera value) => pointer.ref = value;
 
   double get fovy => ref.fovy;
   set fovy(num value) => ref.fovy = (value > 0) ? value.toDouble() : 0.0;
@@ -95,14 +95,14 @@ class Camera extends NativeWrapper<_Camera> implements Finalizable {
     required Vector3 up,
     required double fovy,
     required CameraProjection projection,
-    super.arena
+    super.arena,
   }) : super(sizeOf<_Camera>()) {
     pointer.ref
-    ..position = pos.ref
-    ..target = target.ref
-    ..up = up.ref
-    ..fovy = fovy
-    ..projection = projection.index;
+      ..position = pos.ref
+      ..target = target.ref
+      ..up = up.ref
+      ..fovy = fovy
+      ..projection = projection.index;
 
     int address = pointer.address;
     _position = Vector3._Encapsulate(.fromAddress(address));
@@ -116,7 +116,7 @@ class Camera extends NativeWrapper<_Camera> implements Finalizable {
     _finalizer.attach(this, pointer, detach: this);
   }
 
-	// =================================== Deconstructor ====================================
+  // =================================== Deconstructor ====================================
 
   static final _finalizer = Finalizer<Pointer<_Camera>>((token) {
     malloc.free(token);
