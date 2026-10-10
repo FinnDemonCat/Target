@@ -263,9 +263,8 @@ class Padding extends Widget {
 
   @override
   void DrawWidget() {
-    if (widget case IInteractible interactible) interactible.UpdateState();
-
     widget.DrawWidget();
+    // IInteractible.UpdateWidgets([widget]);
   }
 
   @override
@@ -344,7 +343,7 @@ class Column extends Widget {
   void DrawWidget() {
     for (Widget widget in widgets) widget.DrawWidget();
 
-    IInteractible.UpdateWidgets(widgets);
+    // IInteractible.UpdateWidgets(widgets);
   }
 
   @override
@@ -523,7 +522,7 @@ class Row extends Widget {
   void DrawWidget() {
     for (Widget widget in widgets) widget.DrawWidget();
 
-    IInteractible.UpdateWidgets(widgets);
+    // IInteractible.UpdateWidgets(widgets);
   }
 
   @override
@@ -965,6 +964,7 @@ abstract class IInteractible extends Widget {
   /// to the [PinnedWidget] if it exists. Otherwise, it iterates through
   /// [IInteractible] widgets and breaks the loop as soon as one triggers the input.
   static void UpdateWidgets(List<Widget> list) {
+    // AI generated solution to stacked IInteractible widgets
     if (PinnedWidget != null) {
       PinnedWidget!.UpdateState();
       return;
@@ -973,7 +973,8 @@ abstract class IInteractible extends Widget {
     final widgets = list.whereType<IInteractible>().toList();
 
     bool skip = false;
-    for (IInteractible widget in widgets) {
+    for (int index = widgets.length - 1; index >= 0; index--) {
+      final widget = widgets[index];
       if (skip) {
         widget.state = .Idle;
         continue;
@@ -990,6 +991,27 @@ abstract class IInteractible extends Widget {
     }
 
     super.Free();
+  }
+
+  /// Recursively updates the interaction state for a widget subtree.
+  ///
+  /// Traverses children from the top-most rendered layer downward and returns
+  /// `true` when an [IInteractible] widget handles the current interaction state.
+  /// This is useful for hover and click resolution across nested widget trees.
+  static bool UpdateWidgetTree(Widget node) {
+    if (PinnedWidget != null) {
+      PinnedWidget!.UpdateState();
+      return true;
+    }
+    if (node.children.isNotEmpty) {
+      for (var widget in node.children.toList().reversed)
+        if (UpdateWidgetTree(widget)) return true;
+    }
+
+    if (node case IInteractible iInteractible)
+      return iInteractible.UpdateState();
+    else
+      return false;
   }
 }
 
@@ -1386,7 +1408,7 @@ class ListView extends Widget {
       },
     );
 
-    IInteractible.UpdateWidgets(widgets);
+    // IInteractible.UpdateWidgets(widgets);
     super.DrawWidget();
   }
 
@@ -1435,7 +1457,7 @@ class Stack extends Widget {
   @override
   void DrawWidget() {
     for (Widget widget in widgets) widget.DrawWidget();
-    IInteractible.UpdateWidgets(widgets);
+    // IInteractible.UpdateWidgets(widgets);
   }
 
   @override
@@ -1465,7 +1487,10 @@ class Aling extends Widget {
        super(sizing: .Expand());
 
   @override
-  void DrawWidget() => widget.DrawWidget();
+  void DrawWidget() {
+    widget.DrawWidget();
+    // IInteractible.UpdateWidgets([widget]);
+  }
 
   @override
   void Mount() {
