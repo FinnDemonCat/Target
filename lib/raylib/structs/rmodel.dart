@@ -221,8 +221,11 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   }
 
   /// Compute model bounding box limits (considers all meshes)
-  BoundingBox GetBoundingBox() =>
-      BoundingBox._Recieve(_getModelBoundingBox(ref));
+  BoundingBox GetBoundingBox([RaylibArena? arena]) {
+    BoundingBox boundingBox = BoundingBox._Recieve(_getModelBoundingBox(ref));
+    arena?.register(boundingBox);
+    return boundingBox;
+  }
 
   /// Check if a model is valid (loaded in GPU, VAO/VBOs)
   bool IsValid() => _isModelValid(ref);

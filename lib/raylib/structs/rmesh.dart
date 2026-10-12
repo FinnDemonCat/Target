@@ -73,7 +73,7 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
 
   void _setReferences() {
     vertices = ref.vertices.IsNotNull
-        ? ref.vertices.asTypedList(vertexCount)
+        ? ref.vertices.asTypedList(vertexCount * 3)
         : Float32List(vertexCount);
 
     texcoords = ref.texcoords.IsNotNull
@@ -381,6 +381,18 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
 
       return _exportMeshAsCode(this.ref, cFileName);
     });
+  }
+
+  Vector3 VertexAt(int index, [RaylibArena? arena]) {
+    if (index >= vertexCount || index < 0) throw RangeError(index);
+    var index2 = (index * 3);
+    Vector3 result = Vector3(
+      vertices[index2],
+      vertices[index2 + 1],
+      vertices[index2 + 2],
+    );
+    arena?.register(result);
+    return result;
   }
 
   // ===================================== Operators ======================================

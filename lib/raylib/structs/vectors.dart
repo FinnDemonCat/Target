@@ -121,47 +121,51 @@ class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
   }
 
   /// Get (evaluate) spline point: Linear
-  void GetSplinePointLinear(Vector2 startPos, Vector2 endPos, double t) {
-    ref = _getSplinePointLinear(startPos.ref, endPos.ref, t);
-  }
+  factory Vector2.GetSplinePointLinear(
+    Vector2 startPos,
+    Vector2 endPos,
+    double t,
+  ) => Vector2._Recieve(_getSplinePointLinear(startPos.ref, endPos.ref, t));
 
   /// Get (evaluate) spline point: B-Spline
-  void GetSplinePointBasis(
+  factory Vector2.GetSplinePointBasis(
     Vector2 p1,
     Vector2 p2,
     Vector2 p3,
     Vector2 p4,
     double t,
-  ) {
-    ref = _getSplinePointBasis(p1.ref, p2.ref, p3.ref, p4.ref, t);
-  }
+  ) =>
+      Vector2._Recieve(_getSplinePointBasis(p1.ref, p2.ref, p3.ref, p4.ref, t));
 
   /// Get (evaluate) spline point: Catmull-Rom
-  void GetSplinePointCatmullRom(
+  factory Vector2.GetSplinePointCatmullRom(
     Vector2 p1,
     Vector2 p2,
     Vector2 p3,
     Vector2 p4,
     double t,
-  ) {
-    ref = _getSplinePointCatmullRom(p1.ref, p2.ref, p3.ref, p4.ref, t);
-  }
+  ) => Vector2._Recieve(
+    _getSplinePointCatmullRom(p1.ref, p2.ref, p3.ref, p4.ref, t),
+  );
 
   /// Get (evaluate) spline point: Quadratic Bezier
-  void GetSplinePointBezierQuad(Vector2 p1, Vector2 c2, Vector2 p3, double t) {
-    ref = _getSplinePointBezierQuad(p1.ref, c2.ref, p3.ref, t);
-  }
+  factory Vector2.GetSplinePointBezierQuad(
+    Vector2 p1,
+    Vector2 c2,
+    Vector2 p3,
+    double t,
+  ) => Vector2._Recieve(_getSplinePointBezierQuad(p1.ref, c2.ref, p3.ref, t));
 
   /// Get (evaluate) spline point: Cubic Bezier
-  void GetSplinePointBezierCubic(
+  factory Vector2.GetSplinePointBezierCubic(
     Vector2 p1,
     Vector2 c2,
     Vector2 c3,
     Vector2 p4,
     double t,
-  ) {
-    ref = _getSplinePointBezierCubic(p1.ref, c2.ref, c3.ref, p4.ref, t);
-  }
+  ) => Vector2._Recieve(
+    _getSplinePointBezierCubic(p1.ref, c2.ref, c3.ref, p4.ref, t),
+  );
 
   // =================================== Deconstructor ====================================
 
@@ -364,6 +368,10 @@ class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
   set x(num value) => ref.x = value.toDouble();
   set y(num value) => ref.y = value.toDouble();
   set z(num value) => ref.z = value.toDouble();
+
+  @override
+  String toString() =>
+      'x: ${x.toStringAsFixed(3)} y: ${y.toStringAsFixed(3)} z: ${z.toStringAsFixed(3)}';
 
   ///Set all values in a single call
   void Set({num? x, num? y, num? z}) {
@@ -1067,10 +1075,10 @@ extension Vector3Math on Vector3 {
   }
 
   /// Calculate linear interpolation between two vectors (In Place)
-  void Lerp(Vector3 v2, double amount) {
-    this.x += amount * (v2.x - this.x);
-    this.y += amount * (v2.y - this.y);
-    this.z += amount * (v2.z - this.z);
+  void Lerp(Vector3 v1, Vector3 v2, double amount) {
+    this.x = v1.x + amount * (v2.x - v1.x);
+    this.y = v1.y + amount * (v2.y - v1.y);
+    this.z = v1.z + amount * (v2.z - v1.z);
   }
 
   /// Invert the given vector
@@ -1372,11 +1380,11 @@ extension Vector4Math on Vector4 {
   }
 
   /// Calculate linear interpolation between two vectors
-  void Lerp(Vector4 v2, double ammount) {
-    this.x = this.x + ammount * (v2.x - this.x);
-    this.y = this.y + ammount * (v2.y - this.y);
-    this.z = this.z + ammount * (v2.z - this.z);
-    this.w = this.w + ammount * (v2.w - this.w);
+  void Lerp(Vector4 v1, Vector4 v2, double ammount) {
+    this.x = v1.x + ammount * (v2.x - v1.x);
+    this.y = v1.y + ammount * (v2.y - v1.y);
+    this.z = v1.z + ammount * (v2.z - v1.z);
+    this.w = v1.w + ammount * (v2.w - v1.w);
   }
 
   /// Move Vector towards target

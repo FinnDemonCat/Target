@@ -31,6 +31,7 @@ part 'structs/rvrstereo.dart';
 //                                   Window
 //------------------------------------------------------------------------------------
 
+// TODO: GPU allocator structs should register to this for cleannup on Close()
 /// Window-related functions
 abstract class Window {
   // Initialize window and OpenGL context

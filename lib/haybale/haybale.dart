@@ -115,6 +115,42 @@ class HayPadding {
       right = horizontal;
 }
 
+/// Defines the border sizes used by a nine-patch button texture.
+extension type const NPatchConfig._(
+  ({int top, int left, int right, int bottom}) _value
+) {
+  const NPatchConfig({
+    required int top,
+    required int left,
+    required int right,
+    required int bottom,
+  }) : this._((top: top, left: left, right: right, bottom: bottom));
+
+  const NPatchConfig.symmetric({required int horizontal, required int vertical})
+    : this._((
+        top: vertical,
+        left: horizontal,
+        right: horizontal,
+        bottom: vertical,
+      ));
+
+  const NPatchConfig.none() : this._((top: 0, left: 0, right: 0, bottom: 0));
+
+  const NPatchConfig.all(int value)
+    : this._((top: value, left: value, right: value, bottom: value));
+
+  bool NoNPatch() =>
+      _value.left == 0 &&
+      _value.top == 0 &&
+      _value.right == 0 &&
+      _value.bottom == 0;
+
+  int get top => _value.top;
+  int get left => _value.left;
+  int get right => _value.right;
+  int get bottom => _value.bottom;
+}
+
 /// # Widget Base Class
 ///
 /// The foundational class for all UI widgets in the Haybale layout system.
@@ -202,7 +238,7 @@ class Center extends Widget {
 
   @override
   void DrawWidget() {
-    if (widget case IInteractible interactible) interactible.UpdateState();
+    // if (widget case IInteractible interactible) interactible.UpdateState();
 
     widget.DrawWidget();
   }
@@ -885,6 +921,10 @@ abstract class IInteractible extends Widget {
   /// Override this parameter to define a custom interaction area.
   Rectangle get interactArea => this;
 
+  bool get isIdle => state == .Idle;
+  bool get isSelected => state == .Selected;
+  bool get isPressed => state == .Pressed;
+
   IInteractible({
     required super.sizing,
     void Function()? OnPress,
@@ -1242,7 +1282,7 @@ class Grid extends Widget {
           row < _rows;
           row++
         ) {
-          bool skip = false;
+          // bool skip = false;
           for (int col = 0; col < _cols; col++) {
             int index = (row * _cols) + col;
             if (index >= widgets.length) break;
@@ -1254,25 +1294,13 @@ class Grid extends Widget {
 
             widgets[index].DrawWidget();
 
-            if (widgets[index] case IInteractible widget) {
-              if (skip)
-                widget.state = .Idle;
-              else
-                skip = widget.UpdateState();
-            }
+            // if (widgets[index] case IInteractible widget) {
+            //   if (skip)
+            //     widget.state = .Idle;
+            //   else
+            //     skip = widget.UpdateState();
+            // }
           }
-
-          /*
-        for (int col = 0; col < _cols; col++) {
-          int index = (row * _cols) + col;
-          if (index >= widgets.length) break;
-          
-          Widget widget = widgets[index];
-
-          if (widget is Interactible)
-            if (widget.UpdateState()) break;
-        }
-        */
         }
       },
     );

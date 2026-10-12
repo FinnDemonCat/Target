@@ -6,38 +6,42 @@ part of '../raylib.dart';
 
 abstract class Shapes3D {
   /// Draw a line in 3D world space
-  static void DrawLine3D(Vector3 startPos, Vector3 endPos, Color color) =>
-      _drawLine3D(startPos.ref, endPos.ref, color.ref);
+  static void DrawLine3D(Vector3 startPos, Vector3 endPos, [Color? color]) =>
+      _drawLine3D(startPos.ref, endPos.ref, (color ?? Color.WHITE).ref);
 
   /// Draw a point in 3D space, actually a small line
-  static void DrawPoint3D(Vector3 position, Color color) =>
-      _drawPoint3D(position.ref, color.ref);
+  static void DrawPoint3D(Vector3 position, [Color? color]) =>
+      _drawPoint3D(position.ref, (color ?? Color.WHITE).ref);
 
   /// Draw a circle in 3D world space
   static void DrawCircle3D(
     Vector3 center,
     double radius,
     Vector3 rotationAxis,
-    double rotationAngle,
-    Color color,
-  ) => _drawCircle3D(
+    double rotationAngle, [
+    Color? color,
+  ]) => _drawCircle3D(
     center.ref,
     radius,
     rotationAxis.ref,
     rotationAngle,
-    color.ref,
+    (color ?? Color.WHITE).ref,
   );
 
   /// Draw a color-filled triangle (vertex in counter-clockwise order!)
-  static void DrawTriangle3D(Vector3 v1, Vector3 v2, Vector3 v3, Color color) =>
-      _drawTriangle3D(v1.ref, v2.ref, v3.ref, color.ref);
+  static void DrawTriangle3D(
+    Vector3 v1,
+    Vector3 v2,
+    Vector3 v3, [
+    Color? color,
+  ]) => _drawTriangle3D(v1.ref, v2.ref, v3.ref, (color ?? Color.WHITE).ref);
 
   /// Draw a triangle strip defined by points
   static void DrawTriangleStrip3D(
     List<Vector3> points,
-    int pointCount,
-    Color color,
-  ) {
+    int pointCount, [
+    Color? color,
+  ]) {
     using((Arena arena) {
       Pointer<_Vector3> cpoints = arena.allocate<_Vector3>(
         sizeOf<_Vector3>() * points.length,
@@ -46,7 +50,7 @@ abstract class Shapes3D {
         cpoints[x] = points[x].pointer.ref;
       }
 
-      _drawTriangleStrip3D(cpoints, points.length, color.ref);
+      _drawTriangleStrip3D(cpoints, points.length, (color ?? Color.WHITE).ref);
     });
   }
 
@@ -55,48 +59,72 @@ abstract class Shapes3D {
     Vector3 position,
     double width,
     double height,
-    double length,
-    Color color,
-  ) => _drawCube(position.ref, width, height, length, color.ref);
+    double length, [
+    Color? color,
+  ]) => _drawCube(
+    position.ref,
+    width,
+    height,
+    length,
+    (color ?? Color.WHITE).ref,
+  );
 
   /// Draw cube (Vector version)
-  static void DrawCubeV(Vector3 position, Vector3 size, Color color) =>
-      _drawCubeV(position.ref, size.ref, color.ref);
+  static void DrawCubeV(Vector3 position, Vector3 size, [Color? color]) =>
+      _drawCubeV(position.ref, size.ref, (color ?? Color.WHITE).ref);
 
   /// Draw cube wires
   static void DrawCubeWires(
     Vector3 position,
     double width,
     double height,
-    double length,
-    Color color,
-  ) => _drawCubeWires(position.ref, width, height, length, color.ref);
+    double length, [
+    Color? color,
+  ]) => _drawCubeWires(
+    position.ref,
+    width,
+    height,
+    length,
+    (color ?? Color.WHITE).ref,
+  );
 
   /// Draw cube wires (Vector version)
-  static void DrawCubeWiresV(Vector3 position, Vector3 size, Color color) =>
-      _drawCubeWiresV(position.ref, size.ref, color.ref);
+  static void DrawCubeWiresV(Vector3 position, Vector3 size, [Color? color]) =>
+      _drawCubeWiresV(position.ref, size.ref, (color ?? Color.WHITE).ref);
 
   /// Draw sphere
-  static void DrawSphere(Vector3 centerPos, double radius, Color color) =>
-      _drawSphere(centerPos.ref, radius, color.ref);
+  static void DrawSphere(Vector3 centerPos, double radius, [Color? color]) =>
+      _drawSphere(centerPos.ref, radius, (color ?? Color.WHITE).ref);
 
   /// Draw sphere with extended parameters
   static void DrawSphereEx(
     Vector3 centerPos,
     double radius,
     int rings,
-    int slices,
-    Color color,
-  ) => _drawSphereEx(centerPos.ref, radius, rings, slices, color.ref);
+    int slices, [
+    Color? color,
+  ]) => _drawSphereEx(
+    centerPos.ref,
+    radius,
+    rings,
+    slices,
+    (color ?? Color.WHITE).ref,
+  );
 
   /// Draw sphere wires
   static void DrawSphereWires(
     Vector3 centerPos,
     double radius,
     int rings,
-    int slices,
-    Color color,
-  ) => _drawSphereWires(centerPos.ref, radius, rings, slices, color.ref);
+    int slices, [
+    Color? color,
+  ]) => _drawSphereWires(
+    centerPos.ref,
+    radius,
+    rings,
+    slices,
+    (color ?? Color.WHITE).ref,
+  );
 
   /// Draw a cylinder/cone
   static void DrawCylinder(
@@ -104,15 +132,15 @@ abstract class Shapes3D {
     double radiusTop,
     double radiusBottom,
     double height,
-    int slices,
-    Color color,
-  ) => _drawCylinder(
+    int slices, [
+    Color? color,
+  ]) => _drawCylinder(
     position.ref,
     radiusTop,
     radiusBottom,
     height,
     slices,
-    color.ref,
+    (color ?? Color.WHITE).ref,
   );
 
   /// Draw a cylinder with base at startPos and top at endPos
@@ -121,15 +149,15 @@ abstract class Shapes3D {
     Vector3 endPos,
     double startRadius,
     double endRadius,
-    int sides,
-    Color color,
-  ) => _drawCylinderEx(
+    int sides, [
+    Color? color,
+  ]) => _drawCylinderEx(
     startPos.ref,
     endPos.ref,
     startRadius,
     endRadius,
     sides,
-    color.ref,
+    (color ?? Color.WHITE).ref,
   );
 
   /// Draw a cylinder/cone wires
@@ -138,15 +166,15 @@ abstract class Shapes3D {
     double radiusTop,
     double radiusBottom,
     double height,
-    int slices,
-    Color color,
-  ) => _drawCylinderWires(
+    int slices, [
+    Color? color,
+  ]) => _drawCylinderWires(
     position.ref,
     radiusTop,
     radiusBottom,
     height,
     slices,
-    color.ref,
+    (color ?? Color.WHITE).ref,
   );
 
   /// Draw a cylinder wires with base at startPos and top at endPos
@@ -155,15 +183,15 @@ abstract class Shapes3D {
     Vector3 endPos,
     double startRadius,
     double endRadius,
-    int sides,
-    Color color,
-  ) => _drawCylinderWiresEx(
+    int sides, [
+    Color? color,
+  ]) => _drawCylinderWiresEx(
     startPos.ref,
     endPos.ref,
     startRadius,
     endRadius,
     sides,
-    color.ref,
+    (color ?? Color.WHITE).ref,
   );
 
   /// Draw a capsule with the center of its sphere caps at startPos and endPos
@@ -172,9 +200,16 @@ abstract class Shapes3D {
     Vector3 endPos,
     double radius,
     int slices,
-    int rings,
-    Color color,
-  ) => _drawCapsule(startPos.ref, endPos.ref, radius, slices, rings, color.ref);
+    int rings, [
+    Color? color,
+  ]) => _drawCapsule(
+    startPos.ref,
+    endPos.ref,
+    radius,
+    slices,
+    rings,
+    (color ?? Color.WHITE).ref,
+  );
 
   /// Draw capsule wireframe with the center of its sphere caps at startPos and endPos
   static void DrawCapsuleWires(
@@ -182,23 +217,24 @@ abstract class Shapes3D {
     Vector3 endPos,
     double radius,
     int slices,
-    int rings,
-    Color color,
-  ) => _drawCapsuleWires(
+    int rings, [
+    Color? color,
+  ]) => _drawCapsuleWires(
     startPos.ref,
     endPos.ref,
     radius,
     slices,
     rings,
-    color.ref,
+    (color ?? Color.WHITE).ref,
   );
 
   /// Draw a plane XZ
-  static void DrawPlane(Vector3 centerPos, Vector2 size, Color color) =>
-      _drawPlane(centerPos.ref, size.ref, color.ref);
+  static void DrawPlane(Vector3 centerPos, Vector2 size, [Color? color]) =>
+      _drawPlane(centerPos.ref, size.ref, (color ?? Color.WHITE).ref);
 
   /// Draw a ray line
-  static void DrawRay(Ray ray, Color color) => _drawRay(ray.ref, color.ref);
+  static void DrawRay(Ray ray, [Color? color]) =>
+      _drawRay(ray.ref, (color ?? Color.WHITE).ref);
 
   /// Draw a grid (centered at (0, 0, 0))
   static void DrawGrid(int slices, double spacing) =>
