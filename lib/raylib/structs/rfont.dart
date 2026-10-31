@@ -266,18 +266,29 @@ class Font extends NativeWrapper<_Font> implements Finalizable {
   }) {
     Vector2 size = Vector2(0, fontSize);
     double scale = fontSize / ref.baseSize;
+    double lineWidth = 0.0;
+    double maxLineWidth = 0.0;
+    bool lineHasGlyph = false;
 
     for (int x = 0; x < codepoints.length; x++) {
-      int index = GetGlyphIndex(codepoints.buffer[x]);
+      int codepoint = codepoints.buffer[x];
+      if (codepoint == '\n'.codeUnitAt(0) || codepoint == '\r'.codeUnitAt(0)) {
+        if (lineWidth > maxLineWidth) maxLineWidth = lineWidth;
+        lineWidth = 0.0;
+        lineHasGlyph = false;
+        continue;
+      }
 
+      int index = GetGlyphIndex(codepoint);
       double advance;
       if ((advance = ref.glyphs[index].advanceX.toDouble()) == 0)
         advance = ref.recs[index].width;
 
-      size.x += (advance + spacing) * scale;
+      lineWidth += advance * scale + (lineHasGlyph ? spacing : 0.0);
+      lineHasGlyph = true;
     }
 
-    if (size.x > 0) size.x -= (spacing * fontSize);
+    size.x = maxLineWidth > lineWidth ? maxLineWidth : lineWidth;
     return size;
   }
 

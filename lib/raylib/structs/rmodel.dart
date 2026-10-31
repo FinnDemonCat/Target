@@ -244,23 +244,19 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
   /// Draw a model with extended parameters
   static void DrawEx(
     Model model,
-    Vector3 position,
-    Vector3 rotationAxis,
-    double rotationAngle, {
+    Vector3 position, {
+    Vector3? rotationAxis,
+    double? rotationAngle,
     Vector3? scale,
     Color? tint,
-  }) {
-    scale ??= Vector3.One();
-    tint ??= Color.WHITE;
-    _drawModelEx(
-      model.ref,
-      position.ref,
-      rotationAxis.ref,
-      rotationAngle,
-      scale.ref,
-      tint.ref,
-    );
-  }
+  }) => _drawModelEx(
+    model.ref,
+    position.ref,
+    (rotationAxis ?? Vector3(0.0, 1.0, 0.0)).ref,
+    rotationAngle ?? 0.0,
+    (scale ?? Vector3.One()).ref,
+    (tint ?? Color.WHITE).ref,
+  );
 
   /// Draw a model wires (with texture if set)
   static void DrawWires(

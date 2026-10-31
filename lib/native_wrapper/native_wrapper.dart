@@ -48,7 +48,7 @@ class RaylibArena {
 }
 
 /// A utility function that executes a callback within the context of a [RaylibArena].
-T rayCompute<T extends NativeWrapper?>(T Function(RaylibArena arena) arena) {
+T rayCompute<T>(T Function(RaylibArena arena) arena) {
   final allocator = RaylibArena();
   final result = arena.call(allocator);
 
@@ -122,7 +122,6 @@ class NativeWrapper<T extends NativeType> {
     if (IsDisposed) return;
     if (!IsOwner) return;
 
-    // print("[Target] Freeing ${pointer.runtimeType}");
     _disposed = true;
     malloc.free(this.pointer);
   }

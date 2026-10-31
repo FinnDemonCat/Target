@@ -164,6 +164,20 @@ class Matrix extends NativeWrapper<_Matrix> implements Finalizable {
     return result;
   }
 
+  /// Get translation matrix
+  /// Added by User
+  factory Matrix.TranslateV(Vector3 translate, [RaylibArena? arena]) {
+    Matrix result = Matrix();
+
+    result.m12 = translate.x;
+    result.m13 = translate.y;
+    result.m14 = translate.z;
+
+    arena?.register(result);
+
+    return result;
+  }
+
   /// Create rotation matrix from axis and angle
   ///
   /// NOTE: Angle should be provided in radians

@@ -31,10 +31,9 @@ part 'structs/rvrstereo.dart';
 //                                   Window
 //------------------------------------------------------------------------------------
 
-// TODO: GPU allocator structs should register to this for cleannup on Close()
 /// Window-related functions
 abstract class Window {
-  // Initialize window and OpenGL context
+  /// Initialize window and OpenGL context
   static void Init({
     required int width,
     required int height,
@@ -420,7 +419,7 @@ class FilePathList extends NativeWrapper<_FilePathList> {
 //                                ScreenToWorld
 //------------------------------------------------------------------------------------
 
-abstract class ScreenToWorld {
+abstract class WorldTransform {
   /// Get a ray trace from screen position (i.e mouse)
   static Ray GetRay(Vector2 position, Camera camera) =>
       Ray._Recieve(_getScreenToWorldRay(position.ref, camera.ref));

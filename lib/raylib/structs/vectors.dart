@@ -53,10 +53,18 @@ class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
   }
 
   /// Vector with components value 0.0f
-  factory Vector2.Zero([RaylibArena? arena]) => Vector2(0.0, 0.0, arena);
+  factory Vector2.Zero([RaylibArena? rayArena]) {
+    var result = Vector2(0.0, 0.0);
+    rayArena?.register(result);
+    return result;
+  }
 
   /// Vector with components value 1.0f
-  factory Vector2.One([RaylibArena? arena]) => Vector2(1.0, 1.0, arena);
+  factory Vector2.One([RaylibArena? rayArena]) {
+    var result = Vector2(1.0, 1.0);
+    rayArena?.register(result);
+    return result;
+  }
 
   //--------------------------------Methods---------------------------------------------
 
@@ -106,7 +114,7 @@ class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
     double r, [
     RaylibArena? arena,
   ]) {
-    Vector2 result = Vector2.Zero(arena);
+    Vector2 result = Vector2.Zero();
 
     double dot = (v.x * v.x) + (v.y * v.y);
     double d = 1.0 - r * r * (1.0 - dot * dot);
@@ -405,10 +413,10 @@ class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
   }
 
   /// Vector with components value 0.0f
-  factory Vector3.Zero([RaylibArena? arena]) => Vector3(0.0, 0.0, 0.0, arena);
+  factory Vector3.Zero() => Vector3(0.0, 0.0, 0.0);
 
   /// Vector with components value 1.0f
-  factory Vector3.One([RaylibArena? arena]) => Vector3(1.0, 1.0, 1.0, arena);
+  factory Vector3.One() => Vector3(1.0, 1.0, 1.0);
 
   //--------------------------------Methods-------------------------------------------
 
@@ -1180,11 +1188,11 @@ class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
     if (IsOwner) _finalizer.attach(this, pointer.cast(), detach: this);
   }
 
-  factory Vector4.Zero([RaylibArena? arena]) =>
-      Vector4(0.0, 0.0, 0.0, 0.0, arena);
+  /// Vector with components value 0.0f
+  factory Vector4.Zero() => Vector4(0.0, 0.0, 0.0, 0.0);
 
-  factory Vector4.One([RaylibArena? arena]) =>
-      Vector4(1.0, 1.0, 1.0, 1.0, arena);
+  /// Vector with components value 1.0f
+  factory Vector4.One() => Vector4(1.0, 1.0, 1.0, 1.0);
 
   static double DotProduct(Vector4 v1, Vector4 v2) =>
       (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w);

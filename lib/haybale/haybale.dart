@@ -1,4 +1,5 @@
 import '../raylib/raylib.dart';
+import '../native_wrapper/native_wrapper.dart';
 import 'package:meta/meta.dart';
 import 'dart:math' as math;
 
@@ -69,7 +70,7 @@ class HaySize {
   const HaySize.FullHeight({required this.width}) : height = ExpandHeight;
 }
 
-/*
+/* Legacy TextBox implementation
 class HayPosition
 {
 
@@ -187,10 +188,6 @@ extension type const NPatchConfig._(
 class Widget extends Rectangle {
   final HaySize sizing;
 
-  // Implement -> Iterable<Widget> get children => const []; ✅
-  // And apply to all existinging widgets ✅
-  // Define Center and other widgets sizing defaults ✅
-
   Widget({required this.sizing}) : super(0.0, 0.0, sizing.width, sizing.height);
 
   void Mount() {}
@@ -268,9 +265,11 @@ class Center extends Widget {
 class Padding extends Widget {
   HayPadding padding;
   Widget widget;
-  Padding({required this.padding, required Widget child})
-    : widget = child,
-      super(sizing: .Expand());
+  Padding({
+    super.sizing = const .Expand(),
+    required this.padding,
+    required Widget child,
+  }) : widget = child;
 
   @override
   Iterable<Widget> get children => [widget];
@@ -292,7 +291,7 @@ class Padding extends Widget {
       width - (padding.left + padding.right),
       height - (padding.top + padding.bottom),
     );
-    widget.Set(x: x + padding.left, y: y + padding.top);
+    widget.Set(x: (x + padding.left).round(), y: (y + padding.top).round());
 
     widget.Mount();
   }
@@ -357,17 +356,21 @@ class Padding extends Widget {
 /// }
 /// ```
 class Column extends Widget {
-  HayYAxisAlign MainAxis;
-  HayXAxisAlign CrossAxis;
-  List<Widget> widgets;
-  double spacing;
+  final HayYAxisAlign MainAxis;
+  final HayXAxisAlign CrossAxis;
+  final List<Widget> widgets;
+  final double spacing;
+  final double borderRadius;
+  final Color? backgroundColor;
 
   Column({
     super.sizing = const .Expand(),
     List<Widget>? children,
     this.spacing = 0.0,
+    this.borderRadius = 0.0,
     HayYAxisAlign? mainAxis,
     HayXAxisAlign? crossAxis,
+    this.backgroundColor,
   }) : widgets = children ?? const [],
        MainAxis = mainAxis ?? HayYAxisAlign.TOP,
        CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
@@ -377,18 +380,23 @@ class Column extends Widget {
 
   @override
   void DrawWidget() {
+    if (backgroundColor != null)
+      Shapes.DrawRectangleRounded(
+        this,
+        borderRadius,
+        4,
+        color: backgroundColor,
+      );
     for (Widget widget in widgets) widget.DrawWidget();
-
-    // IInteractible.UpdateWidgets(widgets);
   }
 
   @override
   void Mount() {
     double startY = super.y;
-    double widHeight = widgets.fold(0, (x, y) => x + y.height);
-
-    widHeight += (widgets.length - 1) * spacing;
-    if (widHeight > height) widHeight = height;
+    double widHeight =
+        (widgets.fold(0.0, (x, y) => x + y.height.clamp(0.0, double.infinity)) +
+                (widgets.length - 1) * spacing)
+            .clamp(0.0, height);
 
     switch (MainAxis) {
       case HayYAxisAlign.CENTER:
@@ -488,15 +496,19 @@ class Row extends Widget {
   HayYAxisAlign MainAxis = HayYAxisAlign.TOP;
   HayXAxisAlign CrossAxis = HayXAxisAlign.LEFT;
 
-  List<Widget> widgets;
-  double spacing;
+  final List<Widget> widgets;
+  final double spacing;
+  final double borderRadius;
+  final Color? backgroundColor;
 
   Row({
     super.sizing = const .Expand(),
     List<Widget>? children,
     this.spacing = 0.0,
+    this.borderRadius = 0.0,
     HayYAxisAlign? mainAxis,
     HayXAxisAlign? crossAxis,
+    this.backgroundColor,
   }) : widgets = children ?? [],
        MainAxis = mainAxis ?? HayYAxisAlign.TOP,
        CrossAxis = crossAxis ?? HayXAxisAlign.LEFT;
@@ -506,9 +518,10 @@ class Row extends Widget {
 
   @override
   void Mount() {
-    double widWidth = widgets.fold(0, (x, y) => x + y.width);
-    widWidth += (widgets.length - 1) * spacing;
-    if (widWidth > width) widWidth = width;
+    double widWidth =
+        (widgets.fold(0.0, (x, y) => x + y.width.clamp(0.0, double.infinity)) +
+                (widgets.length - 1) * spacing)
+            .clamp(0.0, width);
 
     double startX = x;
 
@@ -556,9 +569,14 @@ class Row extends Widget {
 
   @override
   void DrawWidget() {
+    if (backgroundColor != null)
+      Shapes.DrawRectangleRounded(
+        this,
+        borderRadius,
+        4,
+        color: backgroundColor,
+      );
     for (Widget widget in widgets) widget.DrawWidget();
-
-    // IInteractible.UpdateWidgets(widgets);
   }
 
   @override
@@ -624,187 +642,200 @@ class Row extends Widget {
 /// }
 /// ```
 class TextBox extends Widget {
-  Font font;
-  final TextCodepoint _text;
-  bool _isDirty = true;
+  final TextCodepoint text;
+  final Font font;
+  late final double fontSize;
+  final double lineSpacing;
+  final HayXAxisAlign mainAxisAlign;
+  final HayYAxisAlign crossAxisAlign;
+  final Color color;
 
-  TextCodepoint get text => _text;
-  set text(String value) {
-    _text.text = value;
-    _isDirty = true;
-  }
+  final List<({int cutIndex, double lineWidth})> _lineInfo = [];
 
-  HayXAxisAlign textAlign;
-  HayYAxisAlign textVerticalAlign;
-  double fontSize;
-  double lineSpacing;
-  Color color;
-
-  List<({int cut, double width})> lines = [];
-
-  TextBox({
+  TextBox(
+    String text, {
     Font? font,
-    required String text,
-    this.textAlign = .LEFT,
-    this.textVerticalAlign = .TOP,
-    this.fontSize = 24.0,
+    double? fontSize,
     this.lineSpacing = 2.0,
+    this.mainAxisAlign = HayXAxisAlign.LEFT,
+    this.crossAxisAlign = HayYAxisAlign.TOP,
     Color? color,
-  }) : _text = TextCodepoint.fromString(text),
-       color = color ?? Color.WHITE,
+  }) : text = TextCodepoint.fromString(text),
        font = font ?? Font.Default(),
-       super(sizing: .Expand());
+       color = color ?? Color.WHITE,
+       super(sizing: HaySize.Expand()) {
+    this.fontSize = fontSize ?? this.font.baseSize.toDouble();
+  }
 
   @override
   void Mount() {
-    if (!_isDirty) return;
+    if (text.buffer.isEmpty) return;
 
-    lines.clear();
-    Vector2 size = font.MeasureCodepoints(
-      _text,
+    _lineInfo.clear();
+    Vector2 textSize = font.MeasureCodepoints(
+      text,
       fontSize: fontSize,
       spacing: lineSpacing,
     );
 
-    if (size.x <= width) {
-      lines.add((cut: _text.length, width: size.x));
-      _isDirty = false;
+    double textWidth = textSize.x;
+    double textHeight = 0.0;
+    double scale = fontSize / font.baseSize;
+    double widthAtLastSpace = 0.0;
+    int pin = 0;
+    int lineBreakPin = 0;
+    bool lineIsNotEmpty = false;
+    bool hasLineBreak = text.buffer.any(
+      (test) => test == '\n'.codeUnitAt(0) || test == '\r'.codeUnitAt(0),
+    );
+
+    textSize.Free();
+
+    if (!hasLineBreak && textWidth <= width) {
+      _lineInfo.add((cutIndex: text.length, lineWidth: textWidth));
       return;
     }
 
-    double scale = fontSize / font.baseSize;
-    double textWidth = 0.0;
-    double textHeight = 0.0;
-    double widthAtLastSpace = 0.0;
-    int pin = 0;
-    int lineBreak = 0;
+    textWidth = 0.0;
 
-    for (int index = 0; index <= _text.length; index++) {
-      if (index == _text.length) {
-        lines.add((cut: index, width: textWidth));
+    for (int index = 0; index <= text.length; index++) {
+      if (index == text.length) {
+        _lineInfo.add((cutIndex: index, lineWidth: textWidth));
         break;
       } else if (textHeight > height) {
         break;
       }
 
-      // Get glyph index of codepoints text.buffer[index]
-      int codepoint = _text.buffer[index];
+      // Get codepoint in [index] position
+      int codepoint = text.buffer[index];
+      // Get glyph index of codepoint
       int glyphIndex = font.GetGlyphIndex(codepoint);
-      // Get glyph info of codepoints `index`
-      GlyphInfo glyph = font.GetGlyphInfo(glyphIndex);
+      // Get glyph info of codepoints
+      var glyph = font.GetGlyphInfo(glyphIndex);
+      // Calculate advance with given fontSize
+      double glyphWidth =
+          (glyph.advanceX == 0
+              ? font.GetAtlasRec(codepoint).width
+              : glyph.advanceX.toDouble()) *
+          scale;
+      double nextLineWidth =
+          textWidth +
+          (lineIsNotEmpty ? lineSpacing : 0.0) +
+          glyphWidth; // Skip spacing calculations at the begginning of the line
 
-      double advanceX = (glyph.advanceX + lineSpacing) * scale;
-
+      // If hit a line break, set the line index
       if (codepoint == '\n'.codeUnitAt(0) || codepoint == '\r'.codeUnitAt(0)) {
-        lines.add((cut: index, width: textWidth));
-        lineBreak = index;
+        _lineInfo.add((cutIndex: index, lineWidth: textWidth));
+        lineBreakPin = index;
         textWidth = 0.0;
+        lineIsNotEmpty = false;
         textHeight += fontSize;
         continue;
-      } else if (textWidth + advanceX > width) {
-        if (pin > lineBreak) {
+        // If line passes the TextBox area
+      } else if (nextLineWidth > width) {
+        int cutIndex;
+        if (pin > lineBreakPin) {
           textWidth = widthAtLastSpace;
+          cutIndex = pin;
           index = pin - 1;
         } else {
+          cutIndex = index;
           index--;
         }
 
-        lines.add((cut: index, width: textWidth));
-        lineBreak = index;
+        _lineInfo.add((cutIndex: cutIndex, lineWidth: textWidth));
+        lineBreakPin = cutIndex;
         textWidth = 0.0;
+        lineIsNotEmpty = false;
         textHeight += fontSize;
+        // Calculate the textWidth
       } else {
-        textWidth += advanceX;
+        textWidth = nextLineWidth;
+        lineIsNotEmpty = true;
       }
 
+      // Track the width at the last space
       if (codepoint == ' '.codeUnitAt(0)) {
         pin = index + 1;
         widthAtLastSpace = textWidth;
       }
     }
-
-    _isDirty = false;
   }
 
   @override
   void DrawWidget() {
-    if (_isDirty) Mount();
-
+    if (_lineInfo.isEmpty) return;
     Draw.WithScissorMode(
       rect: this,
       renderLogic: () {
-        if (lines.isEmpty) return;
-        Vector2 pos = Vector2();
-        double startY = y;
+        var textPos = Vector2();
+        final textHeight =
+            (fontSize * _lineInfo.length) +
+            (lineSpacing * (_lineInfo.length - 1));
+        var textStartY = 0.0;
 
-        switch (textVerticalAlign) {
-          case .BOTTOM:
-            double textHeight =
-                (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
-            startY = height - textHeight;
-            startY += y;
+        switch (crossAxisAlign) {
+          case HayYAxisAlign.BOTTOM:
+            textStartY = height - textHeight;
+            textStartY += y;
             break;
-          case .CENTER:
-            double textHeight =
-                (fontSize * lines.length) + (lineSpacing * (lines.length - 1));
-            startY = (height - textHeight) / 2;
-            startY += y;
+          case HayYAxisAlign.CENTER:
+            textStartY = (height - textHeight) / 2;
+            textStartY += y;
             break;
-          default:
+          case HayYAxisAlign.TOP:
+            textStartY = y;
+            break;
         }
 
-        for (int index = 0; index < lines.length; index++) {
+        for (int index = 0; index < _lineInfo.length; index++) {
           double posX = 0.0;
-
-          switch (textAlign) {
+          switch (mainAxisAlign) {
             case HayXAxisAlign.RIGHT:
-              posX = width - lines[index].width;
-              posX = math.min(width, posX);
+              posX = width - _lineInfo[index].lineWidth;
               break;
             case HayXAxisAlign.CENTER:
-              posX = width - lines[index].width;
-              posX = math.min(width, posX);
-              posX /= 2;
+              posX = (width - _lineInfo[index].lineWidth) / 2;
               break;
-            default:
+            case HayXAxisAlign.LEFT:
               break;
           }
-
-          pos.x = posX + x;
-          pos.y = index * (fontSize + lineSpacing) + startY;
+          textPos.x = posX + x;
+          textPos.y = textStartY + index * (fontSize + lineSpacing);
 
           int start = 0;
           if (index > 0) {
-            start = lines[index - 1].cut;
+            start = _lineInfo[index - 1].cutIndex;
 
-            if (start < _text.length &&
-                (_text.buffer[start] == '\n'.codeUnitAt(0) ||
-                    _text.buffer[start] == '\r'.codeUnitAt(0)))
+            if (start < text.length &&
+                (text.buffer[start] == '\n'.codeUnitAt(0) ||
+                    text.buffer[start] == '\r'.codeUnitAt(0)))
               start++;
           }
 
-          int length = lines[index].cut - start;
+          int length = _lineInfo[index].cutIndex - start;
 
           TextCodepoint.DrawCodepoints(
             font,
-            _text,
+            text,
             length,
             fontSize: fontSize,
             spacing: lineSpacing,
-            position: pos,
+            position: textPos,
             tint: color,
             index: start,
           );
         }
+
+        textPos.Free();
       },
     );
   }
 
   @override
   void Free() {
+    text.Free();
     font.Free();
-    _text.Free();
-
     super.Free();
   }
 }
@@ -844,10 +875,12 @@ enum InteractState { Idle, Selected, Pressed }
 abstract class IInteractible extends Widget {
   /// Inner member which computer the interaction state of the active widget.
   InteractState state;
+  double? clickTime;
   final MouseCursor cursor;
 
   /// Static member used to lock onto a single widget on interaction and prevent conflicts;
   static IInteractible? PinnedWidget;
+  static double doubleClickTimer = 0.5;
 
   /// Conveniency member used to compute mouse position in collision checks.
   ///
@@ -855,66 +888,49 @@ abstract class IInteractible extends Widget {
   /// mouse position, independent of the canvas scale itself
   static Vector2 MousePosition = Vector2.Zero();
 
-  /// Interact trigger function
-  final void Function()? _OnPress;
-  void OnPress() => _OnPress?.call();
-
-  final bool Function() _OnFocus;
-
-  /// Function to determine when there is an interaction
+  /// Logic to compute an interaction, eg if the user clicks on it.
   ///
   /// Override this function to set a custom interact behavior
-  ///
-  /// ### Example
-  /// ***
-  /// ```
-  ///
-  /// bool OnFocus() {
-  ///   if (Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT))
-  ///     return true;
-  ///   else
-  ///     return false;
-  /// }
-  /// ```
   bool OnFocus() => _OnFocus.call();
 
   final bool Function() _OnUnfocus;
 
-  /// Function to determine when the interaction has stopped
+  /// Logic to compute an interaction stop, eg the user released the click
   ///
   /// Override this function to set a custom stop interact behavior
-  ///
-  /// ### Example
-  /// ***
-  /// ```
-  ///
-  /// bool OnUnfocus() {
-  ///   if (Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT))
-  ///     return true;
-  ///   else
-  ///     return false;
-  /// }
-  /// ```
   bool OnUnfocus() => _OnUnfocus.call();
 
   late final bool Function() _OnSelect;
 
-  /// Function to determine how an widget on the screen will compute an interaction
+  /// Logic to compute a selection, eg the user hovers the mouse
   ///
   /// Override this function to set a custom interaction behavior
-  ///
-  /// ### Example
-  /// ***
-  /// ```
-  ///
-  /// bool OnSelect() {
-  ///   if (Collision.CheckPointRec(MousePosition, interactArea))
-  ///     return true;
-  ///   else
-  ///     return false;
-  /// }
-  /// ```
   bool OnSelect() => _OnSelect.call();
+
+  final void Function()? _OnPress;
+  final void Function()? _OnDoublePress;
+
+  /// Function call when the widget computes [OnUnfocus]
+  ///
+  /// [OnPress] precedes [OnDoublePress]
+  void OnPress() {
+    if (_OnPress != null) {
+      _OnPress.call();
+      return;
+    }
+    if (_OnDoublePress != null && clickTime != null) {
+      final time = Frame.GetTime();
+
+      if (time - clickTime! < doubleClickTimer) _OnDoublePress.call();
+
+      clickTime = time;
+      return;
+    } else {
+      clickTime = Frame.GetTime();
+    }
+  }
+
+  final bool Function() _OnFocus;
 
   /// Used in UpdateState to run the interaction area check.
   ///
@@ -928,27 +944,22 @@ abstract class IInteractible extends Widget {
   IInteractible({
     required super.sizing,
     void Function()? OnPress,
+    void Function()? OnDoublePress,
     bool Function()? OnSelect,
     bool Function()? OnFocus,
     bool Function()? OnUnfocus,
     this.cursor = .POINTING_HAND,
   }) : _OnPress = OnPress,
+       _OnDoublePress = OnDoublePress,
        _OnFocus =
-           OnFocus ??
-           (() {
-             return Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT);
-           }),
+           OnFocus ?? (() => Mouse.IsPressed(.LEFT) || Mouse.IsPressed(.RIGHT)),
        _OnUnfocus =
            OnUnfocus ??
-           (() {
-             return Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT);
-           }),
+           (() => Mouse.IsReleased(.LEFT) || Mouse.IsReleased(.RIGHT)),
        state = .Idle {
     _OnSelect =
         OnSelect ??
-        (() {
-          return Collision.CheckPointRec(MousePosition, interactArea);
-        });
+        (() => Collision.CheckPointRec(MousePosition, interactArea));
   }
 
   /// ## Processes interaction status.
@@ -998,13 +1009,13 @@ abstract class IInteractible extends Widget {
     return true;
   }
 
+  /*
   /// ## Centralized logic to update multiple Widgets
   ///
   /// Orchestrates interaction for a list of widgets. It gives absolute priority
   /// to the [PinnedWidget] if it exists. Otherwise, it iterates through
   /// [IInteractible] widgets and breaks the loop as soon as one triggers the input.
   static void UpdateWidgets(List<Widget> list) {
-    // AI generated solution to stacked IInteractible widgets
     if (PinnedWidget != null) {
       PinnedWidget!.UpdateState();
       return;
@@ -1032,6 +1043,7 @@ abstract class IInteractible extends Widget {
 
     super.Free();
   }
+  */
 
   /// Recursively updates the interaction state for a widget subtree.
   ///
@@ -1039,19 +1051,26 @@ abstract class IInteractible extends Widget {
   /// `true` when an [IInteractible] widget handles the current interaction state.
   /// This is useful for hover and click resolution across nested widget trees.
   static bool UpdateWidgetTree(Widget node) {
+    // Recursive call
+    if (node.children.isNotEmpty)
+      for (var node in node.children.toList().reversed) UpdateWidgetTree(node);
+
+    // If a widget is on focus, enable skip gate
+    bool skip = false;
     if (PinnedWidget != null) {
       PinnedWidget!.UpdateState();
-      return true;
-    }
-    if (node.children.isNotEmpty) {
-      for (var widget in node.children.toList().reversed)
-        if (UpdateWidgetTree(widget)) return true;
+      skip = true;
     }
 
-    if (node case IInteractible iInteractible)
-      return iInteractible.UpdateState();
-    else
-      return false;
+    // Update node state
+    if (node case IInteractible iInteractible) {
+      if (skip && node != PinnedWidget)
+        iInteractible.state = .Idle;
+      else
+        return iInteractible.UpdateState();
+    }
+
+    return false;
   }
 }
 
@@ -1278,7 +1297,7 @@ class Grid extends Widget {
       rect: this,
       renderLogic: () {
         for (
-          int row = (math.max(0.0, _scroll) / _rowStride).floor();
+          int row = (math.max(0.0, _scroll) / _rowStride).round();
           row < _rows;
           row++
         ) {
@@ -1508,11 +1527,11 @@ class Aling extends Widget {
   Iterable<Widget> get children => [widget];
 
   Aling({
+    super.sizing = const .Expand(),
     required Widget child,
     this.hayXAxisAlign = .LEFT,
     this.hayYAxisAlign = .TOP,
-  }) : widget = child,
-       super(sizing: .Expand());
+  }) : widget = child;
 
   @override
   void DrawWidget() {
@@ -1709,6 +1728,18 @@ abstract class Router {
 
   //----------------------------------Methods------------------------------------------
 
+  static void Reload() {
+    // Recycle home page
+    _activeWidget?.Free();
+    _activeWidget = routes[history.last]!.call();
+    _activeWidget?.Mount();
+
+    // Recycle destination page
+    _destWidget?.Free();
+    _destWidget = routes[history.last]!.call();
+    _destWidget?.Mount();
+  }
+
   /// Simply update the active widgets
   static void Update() {
     _activeWidget?.Mount();
@@ -1728,21 +1759,18 @@ abstract class Router {
   ///
   /// Set [transition] to compute a custom transition animation to [destWidget] with [_elapsedTime], return [true] when complete.
   static void DrawPage([WidgetTransition? transition]) {
-    transition ??= (destWidget, elapsedTime) {
-      return true;
-    };
+    transition ??= (destWidget, elapsedTime) => true;
 
     if (_destWidget != null) {
       if (!transition(_destWidget!, _elapsedTime)) {
         _elapsedTime += Frame.GetTime();
+        _destWidget?.DrawWidget();
       } else {
         _elapsedTime = 0.0;
         _activeWidget?.Free();
         _activeWidget = _destWidget;
         _destWidget = null;
       }
-
-      _destWidget?.DrawWidget();
     }
 
     _activeWidget?.DrawWidget();
@@ -1781,3 +1809,64 @@ class ReadOnlyWidget extends Widget {
   void Set({num? x, num? y, num? width, num? height})
       => widget.Set(x: x, y: y, width: width, height: height);
 } */
+
+class ValueNotifier<T> {
+  T _value;
+  bool updated = false;
+
+  T get value {
+    updated = true;
+    return _value;
+  }
+
+  set value(T value) {
+    updated = true;
+    _value = value;
+  }
+
+  ValueNotifier(T value) : _value = value;
+}
+
+class NotificationBuilder extends Widget {
+  final ValueNotifier _valueNotifier;
+  final Widget Function(ValueNotifier) _widgetBuilder;
+  late Widget _widget;
+
+  @override
+  Iterable<Widget> get children => [_widget];
+
+  NotificationBuilder({
+    required ValueNotifier valueNotifier,
+    required Widget Function(ValueNotifier) widgetBuilder,
+  }) : _valueNotifier = valueNotifier,
+       _widgetBuilder = widgetBuilder,
+       super(sizing: .Expand()) {
+    _widget = widgetBuilder.call(_valueNotifier);
+  }
+
+  @override
+  void DrawWidget() {
+    if (_valueNotifier.updated) {
+      _widget.Free();
+      _widget = _widgetBuilder.call(_valueNotifier);
+      Mount();
+      _valueNotifier.updated = false;
+    }
+
+    _widget.DrawWidget();
+  }
+
+  @override
+  void Mount() {
+    _widget
+      ..SetSizing(width, height)
+      ..Set(x: x, y: y)
+      ..Mount();
+  }
+
+  @override
+  void Free() {
+    _widget.Free();
+    super.Free();
+  }
+}

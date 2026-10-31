@@ -9,6 +9,115 @@ import '../lib/haybale/haybale.dart';
 /// A [buttonTexture] is expected to contain three vertically stacked images:
 /// the normal, selected, and pressed appearances, in that order.
 class Button extends IInteractible {
+  final Widget? widget;
+  final Texture? texture;
+  final NPatchConfig _nPatchConfig;
+  final NPatchLayout _nPatchLayout;
+  final bool stateful;
+  late final int _heightSlice;
+  // late final NPatchInfo? _nPatchInfo;
+
+  final double _borderRadius;
+  late final List<Color> _stateColors;
+
+  Button({
+    required super.sizing,
+    this.texture,
+    this.stateful = true,
+    NPatchConfig nPatchConfig = const .none(),
+    NPatchLayout nPatchLayout = .NPATCH_NINE_PATCH,
+    Color? idleColor,
+    Color? selectColor,
+    Color? pressColor,
+    double borderRadius = 0.0,
+    super.OnPress,
+    super.OnSelect,
+    super.OnUnfocus,
+    super.OnFocus,
+    Widget? child,
+  }) : widget = child,
+       _borderRadius = borderRadius,
+       _nPatchConfig = nPatchConfig,
+       _nPatchLayout = nPatchLayout {
+    _stateColors = [
+      idleColor ?? Color.GRAY,
+      selectColor ?? Color.LIGHTGRAY,
+      pressColor ?? Color.SKYBLUE,
+    ];
+
+    if (texture == null) {
+      _heightSlice = 0;
+      // _nPatchInfo = null;
+    } else {
+      _heightSlice = (texture!.height % 3 == 0 && stateful)
+          ? (texture!.height / 3).toInt()
+          : texture!.height;
+      /* 
+      rayCompute((arena) {
+        _nPatchInfo = NPatchInfo(
+          source: Rectangle(0.0, 0.0, texture!.width, _heightSlice, arena),
+          left: nPatchConfig.left,
+          top: nPatchConfig.top,
+          right: nPatchConfig.right,
+          bottom: nPatchConfig.bottom,
+          layout: nPatchLayout,
+        );
+      });
+      */
+    }
+  }
+
+  @override
+  void Mount() {
+    widget?.Set(x: x, y: y);
+    widget?.SetSizing(width, height);
+    widget?.Mount();
+    super.Mount();
+  }
+
+  @override
+  void DrawWidget() {
+    if (texture case Texture buttonTexture) {
+      rayCompute((arena) {
+        var npatchInfo = NPatchInfo(
+          source: Rectangle(
+            0.0,
+            stateful ? state.index * _heightSlice : 0.0,
+            buttonTexture.width,
+            _heightSlice,
+            arena,
+          ),
+          left: _nPatchConfig.left,
+          top: _nPatchConfig.top,
+          right: _nPatchConfig.right,
+          bottom: _nPatchConfig.bottom,
+          layout: _nPatchLayout,
+          arena: arena,
+        );
+
+        Texture.DrawNPatch(buttonTexture, npatchInfo, this);
+      });
+    } else {
+      Shapes.DrawRectangleRounded(
+        this,
+        _borderRadius,
+        4,
+        color: _stateColors[state.index],
+      );
+    }
+
+    widget?.DrawWidget();
+  }
+
+  @override
+  void Free() {
+    widget?.Free();
+    // texture?.Free();
+    // for (var color in _stateColors) color.Free();
+    super.Free();
+  }
+
+  /* 
   /// The optional widget displayed inside this button.
   final Widget? widget;
 
@@ -18,7 +127,7 @@ class Button extends IInteractible {
   /// Nine-patch settings for [buttonTexture], when the texture is valid.
   late final NPatchInfo nPatchInfo;
 
-  final int? heightSlice;
+  // final int? heightSlice;
 
   /// Creates a button with the given interaction [sizing].
   ///
@@ -92,6 +201,7 @@ class Button extends IInteractible {
     buttonTexture?.Free();
     super.Free();
   }
+  */
 }
 
 /// A horizontal slider interactible widget with optional textures.
@@ -158,7 +268,7 @@ class Slider extends IInteractible {
   /// - [divisions]: number of discrete positions (1 = continuous).
   Slider({
     required super.sizing,
-    void Function(double)? OnSet,
+    void Function(double value)? OnSet,
     super.cursor = .POINTING_HAND,
     this.barTexture,
     this.sliderTexture,
@@ -167,17 +277,25 @@ class Slider extends IInteractible {
        _value = 0.0 {
     if (sliderTexture != null) {
       sliderRect = Rectangle(0, 0, sliderTexture!.width, sliderTexture!.height);
+    } else {
+      sliderRect = Rectangle(0, 0, 10.0, height);
     }
 
     if (barTexture != null) {
       barRect = Rectangle(0, 0, barTexture!.width, barTexture!.height);
+    } else {
+      barRect = Rectangle(0, 0, width, height);
     }
   }
 
   @override
   void Mount() {
-    if (sliderTexture == null) sliderRect = Rectangle(0, 0, 10.0, height);
-    if (barTexture == null) barRect = Rectangle(0, 0, width, height);
+    if (sliderTexture == null) {
+      sliderRect.Set(x: 0, y: 0, width: 10.0, height: height);
+    }
+    if (barTexture == null) {
+      barRect.Set(x: 0, y: 0, width: width, height: height);
+    }
   }
 
   @override
@@ -193,7 +311,7 @@ class Slider extends IInteractible {
         Texture2D.DrawPro(barTexture!, src, barRect);
       } else {
         barRect.Set(x: x, y: y);
-        Shapes.DrawRectanglePro(barRect, Vector2.Zero(arena), color: .DARKGRAY);
+        Shapes.DrawRectanglePro(barRect, Vector2.Zero(), color: .DARKGRAY);
       }
 
       if (sliderTexture != null) {
@@ -211,7 +329,7 @@ class Slider extends IInteractible {
         sliderRect.Set(x: x + (width * value) - 5, y: y);
         Shapes.DrawRectanglePro(
           sliderRect,
-          Vector2.Zero(arena),
+          Vector2.Zero(),
           color: switch (state) {
             .Idle => .GRAY,
             .Selected => .LIGHTGRAY,
