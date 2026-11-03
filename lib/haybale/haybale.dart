@@ -1541,7 +1541,9 @@ class Aling extends Widget {
 
   @override
   void Mount() {
-    widget.SetSizing(width, height);
+    widget
+      ..SetSizing(width, height)
+      ..Mount();
     int posX = 0, posY = 0;
 
     switch (hayXAxisAlign) {

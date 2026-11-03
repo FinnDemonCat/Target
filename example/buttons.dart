@@ -116,92 +116,6 @@ class Button extends IInteractible {
     // for (var color in _stateColors) color.Free();
     super.Free();
   }
-
-  /* 
-  /// The optional widget displayed inside this button.
-  final Widget? widget;
-
-  /// The optional texture used to draw the button's interaction states.
-  final Texture? buttonTexture;
-
-  /// Nine-patch settings for [buttonTexture], when the texture is valid.
-  late final NPatchInfo nPatchInfo;
-
-  // final int? heightSlice;
-
-  /// Creates a button with the given interaction [sizing].
-  ///
-  /// [widget] is positioned and sized to the button when it is mounted.
-  /// [nPatchConfig] and [nPatchLayout] configure the nine-patch settings.
-  Button({
-    required super.sizing,
-    super.OnPress,
-    super.OnFocus,
-    super.OnUnfocus,
-    super.OnSelect,
-    super.cursor,
-    this.buttonTexture,
-    this.heightSlice,
-    required Widget child,
-    NPatchConfig nPatchConfig = const NPatchConfig.none(),
-    NPatchLayout nPatchLayout = .NPATCH_NINE_PATCH,
-  }) : this.widget = child {
-    if (buttonTexture != null &&
-        heightSlice != null &&
-        buttonTexture!.height % heightSlice! == 0) {
-      var source = Rectangle(0.0, 0.0, buttonTexture!.width, heightSlice!);
-
-      nPatchInfo = NPatchInfo(
-        source: source,
-        left: nPatchConfig.left,
-        top: nPatchConfig.top,
-        right: nPatchConfig.right,
-        bottom: nPatchConfig.bottom,
-        layout: nPatchLayout,
-      );
-
-      source.Free();
-    }
-  }
-
-  @override
-  void Mount() {
-    widget?.Set(x: x, y: y);
-    widget?.SetSizing(width, height);
-    widget?.Mount();
-  }
-
-  @override
-  void DrawWidget() {
-    if (buttonTexture != null && heightSlice != null) {
-      var source = Rectangle(0.0, 0.0, buttonTexture!.width, heightSlice!);
-
-      switch (state) {
-        case InteractState.Selected:
-          source.y = heightSlice!;
-          break;
-        case InteractState.Pressed:
-          source.y = heightSlice! * 2;
-          break;
-        default:
-          break;
-      }
-
-      Texture.DrawPro(buttonTexture!, source, this);
-
-      source.Free();
-    }
-
-    widget?.DrawWidget();
-  }
-
-  @override
-  void Free() {
-    widget?.Free();
-    buttonTexture?.Free();
-    super.Free();
-  }
-  */
 }
 
 /// A horizontal slider interactible widget with optional textures.
@@ -417,9 +331,10 @@ class Locked extends Widget {
 
   @override
   void Mount() {
-    widget.Set(x: x, y: y);
-    widget.SetSizing(width, height);
-    widget.Mount();
+    widget
+      ..Set(x: x, y: y)
+      ..SetSizing(width, height)
+      ..Mount();
   }
 
   @override
