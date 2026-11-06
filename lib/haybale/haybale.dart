@@ -191,7 +191,7 @@ class Widget extends Rectangle {
   Widget({required this.sizing}) : super(0.0, 0.0, sizing.width, sizing.height);
 
   void Mount() {}
-  void DrawWidget() {}
+  void Draw() {}
 
   void SetSizing([double width = 0.0, double height = 0.0]) {
     if (sizing.width == -1)
@@ -234,10 +234,10 @@ class Center extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     // if (widget case IInteractible interactible) interactible.UpdateState();
 
-    widget.DrawWidget();
+    widget.Draw();
   }
 
   @override
@@ -297,8 +297,8 @@ class Padding extends Widget {
   }
 
   @override
-  void DrawWidget() {
-    widget.DrawWidget();
+  void Draw() {
+    widget.Draw();
     // IInteractible.UpdateWidgets([widget]);
   }
 
@@ -379,7 +379,7 @@ class Column extends Widget {
   Iterable<Widget> get children => widgets;
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (backgroundColor != null)
       Shapes.DrawRectangleRounded(
         this,
@@ -387,7 +387,7 @@ class Column extends Widget {
         4,
         color: backgroundColor,
       );
-    for (Widget widget in widgets) widget.DrawWidget();
+    for (Widget widget in widgets) widget.Draw();
   }
 
   @override
@@ -568,7 +568,7 @@ class Row extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (backgroundColor != null)
       Shapes.DrawRectangleRounded(
         this,
@@ -576,7 +576,7 @@ class Row extends Widget {
         4,
         color: backgroundColor,
       );
-    for (Widget widget in widgets) widget.DrawWidget();
+    for (Widget widget in widgets) widget.Draw();
   }
 
   @override
@@ -763,9 +763,9 @@ class TextBox extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (_lineInfo.isEmpty) return;
-    Draw.WithScissorMode(
+    Drawing.WithScissorMode(
       rect: this,
       renderLogic: () {
         var textPos = Vector2();
@@ -919,14 +919,14 @@ abstract class IInteractible extends Widget {
       return;
     }
     if (_OnDoublePress != null && clickTime != null) {
-      final time = Frame.GetTime();
+      final time = Window.GetTime();
 
       if (time - clickTime! < doubleClickTimer) _OnDoublePress.call();
 
       clickTime = time;
       return;
     } else {
-      clickTime = Frame.GetTime();
+      clickTime = Window.GetTime();
     }
   }
 
@@ -1138,17 +1138,17 @@ class Canvas extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (!blockInteraction)
       IInteractible.MousePosition.Set(
         x: Mouse.GetX() * scale,
         y: Mouse.GetY() * scale,
       );
 
-    Draw.WithTextureMode(
+    Drawing.WithTextureMode(
       renderLogic: () {
-        Draw.ClearBackground(.BLANK);
-        widget.DrawWidget();
+        Drawing.ClearBackground(.BLANK);
+        widget.Draw();
       },
       render: _renderTexture,
     );
@@ -1288,12 +1288,12 @@ class Grid extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     // Updating scoll on update
     _scroll -= Mouse.GetWheelMove() * _sensitivity;
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
-    Draw.WithScissorMode(
+    Drawing.WithScissorMode(
       rect: this,
       renderLogic: () {
         for (
@@ -1311,7 +1311,7 @@ class Grid extends Widget {
               y: (y + (row * _rowStride) - _scroll).round(),
             );
 
-            widgets[index].DrawWidget();
+            widgets[index].Draw();
 
             // if (widgets[index] case IInteractible widget) {
             //   if (skip)
@@ -1324,7 +1324,7 @@ class Grid extends Widget {
       },
     );
 
-    super.DrawWidget();
+    super.Draw();
   }
 
   @override
@@ -1350,7 +1350,7 @@ class Grid extends Widget {
 ///
 /// - **Flexible Alignment**: Automatically calculates horizontal offsets for each child based on [HayXAxisAlign].
 /// - **Interactive Scrolling**: Features a built-in scroll system mapped to the mouse wheel with configurable [sensitivity].
-/// - **Collision Culling**: During [DrawWidget], only widgets intersecting the current viewport are rendered, saving draw calls.
+/// - **Collision Culling**: During [Draw], only widgets intersecting the current viewport are rendered, saving draw calls.
 ///
 /// ## Example
 ///
@@ -1434,12 +1434,12 @@ class ListView extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     // Updating scoll on update
     _scroll -= Mouse.GetWheelMove() * _sensitivity;
     _scroll = _scroll.clamp(0.0, math.max(0.0, _totalHeight - height));
 
-    Draw.WithScissorMode(
+    Drawing.WithScissorMode(
       rect: this,
       renderLogic: () {
         for (int index = 0; index < widgets.length; index++) {
@@ -1450,13 +1450,13 @@ class ListView extends Widget {
 
           if (!Collision.CheckRecs(this, widget)) continue;
 
-          widget.DrawWidget();
+          widget.Draw();
         }
       },
     );
 
     // IInteractible.UpdateWidgets(widgets);
-    super.DrawWidget();
+    super.Draw();
   }
 
   @override
@@ -1502,8 +1502,8 @@ class Stack extends Widget {
   }
 
   @override
-  void DrawWidget() {
-    for (Widget widget in widgets) widget.DrawWidget();
+  void Draw() {
+    for (Widget widget in widgets) widget.Draw();
     // IInteractible.UpdateWidgets(widgets);
   }
 
@@ -1534,8 +1534,8 @@ class Aling extends Widget {
   }) : widget = child;
 
   @override
-  void DrawWidget() {
-    widget.DrawWidget();
+  void Draw() {
+    widget.Draw();
     // IInteractible.UpdateWidgets([widget]);
   }
 
@@ -1765,8 +1765,8 @@ abstract class Router {
 
     if (_destWidget != null) {
       if (!transition(_destWidget!, _elapsedTime)) {
-        _elapsedTime += Frame.GetTime();
-        _destWidget?.DrawWidget();
+        _elapsedTime += Window.GetTime();
+        _destWidget?.Draw();
       } else {
         _elapsedTime = 0.0;
         _activeWidget?.Free();
@@ -1775,7 +1775,7 @@ abstract class Router {
       }
     }
 
-    _activeWidget?.DrawWidget();
+    _activeWidget?.Draw();
   }
 }
 
@@ -1847,7 +1847,7 @@ class NotificationBuilder extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (_valueNotifier.updated) {
       _widget.Free();
       _widget = _widgetBuilder.call(_valueNotifier);
@@ -1855,7 +1855,7 @@ class NotificationBuilder extends Widget {
       _valueNotifier.updated = false;
     }
 
-    _widget.DrawWidget();
+    _widget.Draw();
   }
 
   @override

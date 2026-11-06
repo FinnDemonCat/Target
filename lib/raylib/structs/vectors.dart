@@ -7,6 +7,15 @@ part of '../raylib.dart';
 //------------------------------------------------------------------------------------
 /// Module Functions Definition - Vector2 math
 //------------------------------------------------------------------------------------
+
+// Vector2, 2 components
+final class _Vector2 extends Struct {
+  @Float()
+  external double x; // Vector x component
+  @Float()
+  external double y; // Vector y component
+}
+
 class Vector2 extends NativeWrapper<_Vector2> implements Finalizable {
   _Vector2 get ref => pointer.ref;
   set ref(_Vector2 value) => pointer.ref = value;
@@ -355,9 +364,15 @@ extension Vector2Math on Vector2 {
 /// Module Functions Definition - Vector3 math
 //------------------------------------------------------------------------------------
 
-// typedef _FreeVector3C    = Void Function(Pointer<Void> token);
-// typedef _FreeVector3Dart = void Function(Pointer<Void> token);
-// final _freeVector3 = _dyReleaseLib.lookup<NativeFunction<_FreeVector3C>>('FreeVector3');
+// Vector3, 3 components
+final class _Vector3 extends Struct {
+  @Float()
+  external double x; // Vector x component
+  @Float()
+  external double y; // Vector y component
+  @Float()
+  external double z; // Vector z component
+}
 
 /// Vector3, 3 components
 class Vector3 extends NativeWrapper<_Vector3> implements Finalizable {
@@ -1128,9 +1143,17 @@ extension Vector3Math on Vector3 {
 /// Module Functions Definition - Vector4 math
 //----------------------------------------------------------------------------------
 
-// typedef _FreeVector4C    = Void Function(Pointer<Void> token);
-// typedef _FreeVector4Dart = void Function(Pointer<Void> token);
-// final _freeVector4 = _dyReleaseLib.lookup<NativeFunction<_FreeVector4C>>('FreeVector4');
+// Vector4, 4 components
+final class _Vector4 extends Struct {
+  @Float()
+  external double x; // Vector x component
+  @Float()
+  external double y; // Vector y component
+  @Float()
+  external double z; // Vector z component
+  @Float()
+  external double w; // Vector w component
+}
 
 class Vector4 extends NativeWrapper<_Vector4> implements Finalizable {
   _Vector4 get ref => pointer.ref;
@@ -1426,6 +1449,9 @@ extension Vector4Math on Vector4 {
 //------------------------------------------------------------------------------------
 /// Module Functions Definition - Quaternion math
 //------------------------------------------------------------------------------------
+
+// Quaternion, 4 components (Vector4 alias)
+typedef _Quaternion = _Vector4;
 
 class Quaternion extends Vector4 {
   Quaternion([super.x, super.y, super.z, super.w, super.arena]) : super();

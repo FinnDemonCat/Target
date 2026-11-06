@@ -4,10 +4,48 @@ part of '../raylib.dart';
 //                                   Mesh
 //------------------------------------------------------------------------------------
 
-// Unload mesh data from CPU and GPU
-// typedef _FreeMeshC    = Void Function(Pointer<Void> token);
-// typedef _FreeMeshDart = void Function(Pointer<Void> token);
-// final _freeMesh = _dyReleaseLib.lookup<NativeFunction<_FreeMeshC>>('FreeMesh');
+// Mesh, vertex data and vao/vbo
+final class _Mesh extends Struct {
+  @Int32()
+  external int vertexCount; // Number of vertices stored in arrays
+  @Int32()
+  external int triagleCoung; // Number of triangles stored (indexed or not)
+
+  // Vertex attributes data
+  external Pointer<Float>
+  vertices; // Vertex position (XYZ - 3 components per vertex) (shader-location = 0)
+  external Pointer<Float>
+  texcoords; // Vertex texture coordinates (UV - 2 components per vertex) (shader-location = 1)
+  external Pointer<Float>
+  texcoords2; // Vertex texture second coordinates (UV - 2 components per vertex) (shader-location = 5)
+  external Pointer<Float>
+  normals; // Vertex normals (XYZ - 3 components per vertex) (shader-location = 2)
+  external Pointer<Float>
+  tangents; // Vertex tangents (XYZW - 4 components per vertex) (shader-location = 4)
+  external Pointer<Uint8>
+  colors; // Vertex colors (RGBA - 4 components per vertex) (shader-location = 3)
+  external Pointer<Uint16>
+  indices; // Vertex indices (in case vertex data comes indexed)
+
+  // Animation vertex data
+  external Pointer<Float>
+  animVertices; // Animated vertex positions (after bones transformations)
+  external Pointer<Float>
+  animNormals; // Animated normals (after bones transformations)
+  external Pointer<Uint8>
+  boneIds; // Vertex bone ids, max 255 bone ids, up to 4 bones influence by vertex (skinning) (shader-location = 6)
+  external Pointer<Float>
+  boneWeights; // Vertex bone weight, up to 4 bones influence by vertex (skinning) (shader-location = 7)
+  external Pointer<_Matrix>
+  boneMatrices; // Bones animated transformation matrices
+  @Int32()
+  external int boneCount; // Number of bones
+
+  @Uint32()
+  external int vaoID; // OpenGL Vertex Array Object id
+  external Pointer<Int32>
+  vboId; // OpenGL Vertex Buffer Objects id (default vertex data)
+}
 
 /// Mesh, vertex data and vao/vbo
 class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
@@ -432,10 +470,13 @@ class Mesh extends NativeWrapper<_Mesh> implements Finalizable {
 //                                   Shader
 //------------------------------------------------------------------------------------
 
-// Unload shader from GPU memory (VRAM)
-// typedef _FreeShaderC    = Void Function(Pointer<Void> token);
-// typedef _FreeShaderDart = void Function(Pointer<Void> token);
-// final _freeShader = _dyReleaseLib.lookup<NativeFunction<_FreeShaderC>>('FreeShader');
+// Shader
+final class _Shader extends Struct {
+  @Uint32()
+  external int id; // Shader program id
+  external Pointer<Int32>
+  locs; // Shader locations array (RL_MAX_SHADER_LOCATIONS)
+}
 
 /// Shader
 class Shader extends NativeWrapper<_Shader> implements Finalizable {
@@ -707,9 +748,13 @@ class Shader extends NativeWrapper<_Shader> implements Finalizable {
 //                                 MaterialMap
 //------------------------------------------------------------------------------------
 
-// typedef _FreeMaterialMapC    = Void Function(Pointer<Void> token);
-// typedef _FreeMaterialMapDart = void Function(Pointer<Void> token);
-// final _freeMaterialMap = _dyReleaseLib.lookup<NativeFunction<_FreeMaterialMapC>>('FreeMaterialMap');
+// MaterialMap
+final class _MaterialMap extends Struct {
+  external _Texture2D texture; // Material shader
+  external _Color color; // Material map color
+  @Float()
+  external double value; // Material map value
+}
 
 /// MaterialMap
 class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
@@ -786,10 +831,14 @@ class MaterialMap extends NativeWrapper<_MaterialMap> implements Finalizable {
 //                                   Material
 //------------------------------------------------------------------------------------
 
-// Unload material from GPU memory (VRAM)
-// typedef _FreeMaterialC    = Void Function(Pointer<Void> token);
-// typedef _FreeMaterialDart = void Function(Pointer<Void> token);
-// final _freeMaterial = _dyReleaseLib.lookup<NativeFunction<_FreeMaterialC>>('FreeMaterial');
+// Material, includes shader and maps
+final class _Material extends Struct {
+  external _Shader shader; // Material shader
+  external Pointer<_MaterialMap>
+  maps; // Material maps array (MAX_MATERIAL_MAPS)
+  @Array(4)
+  external Array<Float> params; // Material generic parameters (if required)
+}
 
 /// Material, includes shader and maps
 class Material extends NativeWrapper<_Material> implements Finalizable {

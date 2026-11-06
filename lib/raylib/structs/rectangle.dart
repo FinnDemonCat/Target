@@ -4,9 +4,17 @@ part of '../raylib.dart';
 //                                  Rectangle
 //------------------------------------------------------------------------------------
 
-// typedef _FreeRectangleC    = Void Function(Pointer<Void> token);
-// typedef _FreeRectangleDart = void Function(Pointer<Void> token);
-// final _freeRectangle = _dyReleaseLib.lookup<NativeFunction<_FreeRectangleC>>('FreeRectangle');
+// Rectangle, 4 components
+final class _Rectangle extends Struct {
+  @Float()
+  external double x; // Rectangle top-left corner position x
+  @Float()
+  external double y; // Rectangle top-left corner position y
+  @Float()
+  external double width; // Rectangle width
+  @Float()
+  external double height; // Rectangle height
+}
 
 /// Rectangle, 4 components
 class Rectangle extends NativeWrapper<_Rectangle> implements Finalizable {

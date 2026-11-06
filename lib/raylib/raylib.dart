@@ -6,7 +6,7 @@ import 'dart:math' as math;
 // ignore: unused_import
 import 'package:path/path.dart' as path;
 
-part 'struct_bindings.dart';
+part 'bindings.dart';
 part 'structs/vectors.dart';
 part 'structs/matrix.dart';
 part 'structs/rectangle.dart';
@@ -47,7 +47,10 @@ abstract class Window {
   }
 
   /// Close window and unload OpenGL context
-  static void Close() => _closeWindow();
+  static void Close() {
+    NativeWrapper.flushPointers();
+    _closeWindow();
+  }
 
   /// Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)
   static bool ShouldClose() => _windowShouldClose();
@@ -280,14 +283,7 @@ abstract class Window {
 
   /// Set a custom key to exit program (default is ESC)
   static void SetExitKey(Key key) => _setExitKey(key.index);
-}
 
-//------------------------------------------------------------------------------------
-//                                   Frame
-//------------------------------------------------------------------------------------
-
-/// Timing-related functions
-abstract class Frame {
   /// Set target FPS (maximum)
   static void SetTargetFPS(int fps) => _setTargetFPS(fps);
 
@@ -313,6 +309,13 @@ abstract class Frame {
 //------------------------------------------------------------------------------------
 //                                   FilePath List
 //------------------------------------------------------------------------------------
+
+// File path list
+final class _FilePathList extends Struct {
+  @Uint32()
+  external int count; // Filepaths entries count
+  external Pointer<Pointer<Utf8>> paths; // Filepaths entries
+}
 
 class FilePathList extends NativeWrapper<_FilePathList> {
   _FilePathList get ref => pointer.ref;
@@ -470,7 +473,7 @@ abstract class WorldTransform {
 //------------------------------------------------------------------------------------
 
 /// Drawing-related functions
-abstract class Draw {
+abstract class Drawing {
   /// Set background color (framebuffer clear color)
   static void ClearBackground(Color color) => _clearBackground(color.ref);
 

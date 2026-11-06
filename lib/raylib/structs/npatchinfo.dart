@@ -4,9 +4,20 @@ part of '../raylib.dart';
 //                                 NPatchInfo
 //------------------------------------------------------------------------------------
 
-// typedef _FreeNPatchInfoC    = Void Function(Pointer<Void> token);
-// typedef _FreeNPatchInfoDart = void Function(Pointer<Void> token);
-// final _freeNPatchInfo = _dyReleaseLib.lookup<NativeFunction<_FreeNPatchInfoC>>('FreeNPatchInfo');
+// NPatchInfo, n-patch layout info
+final class _NPatchInfo extends Struct {
+  external _Rectangle source; // Texture source rectangle
+  @Int32()
+  external int left; // Left border offset
+  @Int32()
+  external int top; // Top border offset
+  @Int32()
+  external int right; // Right border offset
+  @Int32()
+  external int bottom; // Bottom border offset
+  @Int32()
+  external int layout; // Layout of the n-patch: 3x3, 1x3 or 3x1
+}
 
 /// NPatchInfo, n-patch layout info
 class NPatchInfo extends NativeWrapper<_NPatchInfo> implements Finalizable {

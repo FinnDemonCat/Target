@@ -4,9 +4,20 @@ part of '../raylib.dart';
 //                                    Font
 //------------------------------------------------------------------------------------
 
-// typedef _FreeFontC    = Void Function(Pointer<Void> token);
-// typedef _FreeFontDart = void Function(Pointer<Void> token);
-// final _freeFont = _dyReleaseLib.lookup<NativeFunction<_FreeFontC>>('FreeFont');
+// Font, font texture and GlyphInfo array data
+final class _Font extends Struct {
+  @Int32()
+  external int baseSize; // Base size (default chars height)
+  @Int32()
+  external int glyphCount; // Number of glyph characters
+  @Int32()
+  external int glyphPadding; // Padding around the glyph characters
+  external _Texture texture; // Texture atlas containing the glyphs
+  external Pointer<_Rectangle>
+  recs; // Rectangles in texture for the glyphs. It's a pointer by default on Raylib
+  external Pointer<_GlyphInfo>
+  glyphs; // Glyphs info data. It's a pointer by default on Raylib
+}
 
 /// Font, font texture and GlyphInfo array data
 class Font extends NativeWrapper<_Font> implements Finalizable {
@@ -318,9 +329,18 @@ class Font extends NativeWrapper<_Font> implements Finalizable {
 //                                 GlyphInfo
 //------------------------------------------------------------------------------------
 
-// typedef _FreeGlyphInfoC    = Void Function(Pointer<Void> token);
-// typedef _FreeGlyphInfoDart = void Function(Pointer<Void> token);
-// final _freeGlyphInfo = _dyReleaseLib.lookup<NativeFunction<_FreeGlyphInfoC>>('FreeGlyphInfo');
+// GlyphInfo, font characters glyphs info
+final class _GlyphInfo extends Struct {
+  @Int32()
+  external int value; // Character value (Unicode)
+  @Int32()
+  external int offsetX; // Character offset X when drawing
+  @Int32()
+  external int offsetY; // Character offset Y when drawing
+  @Int32()
+  external int advanceX; // Character advance position X
+  external _Image image; // Character image data
+}
 
 /// GlyphInfo, font characters glyphs info
 class GlyphInfo extends NativeWrapper<_GlyphInfo> implements Finalizable {

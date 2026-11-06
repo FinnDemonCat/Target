@@ -50,10 +50,12 @@ class RaylibArena {
 /// A utility function that executes a callback within the context of a [RaylibArena].
 T rayCompute<T>(T Function(RaylibArena arena) arena) {
   final allocator = RaylibArena();
-  final result = arena.call(allocator);
 
   try {
+    final result = arena.call(allocator);
     return result;
+  } catch (error) {
+    rethrow;
   } finally {
     allocator.release();
   }
@@ -86,6 +88,17 @@ class NativeWrapper<T extends NativeType> {
   /// the necessary iterator when the pointer acts as an array
   Iterable<NativeWrapper<T>> get values => [this];
 
+  static final List<NativeWrapper> _pointers = [];
+
+  /// **WARNING!** this will free all the allocated instances in the code!
+  ///
+  /// Execute at the end of the program only!
+  static void flushPointers() {
+    for (final pointer in List<NativeWrapper>.of(_pointers)) {
+      pointer.Free();
+    }
+  }
+
   /// Default constructor that allocates a fresh block of native memory on the C heap.
   ///
   /// The total size allocated is calculated as `size * length`.
@@ -95,7 +108,10 @@ class NativeWrapper<T extends NativeType> {
     this.length = 1,
     RaylibArena? arena,
   }) : pointer = malloc.allocate<T>(size * length) {
-    if (IsOwner) arena?.register(this);
+    if (IsOwner) {
+      arena?.register(this);
+      _pointers.add(this);
+    }
   }
 
   /// Alternative constructor to wrap an existing native pointer without reallocating memory.
@@ -107,7 +123,10 @@ class NativeWrapper<T extends NativeType> {
     this.length = 1,
     RaylibArena? arena,
   }) : pointer = .fromAddress(pointer.address) {
-    if (IsOwner) arena?.register(this);
+    if (IsOwner) {
+      arena?.register(this);
+      _pointers.add(this);
+    }
   }
 
   // Direct call to [arena] to register [this] to be freed
@@ -123,6 +142,7 @@ class NativeWrapper<T extends NativeType> {
     if (!IsOwner) return;
 
     _disposed = true;
+    _pointers.remove(this);
     malloc.free(this.pointer);
   }
 }

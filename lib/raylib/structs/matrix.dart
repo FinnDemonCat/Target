@@ -4,9 +4,42 @@ part of '../raylib.dart';
 // Module Functions Definition - Matrix math
 //------------------------------------------------------------------------------------
 
-// typedef _FreeMatrixC    = Void Function(Pointer<Void> token);
-// typedef _FreeMatrixDart = void Function(Pointer<Void> token);
-// final _freeMatrix = _dyReleaseLib.lookup<NativeFunction<_FreeMatrixC>>('FreeMatrix');
+// Matrix, 4x4 components, column major, OpenGL style, right-handed
+// ToDO: Implement native Raylib Matrix constructors inside struct
+final class _Matrix extends Struct {
+  @Float()
+  external double m0;
+  @Float()
+  external double m4;
+  @Float()
+  external double m8;
+  @Float()
+  external double m12;
+  @Float()
+  external double m1;
+  @Float()
+  external double m5;
+  @Float()
+  external double m9;
+  @Float()
+  external double m13;
+  @Float()
+  external double m2;
+  @Float()
+  external double m6;
+  @Float()
+  external double m10;
+  @Float()
+  external double m14;
+  @Float()
+  external double m3;
+  @Float()
+  external double m7;
+  @Float()
+  external double m11;
+  @Float()
+  external double m15;
+}
 
 /// Matrix, 4x4 components, column major, OpenGL style, right-handed
 class Matrix extends NativeWrapper<_Matrix> implements Finalizable {

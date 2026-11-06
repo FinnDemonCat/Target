@@ -4,10 +4,25 @@ part of '../raylib.dart';
 //                                   Texture
 //------------------------------------------------------------------------------------
 
-// Unload texture from GPU memory (VRAM)
-// typedef _FreeTextureC    = Void Function(Pointer<Void> token);
-// typedef _FreeTextureDart = void Function(Pointer<Void> token);
-// final _freeTexture = _dyReleaseLib.lookup<NativeFunction<_FreeTextureC>>('FreeTexture');
+/// Texture, tex data stored in GPU memory (VRAM)
+final class _Texture extends Struct {
+  @Uint32()
+  external int id; // OpenGL texture id
+  @Int32()
+  external int width; // Texture base width
+  @Int32()
+  external int height; // Texture base height
+  @Int32()
+  external int mipmaps; // Mipmap levels, 1 by default
+  @Int32()
+  external int format; // Data format (PixelFormat type)
+}
+
+// Texture2D, same as Texture
+typedef _Texture2D = _Texture;
+
+// TextureCubemap, same as Texture
+typedef _TextureCubemap = _Texture;
 
 /// Texture, tex data stored in GPU memory (VRAM)
 class Texture2D extends NativeWrapper<_Texture2D> implements Finalizable {
@@ -285,10 +300,16 @@ class TextureCubemap extends Texture2D {
 //                                 RenderTexture2D
 //------------------------------------------------------------------------------------
 
-// Unload render texture from GPU memory (VRAM)
-// typedef _FreeRenderTextureC    = Void Function(Pointer<Void> token);
-// typedef _FreeRenderTextureDart = void Function(Pointer<Void> token);
-// final _freeRenderTexture = _dyReleaseLib.lookup<NativeFunction<_FreeRenderTextureC>>('FreeRenderTexture');
+// RenderTexture, fbo for texture rendering
+final class _RenderTexture extends Struct {
+  @Uint32()
+  external int id; // OpenGL framebuffer object id
+  external _Texture texture; // Color buffer attachment texture
+  external _Texture depth; // Depth buffer attachment texture
+}
+
+// RenderTexture2D, same as RenderTexture
+typedef _RenderTexture2D = _RenderTexture;
 
 /// RenderTexture, fbo for texture rendering
 class RenderTexture2D extends NativeWrapper<_RenderTexture2D>

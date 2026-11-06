@@ -4,9 +4,18 @@ part of '../raylib.dart';
 //                                   Image
 //------------------------------------------------------------------------------------
 
-// typedef _FreeImageC    = Void Function(Pointer<Void> token);
-// typedef _FreeImageDart = void Function(Pointer<Void> token);
-// final _freeImage = _dyReleaseLib.lookup<NativeFunction<_FreeImageC>>('FreeImage');
+// Image, pixel data stored in CPU memory (RAM)
+final class _Image extends Struct {
+  external Pointer<Void> data; // Image raw data
+  @Int32()
+  external int width; // Image base width
+  @Int32()
+  external int height; // Image base height
+  @Int32()
+  external int mipmaps; // Mipmap levels, 1 by default
+  @Int32()
+  external int format; // Data format (PixelFormat type)
+}
 
 /// Image, pixel data stored in CPU memory (RAM)
 class Image extends NativeWrapper<_Image> implements Finalizable {

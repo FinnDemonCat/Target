@@ -4,9 +4,12 @@ part of '../raylib.dart';
 //                                   Transform
 //------------------------------------------------------------------------------------
 
-// typedef _FreeTransformC    = Void Function(Pointer<Void> token);
-// typedef _FreeTransformDart = void Function(Pointer<Void> token);
-// final _freeTransform = _dyReleaseLib.lookup<NativeFunction<_FreeTransformC>>('FreeTransform');
+// Transform, vertex transformation data
+final class _Transform extends Struct {
+  external _Vector3 translation; // Translation
+  external _Quaternion rotation; // Rotation
+  external _Vector3 scale; // Scale
+}
 
 /// Transform, vertex transformation data
 class Transform extends NativeWrapper<_Transform> implements Finalizable {

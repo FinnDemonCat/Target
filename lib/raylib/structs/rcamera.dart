@@ -4,9 +4,17 @@ part of '../raylib.dart';
 //                                   Camera
 //------------------------------------------------------------------------------------
 
-// typedef _FreeCamera2DC    = Void Function(Pointer<Void> token);
-// typedef _FreeCamera2DDart = void Function(Pointer<Void> token);
-// final _freeCamera2D = _dyReleaseLib.lookup<NativeFunction<_FreeCamera2DC>>('FreeCamera2D');
+// Camera2D, defines position/orientation in 2d space
+final class _Camera2D extends Struct {
+  external _Vector2
+  offset; // Camera offset (screen space offset from window origin)
+  external _Vector2
+  target; // Camera target (world space target point that is mapped to screen space offset)
+  @Float()
+  external double rotation; // Camera rotation in degrees (pivots around target)
+  @Float()
+  external double zoom; // Camera zoom (scaling around target), must not be set to 0, set to 1.0f for no scale
+}
 
 /// Camera2D, defines position/orientation in 2d space
 class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
@@ -62,9 +70,18 @@ class Camera2D extends NativeWrapper<_Camera2D> implements Finalizable {
   }
 }
 
-// typedef _FreeCameraC    = Void Function(Pointer<Void> token);
-// typedef _FreeCameraDart = void Function(Pointer<Void> token);
-// final _freeCamera = _dyReleaseLib.lookup<NativeFunction<_FreeCameraC>>('FreeCamera');
+// Camera, defines position/orientation in 3d space
+final class _Camera3D extends Struct {
+  external _Vector3 position; // Camera position
+  external _Vector3 target; // Camera target it looks-at
+  external _Vector3 up; // Camera up vector (rotation over its axis)
+  @Float()
+  external double fovy; // Camera field-of-view aperture in Y (degrees) in perspective, used as near plane height in world units in orthographic
+  @Int32()
+  external int projection; // Camera projection: CAMERA_PERSPECTIVE or CAMERA_ORTHOGRAPHIC
+}
+
+typedef _Camera = _Camera3D; // Camera type fallback, defaults to Camera3D
 
 /// Camera, defines position/orientation in 3d space
 class Camera extends NativeWrapper<_Camera> implements Finalizable {

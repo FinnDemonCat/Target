@@ -4,9 +4,11 @@ part of '../raylib.dart';
 //                                 BoundingBox
 //------------------------------------------------------------------------------------
 
-// typedef _FreeBoundingBoxC    = Void Function(Pointer<Void> token);
-// typedef _FreeBoundingBoxDart = void Function(Pointer<Void> token);
-// final _freeBoundingBox = _dyReleaseLib.lookup<NativeFunction<_FreeBoundingBoxC>>('FreeBoundingBox');
+// BoundingBox
+final class _BoundingBox extends Struct {
+  external _Vector3 min; // Minimum vertex box-corner
+  external _Vector3 max; // Maximum vertex box-corner
+}
 
 /// BoundingBox
 class BoundingBox extends NativeWrapper<_BoundingBox> implements Finalizable {

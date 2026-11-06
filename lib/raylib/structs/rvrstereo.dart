@@ -1,5 +1,27 @@
 part of '../raylib.dart';
 
+// VrDeviceInfo, Head-Mounted-Display device parameters
+final class _VrDeviceInfo extends Struct {
+  @Int32()
+  external int hResolution; // Horizontal resolution in pixels
+  @Int32()
+  external int vResolution; // Vertical resolution in pixels
+  @Float()
+  external double hScreenSize; // Horizontal size in meters
+  @Float()
+  external double vScreenSize; // Vertical size in meters
+  @Float()
+  external double eyeToScreenDistance; // Distance between eye and display in meters
+  @Float()
+  external double lensSeparationDistance; // Lens separation distance in meters
+  @Float()
+  external double interpupillaryDistance; // IPD (distance between pupils) in meters
+  @Array(4)
+  external Array<Float> lensDistortionValues; // Lens distortion constant parameters
+  @Array(4)
+  external Array<Float> chromaAbCorrection; // Chromatic aberration correction parameters
+}
+
 class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
   _VrDeviceInfo get ref => pointer.ref;
   set ref(_VrDeviceInfo value) => pointer.ref = value;
@@ -114,6 +136,25 @@ class VrDeviceInfo extends NativeWrapper<_VrDeviceInfo> {
     _finalizer.detach(this);
     super.Free();
   }
+}
+
+final class _VrStereoConfig extends Struct {
+  @Array(2)
+  external Array<_Matrix> projection;
+  @Array(2)
+  external Array<_Matrix> viewOffset;
+  @Array(2)
+  external Array<Float> leftLensCenter;
+  @Array(2)
+  external Array<Float> rightLensCenter;
+  @Array(2)
+  external Array<Float> leftScreenCenter;
+  @Array(2)
+  external Array<Float> rightScreenCenter;
+  @Array(2)
+  external Array<Float> scale;
+  @Array(2)
+  external Array<Float> scaleIn;
 }
 
 class VrStereoConfig extends NativeWrapper<_VrStereoConfig> {

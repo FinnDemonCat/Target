@@ -1,8 +1,16 @@
 part of '../raylib.dart';
 
-// typedef _FreeColorC    = Void Function(Pointer<Void> token);
-// typedef _FreeColorDart = void Function(Pointer<Void> token);
-// final _freeColor = _dyReleaseLib.lookup<NativeFunction<_FreeColorC>>('FreeColor');
+/// Color, 4 components, R8G8B8A8 (32bit)
+final class _Color extends Struct {
+  @Uint8()
+  external int r; // Color red value
+  @Uint8()
+  external int g; // Color green value
+  @Uint8()
+  external int b; // Color blue value
+  @Uint8()
+  external int a; // Color alpha value
+}
 
 /// Color, 4 components, R8G8B8A8 (32bit)
 class Color extends NativeWrapper<_Color> implements Finalizable {

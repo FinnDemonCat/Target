@@ -4,9 +4,13 @@ part of '../raylib.dart';
 //                                   BoneInfo
 //------------------------------------------------------------------------------------
 
-// typedef _FreeBoneInfoC    = Void Function(Pointer<Void> token);
-// typedef _FreeBoneInfoDart = void Function(Pointer<Void> token);
-// final _freeBoneInfo = _dyReleaseLib.lookup<NativeFunction<_FreeBoneInfoC>>('FreeBoneInfo');
+// Bone, skeletal animation bone
+final class _BoneInfo extends Struct {
+  @Array(32)
+  external Array<Uint8> name; // Bone name
+  @Int32()
+  external int parent; // Bone parent
+}
 
 /// Bone, skeletal animation bone
 class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
@@ -76,10 +80,24 @@ class BoneInfo extends NativeWrapper<_BoneInfo> implements Finalizable {
 //                                   Model
 //------------------------------------------------------------------------------------
 
-// Unload model (including meshes) from memory (RAM and/or VRAM)
-// typedef _FreeModelC    = Void Function(Pointer<Void> token);
-// typedef _FreeModelDart = void Function(Pointer<Void> token);
-// final _freeModel = _dyReleaseLib.lookup<NativeFunction<_FreeModelC>>('FreeModel');
+// Model, meshes, materials and animation data
+final class _Model extends Struct {
+  external _Matrix transform; // Local transform matrix
+
+  @Int32()
+  external int meshCount; // Number of meshes
+  @Int32()
+  external int materialCount; // Number of materials
+  external Pointer<_Mesh> meshes; // Meshes array
+  external Pointer<_Material> materials; // Materials array
+  external Pointer<Int32> meshMaterial; // Mesh material number
+
+  // Animation data
+  @Int32()
+  external int boneCount; // Number of bones
+  external Pointer<_BoneInfo> bones; // Bones information (skeleton)
+  external Pointer<_Transform> bindPose; // Bones base transformation (pose)
+}
 
 /// Model, meshes, materials and animation data
 class Model extends NativeWrapper<_Model> implements Finalizable {
@@ -352,10 +370,17 @@ class Model extends NativeWrapper<_Model> implements Finalizable {
 //                                ModelAnimation
 //------------------------------------------------------------------------------------
 
-// Unload animation array data
-// typedef _FreeModelAnimationC    = Void Function(Pointer<Void> token);
-// typedef _FreeModelAnimationDart = void Function(Pointer<Void> token);
-// final _freeModelAnimation = _dyReleaseLib.lookup<NativeFunction<_FreeModelAnimationC>>('FreeModelAnimation');
+// ModelAnimation
+final class _ModelAnimation extends Struct {
+  @Int32()
+  external int boneCount; // Number of bones
+  @Int32()
+  external int frameCount; // Number of animation frames
+  external Pointer<_BoneInfo> bones; // Bones information (skeleton)
+  external Pointer<Pointer<_Transform>> framePoses; // Poses array by frame
+  @Array(32)
+  external Array<Uint8> name; // Animation name
+}
 
 /// ModelAnimation
 class ModelAnimation extends NativeWrapper<_ModelAnimation>
@@ -498,9 +523,11 @@ class ModelAnimation extends NativeWrapper<_ModelAnimation>
 //                                      Ray
 //------------------------------------------------------------------------------------
 
-// typedef _FreeRayC    = Void Function(Pointer<Void> token);
-// typedef _FreeRayDart = void Function(Pointer<Void> token);
-// final _freeRay = _dyReleaseLib.lookup<NativeFunction<_FreeRayC>>('FreeRay');
+// Ray, ray for raycasting
+final class _Ray extends Struct {
+  external _Vector3 position; // Ray position (origin)
+  external _Vector3 direction; // Ray direction (normalized)
+}
 
 /// Ray, ray for raycasting
 class Ray extends NativeWrapper<_Ray> implements Finalizable {
@@ -587,9 +614,14 @@ class Ray extends NativeWrapper<_Ray> implements Finalizable {
   }
 }
 
-// typedef _FreeRayCollisionC    = Void Function(Pointer<Void> token);
-// typedef _FreeRayCollisionDart = void Function(Pointer<Void> token);
-// final _freeRayCollision = _dyReleaseLib.lookup<NativeFunction<_FreeRayCollisionC>>('FreeRayCollision');
+final class _RayCollision extends Struct {
+  @Bool()
+  external bool hit; // Did the ray hit something?
+  @Float()
+  external double distance; // Distance to the nearest hit
+  external _Vector3 point; // Point of the nearest hit
+  external _Vector3 normal; // Surface normal of hit
+}
 
 /// RayCollision, ray hit information
 class RayCollision extends NativeWrapper<_RayCollision> implements Finalizable {

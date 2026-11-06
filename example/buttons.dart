@@ -76,7 +76,7 @@ class Button extends IInteractible {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (texture case Texture buttonTexture) {
       rayCompute((arena) {
         var npatchInfo = NPatchInfo(
@@ -106,7 +106,7 @@ class Button extends IInteractible {
       );
     }
 
-    widget?.DrawWidget();
+    widget?.Draw();
   }
 
   @override
@@ -213,7 +213,7 @@ class Slider extends IInteractible {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     rayCompute((arena) {
       if (state == InteractState.Pressed) {
         value = (Mouse.GetX() - x) / barRect.width;
@@ -275,7 +275,7 @@ class Area extends Widget {
   Area({required super.sizing, Widget? child}) : this.widget = child;
 
   @override
-  void DrawWidget() => widget?.DrawWidget();
+  void Draw() => widget?.Draw();
 
   @override
   void Mount() {
@@ -327,7 +327,7 @@ class Locked extends Widget {
       widget.Set(x: x, y: y, width: width, height: height);
 
   @override
-  void DrawWidget() => widget.DrawWidget();
+  void Draw() => widget.Draw();
 
   @override
   void Mount() {
@@ -373,7 +373,7 @@ class Picture extends Widget {
   }
 
   @override
-  void DrawWidget() {
+  void Draw() {
     if (!_useNpatch) {
       Texture.DrawNPatch(texture, _nPatchInfo, this);
     } else {
